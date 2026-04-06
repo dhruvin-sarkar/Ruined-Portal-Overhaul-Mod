@@ -3,15 +3,8 @@
 	"id": "ruined_portal_overhaul",
 	"version": "${version}",
 	"name": "Ruined Portal Overhaul",
-	"description": "This is an example description! Tell everyone what your mod is about!",
-	"authors": [
-		"Me!"
-	],
-	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
-	},
-	"license": "CC0-1.0",
+	"description": "Transforms overworld ruined portals into corrupted portal dungeons with custom Piglin Illagers, loot, and expansion hooks for future raid content.",
+	"license": "Apache-2.0",
 	"icon": "assets/ruined_portal_overhaul/icon.png",
 	"environment": "*",
 	"entrypoints": {
@@ -26,6 +19,6 @@
 		"fabricloader": ">=0.18.6",
 		"minecraft": "~1.21.11",
 		"java": ">=21",
-		"fabric-api": "*"
+		"fabric-api": ">=0.141.3+1.21.11"
 	}
 }

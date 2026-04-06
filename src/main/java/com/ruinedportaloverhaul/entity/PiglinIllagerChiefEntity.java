@@ -10,6 +10,8 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -29,9 +31,9 @@ public class PiglinIllagerChiefEntity extends PiglinIllagerBruteEntity {
 
     public static AttributeSupplier.Builder createAttributes() {
         return Monster.createMonsterAttributes()
-            .add(Attributes.MOVEMENT_SPEED, 0.35f)
+            .add(Attributes.MOVEMENT_SPEED, 0.28f)
             .add(Attributes.MAX_HEALTH, 100.0)
-            .add(Attributes.ATTACK_DAMAGE, 12.0)
+            .add(Attributes.ATTACK_DAMAGE, 10.0)
             .add(Attributes.FOLLOW_RANGE, 32.0);
     }
 
@@ -58,6 +60,7 @@ public class PiglinIllagerChiefEntity extends PiglinIllagerBruteEntity {
 
         if (damaged && this.isAlive() && !this.reinforcementsSpawned && this.getHealth() <= this.getMaxHealth() * 0.5f) {
             this.reinforcementsSpawned = true;
+            this.addEffect(new MobEffectInstance(MobEffects.SPEED, 200, 0));
             this.spawnReinforcements(serverLevel);
         }
 

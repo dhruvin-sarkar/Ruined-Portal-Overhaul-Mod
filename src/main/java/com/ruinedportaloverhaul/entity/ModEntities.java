@@ -3,13 +3,12 @@ package com.ruinedportaloverhaul.entity;
 import com.ruinedportaloverhaul.RuinedPortalOverhaul;
 import java.util.function.Supplier;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
-import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
+import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityType;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
@@ -76,14 +75,11 @@ public final class ModEntities {
         return Registry.register(
             BuiltInRegistries.ENTITY_TYPE,
             identifier,
-            FabricEntityTypeBuilder.<T>createMob()
-                .spawnGroup(MobCategory.MONSTER)
-                .entityFactory(factory)
-                .dimensions(EntityDimensions.scalable(0.6f, 1.95f))
-                .trackRangeBlocks(8)
-                .trackedUpdateRate(3)
+            FabricEntityType.Builder.createMob(factory, MobCategory.MONSTER, mob -> mob.defaultAttributes(attributes))
+                .sized(0.6f, 1.95f)
+                .clientTrackingRange(8)
+                .updateInterval(3)
                 .fireImmune()
-                .defaultAttributes(attributes)
                 .build(ResourceKey.create(Registries.ENTITY_TYPE, identifier))
         );
     }

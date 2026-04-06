@@ -319,10 +319,10 @@ public class PortalDungeonPiece extends StructurePiece {
 
     private List<BlockPos> chooseDeepChests(RandomSource random) {
         List<BlockPos> candidates = List.of(
-            new BlockPos(this.centerX, this.surfaceY - PIT_DEPTH + 1, this.centerZ - 10),
-            new BlockPos(this.centerX + 10, this.surfaceY - PIT_DEPTH + 1, this.centerZ),
-            new BlockPos(this.centerX, this.surfaceY - PIT_DEPTH + 1, this.centerZ + 10),
-            new BlockPos(this.centerX - 10, this.surfaceY - PIT_DEPTH + 1, this.centerZ)
+            new BlockPos(this.centerX, this.surfaceY - PIT_DEPTH + 1, this.centerZ - 9),
+            new BlockPos(this.centerX + 9, this.surfaceY - PIT_DEPTH + 1, this.centerZ),
+            new BlockPos(this.centerX, this.surfaceY - PIT_DEPTH + 1, this.centerZ + 9),
+            new BlockPos(this.centerX - 9, this.surfaceY - PIT_DEPTH + 1, this.centerZ)
         );
 
         return this.pickUniquePositions(random, candidates, 2);
@@ -331,10 +331,10 @@ public class PortalDungeonPiece extends StructurePiece {
     private List<TunnelDefinition> chooseTunnels(RandomSource random) {
         int chamberFloor = this.surfaceY - PIT_DEPTH;
         List<TunnelDefinition> tunnels = new ArrayList<>();
-        tunnels.add(new TunnelDefinition(this.centerX, chamberFloor + 1, this.centerZ - 4, Direction.NORTH, 6 + random.nextInt(4)));
-        tunnels.add(new TunnelDefinition(this.centerX + 4, chamberFloor + 1, this.centerZ, Direction.EAST, 6 + random.nextInt(4)));
-        tunnels.add(new TunnelDefinition(this.centerX, chamberFloor + 1, this.centerZ + 4, Direction.SOUTH, 6 + random.nextInt(4)));
-        tunnels.add(new TunnelDefinition(this.centerX - 4, chamberFloor + 1, this.centerZ, Direction.WEST, 6 + random.nextInt(4)));
+        tunnels.add(new TunnelDefinition(this.centerX, chamberFloor, this.centerZ - 4, Direction.NORTH, 6 + random.nextInt(4)));
+        tunnels.add(new TunnelDefinition(this.centerX + 4, chamberFloor, this.centerZ, Direction.EAST, 6 + random.nextInt(4)));
+        tunnels.add(new TunnelDefinition(this.centerX, chamberFloor, this.centerZ + 4, Direction.SOUTH, 6 + random.nextInt(4)));
+        tunnels.add(new TunnelDefinition(this.centerX - 4, chamberFloor, this.centerZ, Direction.WEST, 6 + random.nextInt(4)));
         return tunnels;
     }
 

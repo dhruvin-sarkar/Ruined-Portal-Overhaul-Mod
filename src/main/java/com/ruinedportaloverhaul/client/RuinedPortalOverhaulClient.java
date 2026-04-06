@@ -4,7 +4,7 @@ import com.ruinedportaloverhaul.RuinedPortalOverhaul;
 import com.ruinedportaloverhaul.client.render.PiglinIllagerRenderer;
 import com.ruinedportaloverhaul.entity.ModEntities;
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
+import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.minecraft.resources.Identifier;
 
 public final class RuinedPortalOverhaulClient implements ClientModInitializer {
@@ -14,15 +14,15 @@ public final class RuinedPortalOverhaulClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        EntityRendererRegistry.register(
+        EntityRenderers.register(
             ModEntities.PIGLIN_ILLAGER_RANGED,
             context -> new PiglinIllagerRenderer<>(context, RANGED_TEXTURE)
         );
-        EntityRendererRegistry.register(
+        EntityRenderers.register(
             ModEntities.PIGLIN_ILLAGER_BRUTE,
             context -> new PiglinIllagerRenderer<>(context, BRUTE_TEXTURE)
         );
-        EntityRendererRegistry.register(
+        EntityRenderers.register(
             ModEntities.PIGLIN_ILLAGER_CHIEF,
             context -> new PiglinIllagerRenderer<>(context, CHIEF_TEXTURE)
         );
