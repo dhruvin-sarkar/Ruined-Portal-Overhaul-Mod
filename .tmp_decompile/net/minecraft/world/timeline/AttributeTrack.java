@@ -1,0 +1,40 @@
+/*
+ * Decompiled with CFR 0.152.
+ * 
+ * Could not load the following classes:
+ *  com.mojang.serialization.Codec
+ *  com.mojang.serialization.DataResult
+ *  com.mojang.serialization.MapCodec
+ */
+package net.minecraft.world.timeline;
+
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.MapCodec;
+import java.util.Optional;
+import java.util.function.LongSupplier;
+import net.minecraft.util.KeyframeTrack;
+import net.minecraft.util.Util;
+import net.minecraft.world.attribute.EnvironmentAttribute;
+import net.minecraft.world.attribute.modifier.AttributeModifier;
+import net.minecraft.world.timeline.AttributeTrackSampler;
+
+public record AttributeTrack<Value, Argument>(AttributeModifier<Value, Argument> modifier, KeyframeTrack<Argument> argumentTrack) {
+    public static <Value> Codec<AttributeTrack<Value, ?>> createCodec(EnvironmentAttribute<Value> environmentAttribute) {
+        MapCodec mapCodec = environmentAttribute.type().modifierCodec().optionalFieldOf("modifier", AttributeModifier.override());
+        return mapCodec.dispatch(AttributeTrack::modifier, Util.memoize(attributeModifier -> AttributeTrack.createCodecWithModifier(environmentAttribute, attributeModifier)));
+    }
+
+    private static <Value, Argument> MapCodec<AttributeTrack<Value, Argument>> createCodecWithModifier(EnvironmentAttribute<Value> environmentAttribute, AttributeModifier<Value, Argument> attributeModifier) {
+        return KeyframeTrack.mapCodec(attributeModifier.argumentCodec(environmentAttribute)).xmap(keyframeTrack -> new AttributeTrack(attributeModifier, keyframeTrack), AttributeTrack::argumentTrack);
+    }
+
+    public AttributeTrackSampler<Value, Argument> bakeSampler(EnvironmentAttribute<Value> environmentAttribute, Optional<Integer> optional, LongSupplier longSupplier) {
+        return new AttributeTrackSampler<Value, Argument>(optional, this.modifier, this.argumentTrack, this.modifier.argumentKeyframeLerp(environmentAttribute), longSupplier);
+    }
+
+    public static DataResult<AttributeTrack<?, ?>> validatePeriod(AttributeTrack<?, ?> attributeTrack, int i) {
+        return KeyframeTrack.validatePeriod(attributeTrack.argumentTrack(), i).map(keyframeTrack -> attributeTrack);
+    }
+}
+
