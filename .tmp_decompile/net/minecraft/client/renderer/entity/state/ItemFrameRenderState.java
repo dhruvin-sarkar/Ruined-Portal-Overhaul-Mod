@@ -1,0 +1,30 @@
+/*
+ * Decompiled with CFR 0.152.
+ * 
+ * Could not load the following classes:
+ *  net.fabricmc.api.EnvType
+ *  net.fabricmc.api.Environment
+ *  org.jspecify.annotations.Nullable
+ */
+package net.minecraft.client.renderer.entity.state;
+
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
+import net.minecraft.client.renderer.state.MapRenderState;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.saveddata.maps.MapId;
+import org.jspecify.annotations.Nullable;
+
+@Environment(value=EnvType.CLIENT)
+public class ItemFrameRenderState
+extends EntityRenderState {
+    public Direction direction = Direction.NORTH;
+    public final ItemStackRenderState item = new ItemStackRenderState();
+    public int rotation;
+    public boolean isGlowFrame;
+    public @Nullable MapId mapId;
+    public final MapRenderState mapRenderState = new MapRenderState();
+}
+
