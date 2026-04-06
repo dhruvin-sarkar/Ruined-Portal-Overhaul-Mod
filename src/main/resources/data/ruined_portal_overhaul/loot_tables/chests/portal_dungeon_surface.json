@@ -2,11 +2,16 @@
   "type": "minecraft:chest",
   "pools": [
     {
-      "rolls": 4,
+      "rolls": {
+        "type": "minecraft:uniform",
+        "min": 3.0,
+        "max": 5.0
+      },
       "entries": [
         {
           "type": "minecraft:item",
           "name": "minecraft:gold_ingot",
+          "weight": 5,
           "functions": [
             {
               "function": "minecraft:set_count",
@@ -21,6 +26,7 @@
         {
           "type": "minecraft:item",
           "name": "minecraft:iron_ingot",
+          "weight": 5,
           "functions": [
             {
               "function": "minecraft:set_count",
@@ -35,6 +41,7 @@
         {
           "type": "minecraft:item",
           "name": "minecraft:obsidian",
+          "weight": 4,
           "functions": [
             {
               "function": "minecraft:set_count",
@@ -49,6 +56,7 @@
         {
           "type": "minecraft:item",
           "name": "minecraft:nether_brick",
+          "weight": 4,
           "functions": [
             {
               "function": "minecraft:set_count",
@@ -62,19 +70,50 @@
         },
         {
           "type": "minecraft:item",
-          "name": "minecraft:golden_apple"
+          "name": "minecraft:golden_apple",
+          "weight": 2,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1.0,
+                "max": 2.0
+              }
+            }
+          ]
         },
         {
           "type": "minecraft:item",
-          "name": "minecraft:flint_and_steel"
+          "name": "minecraft:potion",
+          "weight": 2,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:potion_contents": "minecraft:fire_resistance"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:empty",
+          "weight": 6
         },
         {
           "type": "minecraft:item",
-          "name": "minecraft:golden_sword"
+          "name": "minecraft:golden_sword",
+          "weight": 1
         },
         {
           "type": "minecraft:item",
-          "name": "minecraft:golden_chestplate"
+          "name": "minecraft:golden_chestplate",
+          "weight": 1
         }
       ]
     }
