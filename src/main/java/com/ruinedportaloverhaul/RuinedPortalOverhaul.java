@@ -1,5 +1,6 @@
 package com.ruinedportaloverhaul;
 
+import com.ruinedportaloverhaul.entity.ModEntities;
 import com.ruinedportaloverhaul.world.ModStructures;
 import net.fabricmc.api.ModInitializer;
 import org.slf4j.Logger;
@@ -12,6 +13,7 @@ public class RuinedPortalOverhaul implements ModInitializer {
     @Override
     public void onInitialize() {
         LOGGER.info("Initializing {}", MOD_ID);
+        ModEntities.initialize();
         ModStructures.initialize();
     }
 }

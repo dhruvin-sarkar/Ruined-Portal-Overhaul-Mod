@@ -17,6 +17,9 @@
 	"entrypoints": {
 		"main": [
 			"com.ruinedportaloverhaul.RuinedPortalOverhaul"
+		],
+		"client": [
+			"com.ruinedportaloverhaul.client.RuinedPortalOverhaulClient"
 		]
 	},
 	"depends": {
