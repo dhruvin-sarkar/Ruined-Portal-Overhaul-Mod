@@ -1,0 +1,735 @@
+/*
+ * Decompiled with CFR 0.152.
+ * 
+ * Could not load the following classes:
+ *  com.google.common.collect.Iterables
+ *  com.google.common.collect.Lists
+ *  com.mojang.brigadier.ImmutableStringReader
+ *  com.mojang.brigadier.Message
+ *  com.mojang.brigadier.StringReader
+ *  com.mojang.brigadier.arguments.ArgumentType
+ *  com.mojang.brigadier.context.CommandContext
+ *  com.mojang.brigadier.exceptions.CommandSyntaxException
+ *  com.mojang.brigadier.exceptions.DynamicCommandExceptionType
+ *  com.mojang.brigadier.exceptions.SimpleCommandExceptionType
+ *  com.mojang.serialization.Codec
+ *  com.mojang.serialization.DataResult
+ *  it.unimi.dsi.fastutil.objects.Object2IntMap
+ *  it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap
+ *  org.apache.commons.lang3.mutable.MutableBoolean
+ */
+package net.minecraft.commands.arguments;
+
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.mojang.brigadier.ImmutableStringReader;
+import com.mojang.brigadier.Message;
+import com.mojang.brigadier.StringReader;
+import com.mojang.brigadier.arguments.ArgumentType;
+import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
+import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import java.lang.invoke.LambdaMetafactory;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.nbt.CollectionTag;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtUtils;
+import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.TagParser;
+import net.minecraft.network.chat.Component;
+import org.apache.commons.lang3.mutable.MutableBoolean;
+
+public class NbtPathArgument
+implements ArgumentType<NbtPath> {
+    private static final Collection<String> EXAMPLES = Arrays.asList("foo", "foo.bar", "foo[0]", "[0]", "[]", "{foo=bar}");
+    public static final SimpleCommandExceptionType ERROR_INVALID_NODE = new SimpleCommandExceptionType((Message)Component.translatable("arguments.nbtpath.node.invalid"));
+    public static final SimpleCommandExceptionType ERROR_DATA_TOO_DEEP = new SimpleCommandExceptionType((Message)Component.translatable("arguments.nbtpath.too_deep"));
+    public static final DynamicCommandExceptionType ERROR_NOTHING_FOUND = new DynamicCommandExceptionType(object -> Component.translatableEscape("arguments.nbtpath.nothing_found", object));
+    static final DynamicCommandExceptionType ERROR_EXPECTED_LIST = new DynamicCommandExceptionType(object -> Component.translatableEscape("commands.data.modify.expected_list", object));
+    static final DynamicCommandExceptionType ERROR_INVALID_INDEX = new DynamicCommandExceptionType(object -> Component.translatableEscape("commands.data.modify.invalid_index", object));
+    private static final char INDEX_MATCH_START = '[';
+    private static final char INDEX_MATCH_END = ']';
+    private static final char KEY_MATCH_START = '{';
+    private static final char KEY_MATCH_END = '}';
+    private static final char QUOTED_KEY_START = '\"';
+    private static final char SINGLE_QUOTED_KEY_START = '\'';
+
+    public static NbtPathArgument nbtPath() {
+        return new NbtPathArgument();
+    }
+
+    public static NbtPath getPath(CommandContext<CommandSourceStack> commandContext, String string) {
+        return (NbtPath)commandContext.getArgument(string, NbtPath.class);
+    }
+
+    public NbtPath parse(StringReader stringReader) throws CommandSyntaxException {
+        ArrayList list = Lists.newArrayList();
+        int i = stringReader.getCursor();
+        Object2IntOpenHashMap object2IntMap = new Object2IntOpenHashMap();
+        boolean bl = true;
+        while (stringReader.canRead() && stringReader.peek() != ' ') {
+            char c;
+            Node node = NbtPathArgument.parseNode(stringReader, bl);
+            list.add(node);
+            object2IntMap.put((Object)node, stringReader.getCursor() - i);
+            bl = false;
+            if (!stringReader.canRead() || (c = stringReader.peek()) == ' ' || c == '[' || c == '{') continue;
+            stringReader.expect('.');
+        }
+        return new NbtPath(stringReader.getString().substring(i, stringReader.getCursor()), list.toArray(new Node[0]), (Object2IntMap<Node>)object2IntMap);
+    }
+
+    private static Node parseNode(StringReader stringReader, boolean bl) throws CommandSyntaxException {
+        return switch (stringReader.peek()) {
+            case '{' -> {
+                if (!bl) {
+                    throw ERROR_INVALID_NODE.createWithContext((ImmutableStringReader)stringReader);
+                }
+                CompoundTag compoundTag = TagParser.parseCompoundAsArgument(stringReader);
+                yield new MatchRootObjectNode(compoundTag);
+            }
+            case '[' -> {
+                stringReader.skip();
+                char i = stringReader.peek();
+                if (i == '{') {
+                    CompoundTag compoundTag2 = TagParser.parseCompoundAsArgument(stringReader);
+                    stringReader.expect(']');
+                    yield new MatchElementNode(compoundTag2);
+                }
+                if (i == ']') {
+                    stringReader.skip();
+                    yield AllElementsNode.INSTANCE;
+                }
+                int j = stringReader.readInt();
+                stringReader.expect(']');
+                yield new IndexedElementNode(j);
+            }
+            case '\"', '\'' -> NbtPathArgument.readObjectNode(stringReader, stringReader.readString());
+            default -> NbtPathArgument.readObjectNode(stringReader, NbtPathArgument.readUnquotedName(stringReader));
+        };
+    }
+
+    private static Node readObjectNode(StringReader stringReader, String string) throws CommandSyntaxException {
+        if (string.isEmpty()) {
+            throw ERROR_INVALID_NODE.createWithContext((ImmutableStringReader)stringReader);
+        }
+        if (stringReader.canRead() && stringReader.peek() == '{') {
+            CompoundTag compoundTag = TagParser.parseCompoundAsArgument(stringReader);
+            return new MatchObjectNode(string, compoundTag);
+        }
+        return new CompoundChildNode(string);
+    }
+
+    private static String readUnquotedName(StringReader stringReader) throws CommandSyntaxException {
+        int i = stringReader.getCursor();
+        while (stringReader.canRead() && NbtPathArgument.isAllowedInUnquotedName(stringReader.peek())) {
+            stringReader.skip();
+        }
+        if (stringReader.getCursor() == i) {
+            throw ERROR_INVALID_NODE.createWithContext((ImmutableStringReader)stringReader);
+        }
+        return stringReader.getString().substring(i, stringReader.getCursor());
+    }
+
+    public Collection<String> getExamples() {
+        return EXAMPLES;
+    }
+
+    private static boolean isAllowedInUnquotedName(char c) {
+        return c != ' ' && c != '\"' && c != '\'' && c != '[' && c != ']' && c != '.' && c != '{' && c != '}';
+    }
+
+    static Predicate<Tag> createTagPredicate(CompoundTag compoundTag) {
+        return tag -> NbtUtils.compareNbt(compoundTag, tag, true);
+    }
+
+    public /* synthetic */ Object parse(StringReader stringReader) throws CommandSyntaxException {
+        return this.parse(stringReader);
+    }
+
+    public static class NbtPath {
+        private final String original;
+        private final Object2IntMap<Node> nodeToOriginalPosition;
+        private final Node[] nodes;
+        public static final Codec<NbtPath> CODEC = Codec.STRING.comapFlatMap(string -> {
+            try {
+                NbtPath nbtPath = new NbtPathArgument().parse(new StringReader(string));
+                return DataResult.success((Object)nbtPath);
+            }
+            catch (CommandSyntaxException commandSyntaxException) {
+                return DataResult.error(() -> "Failed to parse path " + string + ": " + commandSyntaxException.getMessage());
+            }
+        }, NbtPath::asString);
+
+        public static NbtPath of(String string) throws CommandSyntaxException {
+            return new NbtPathArgument().parse(new StringReader(string));
+        }
+
+        public NbtPath(String string, Node[] nodes, Object2IntMap<Node> object2IntMap) {
+            this.original = string;
+            this.nodes = nodes;
+            this.nodeToOriginalPosition = object2IntMap;
+        }
+
+        public List<Tag> get(Tag tag) throws CommandSyntaxException {
+            List<Tag> list = Collections.singletonList(tag);
+            for (Node node : this.nodes) {
+                if (!(list = node.get(list)).isEmpty()) continue;
+                throw this.createNotFoundException(node);
+            }
+            return list;
+        }
+
+        public int countMatching(Tag tag) {
+            List<Tag> list = Collections.singletonList(tag);
+            for (Node node : this.nodes) {
+                if (!(list = node.get(list)).isEmpty()) continue;
+                return 0;
+            }
+            return list.size();
+        }
+
+        private List<Tag> getOrCreateParents(Tag tag) throws CommandSyntaxException {
+            List<Tag> list = Collections.singletonList(tag);
+            for (int i = 0; i < this.nodes.length - 1; ++i) {
+                Node node = this.nodes[i];
+                int j = i + 1;
+                if (!(list = node.getOrCreate(list, this.nodes[j]::createPreferredParentTag)).isEmpty()) continue;
+                throw this.createNotFoundException(node);
+            }
+            return list;
+        }
+
+        public List<Tag> getOrCreate(Tag tag, Supplier<Tag> supplier) throws CommandSyntaxException {
+            List<Tag> list = this.getOrCreateParents(tag);
+            Node node = this.nodes[this.nodes.length - 1];
+            return node.getOrCreate(list, supplier);
+        }
+
+        private static int apply(List<Tag> list, Function<Tag, Integer> function) {
+            return list.stream().map(function).reduce(0, (integer, integer2) -> integer + integer2);
+        }
+
+        public static boolean isTooDeep(Tag tag, int i) {
+            block4: {
+                block3: {
+                    if (i >= 512) {
+                        return true;
+                    }
+                    if (!(tag instanceof CompoundTag)) break block3;
+                    CompoundTag compoundTag = (CompoundTag)tag;
+                    for (Tag tag2 : compoundTag.values()) {
+                        if (!NbtPath.isTooDeep(tag2, i + 1)) continue;
+                        return true;
+                    }
+                    break block4;
+                }
+                if (!(tag instanceof ListTag)) break block4;
+                ListTag listTag = (ListTag)tag;
+                for (Tag tag2 : listTag) {
+                    if (!NbtPath.isTooDeep(tag2, i + 1)) continue;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public int set(Tag tag, Tag tag22) throws CommandSyntaxException {
+            if (NbtPath.isTooDeep(tag22, this.estimatePathDepth())) {
+                throw ERROR_DATA_TOO_DEEP.create();
+            }
+            Tag tag3 = tag22.copy();
+            List<Tag> list = this.getOrCreateParents(tag);
+            if (list.isEmpty()) {
+                return 0;
+            }
+            Node node = this.nodes[this.nodes.length - 1];
+            MutableBoolean mutableBoolean = new MutableBoolean(false);
+            return NbtPath.apply(list, tag2 -> node.setTag((Tag)tag2, () -> {
+                if (mutableBoolean.isFalse()) {
+                    mutableBoolean.setTrue();
+                    return tag3;
+                }
+                return tag3.copy();
+            }));
+        }
+
+        private int estimatePathDepth() {
+            return this.nodes.length;
+        }
+
+        public int insert(int i, CompoundTag compoundTag, List<Tag> list) throws CommandSyntaxException {
+            ArrayList<Tag> list2 = new ArrayList<Tag>(list.size());
+            for (Tag tag : list) {
+                Tag tag2 = tag.copy();
+                list2.add(tag2);
+                if (!NbtPath.isTooDeep(tag2, this.estimatePathDepth())) continue;
+                throw ERROR_DATA_TOO_DEEP.create();
+            }
+            List<Tag> collection = this.getOrCreate(compoundTag, ListTag::new);
+            int j = 0;
+            boolean bl = false;
+            for (Tag tag3 : collection) {
+                if (!(tag3 instanceof CollectionTag)) {
+                    throw ERROR_EXPECTED_LIST.create((Object)tag3);
+                }
+                CollectionTag collectionTag = (CollectionTag)tag3;
+                boolean bl2 = false;
+                int k = i < 0 ? collectionTag.size() + i + 1 : i;
+                for (Tag tag4 : list2) {
+                    try {
+                        if (!collectionTag.addTag(k, bl ? tag4.copy() : tag4)) continue;
+                        ++k;
+                        bl2 = true;
+                    }
+                    catch (IndexOutOfBoundsException indexOutOfBoundsException) {
+                        throw ERROR_INVALID_INDEX.create((Object)k);
+                    }
+                }
+                bl = true;
+                j += bl2 ? 1 : 0;
+            }
+            return j;
+        }
+
+        public int remove(Tag tag) {
+            List<Tag> list = Collections.singletonList(tag);
+            for (int i = 0; i < this.nodes.length - 1; ++i) {
+                list = this.nodes[i].get(list);
+            }
+            Node node = this.nodes[this.nodes.length - 1];
+            return NbtPath.apply(list, node::removeTag);
+        }
+
+        private CommandSyntaxException createNotFoundException(Node node) {
+            int i = this.nodeToOriginalPosition.getInt((Object)node);
+            return ERROR_NOTHING_FOUND.create((Object)this.original.substring(0, i));
+        }
+
+        public String toString() {
+            return this.original;
+        }
+
+        public String asString() {
+            return this.original;
+        }
+    }
+
+    static interface Node {
+        public void getTag(Tag var1, List<Tag> var2);
+
+        public void getOrCreateTag(Tag var1, Supplier<Tag> var2, List<Tag> var3);
+
+        public Tag createPreferredParentTag();
+
+        public int setTag(Tag var1, Supplier<Tag> var2);
+
+        public int removeTag(Tag var1);
+
+        default public List<Tag> get(List<Tag> list) {
+            return this.collect(list, this::getTag);
+        }
+
+        default public List<Tag> getOrCreate(List<Tag> list2, Supplier<Tag> supplier) {
+            return this.collect(list2, (tag, list) -> this.getOrCreateTag((Tag)tag, supplier, (List<Tag>)list));
+        }
+
+        default public List<Tag> collect(List<Tag> list, BiConsumer<Tag, List<Tag>> biConsumer) {
+            ArrayList list2 = Lists.newArrayList();
+            for (Tag tag : list) {
+                biConsumer.accept(tag, list2);
+            }
+            return list2;
+        }
+    }
+
+    static class MatchRootObjectNode
+    implements Node {
+        private final Predicate<Tag> predicate;
+
+        public MatchRootObjectNode(CompoundTag compoundTag) {
+            this.predicate = NbtPathArgument.createTagPredicate(compoundTag);
+        }
+
+        @Override
+        public void getTag(Tag tag, List<Tag> list) {
+            if (tag instanceof CompoundTag && this.predicate.test(tag)) {
+                list.add(tag);
+            }
+        }
+
+        @Override
+        public void getOrCreateTag(Tag tag, Supplier<Tag> supplier, List<Tag> list) {
+            this.getTag(tag, list);
+        }
+
+        @Override
+        public Tag createPreferredParentTag() {
+            return new CompoundTag();
+        }
+
+        @Override
+        public int setTag(Tag tag, Supplier<Tag> supplier) {
+            return 0;
+        }
+
+        @Override
+        public int removeTag(Tag tag) {
+            return 0;
+        }
+    }
+
+    static class MatchElementNode
+    implements Node {
+        private final CompoundTag pattern;
+        private final Predicate<Tag> predicate;
+
+        public MatchElementNode(CompoundTag compoundTag) {
+            this.pattern = compoundTag;
+            this.predicate = NbtPathArgument.createTagPredicate(compoundTag);
+        }
+
+        @Override
+        public void getTag(Tag tag, List<Tag> list) {
+            if (tag instanceof ListTag) {
+                ListTag listTag = (ListTag)tag;
+                listTag.stream().filter(this.predicate).forEach(list::add);
+            }
+        }
+
+        @Override
+        public void getOrCreateTag(Tag tag2, Supplier<Tag> supplier, List<Tag> list) {
+            MutableBoolean mutableBoolean = new MutableBoolean();
+            if (tag2 instanceof ListTag) {
+                ListTag listTag = (ListTag)tag2;
+                listTag.stream().filter(this.predicate).forEach(tag -> {
+                    list.add((Tag)tag);
+                    mutableBoolean.setTrue();
+                });
+                if (mutableBoolean.isFalse()) {
+                    CompoundTag compoundTag = this.pattern.copy();
+                    listTag.add(compoundTag);
+                    list.add(compoundTag);
+                }
+            }
+        }
+
+        @Override
+        public Tag createPreferredParentTag() {
+            return new ListTag();
+        }
+
+        @Override
+        public int setTag(Tag tag, Supplier<Tag> supplier) {
+            int i = 0;
+            if (tag instanceof ListTag) {
+                ListTag listTag = (ListTag)tag;
+                int j = listTag.size();
+                if (j == 0) {
+                    listTag.add(supplier.get());
+                    ++i;
+                } else {
+                    for (int k = 0; k < j; ++k) {
+                        Tag tag3;
+                        Tag tag2 = listTag.get(k);
+                        if (!this.predicate.test(tag2) || (tag3 = supplier.get()).equals(tag2) || !listTag.setTag(k, tag3)) continue;
+                        ++i;
+                    }
+                }
+            }
+            return i;
+        }
+
+        @Override
+        public int removeTag(Tag tag) {
+            int i = 0;
+            if (tag instanceof ListTag) {
+                ListTag listTag = (ListTag)tag;
+                for (int j = listTag.size() - 1; j >= 0; --j) {
+                    if (!this.predicate.test(listTag.get(j))) continue;
+                    listTag.remove(j);
+                    ++i;
+                }
+            }
+            return i;
+        }
+    }
+
+    static class AllElementsNode
+    implements Node {
+        public static final AllElementsNode INSTANCE = new AllElementsNode();
+
+        private AllElementsNode() {
+        }
+
+        @Override
+        public void getTag(Tag tag, List<Tag> list) {
+            if (tag instanceof CollectionTag) {
+                CollectionTag collectionTag = (CollectionTag)tag;
+                Iterables.addAll(list, (Iterable)collectionTag);
+            }
+        }
+
+        @Override
+        public void getOrCreateTag(Tag tag, Supplier<Tag> supplier, List<Tag> list) {
+            if (tag instanceof CollectionTag) {
+                CollectionTag collectionTag = (CollectionTag)tag;
+                if (collectionTag.isEmpty()) {
+                    Tag tag2 = supplier.get();
+                    if (collectionTag.addTag(0, tag2)) {
+                        list.add(tag2);
+                    }
+                } else {
+                    Iterables.addAll(list, (Iterable)collectionTag);
+                }
+            }
+        }
+
+        @Override
+        public Tag createPreferredParentTag() {
+            return new ListTag();
+        }
+
+        @Override
+        public int setTag(Tag tag, Supplier<Tag> supplier) {
+            if (tag instanceof CollectionTag) {
+                CollectionTag collectionTag = (CollectionTag)tag;
+                int i = collectionTag.size();
+                if (i == 0) {
+                    collectionTag.addTag(0, supplier.get());
+                    return 1;
+                }
+                Tag tag2 = supplier.get();
+                int j = i - (int)collectionTag.stream().filter((Predicate<Tag>)LambdaMetafactory.metafactory(null, null, null, (Ljava/lang/Object;)Z, equals(java.lang.Object ), (Lnet/minecraft/nbt/Tag;)Z)((Tag)tag2)).count();
+                if (j == 0) {
+                    return 0;
+                }
+                collectionTag.clear();
+                if (!collectionTag.addTag(0, tag2)) {
+                    return 0;
+                }
+                for (int k = 1; k < i; ++k) {
+                    collectionTag.addTag(k, supplier.get());
+                }
+                return j;
+            }
+            return 0;
+        }
+
+        @Override
+        public int removeTag(Tag tag) {
+            CollectionTag collectionTag;
+            int i;
+            if (tag instanceof CollectionTag && (i = (collectionTag = (CollectionTag)tag).size()) > 0) {
+                collectionTag.clear();
+                return i;
+            }
+            return 0;
+        }
+    }
+
+    static class IndexedElementNode
+    implements Node {
+        private final int index;
+
+        public IndexedElementNode(int i) {
+            this.index = i;
+        }
+
+        @Override
+        public void getTag(Tag tag, List<Tag> list) {
+            if (tag instanceof CollectionTag) {
+                int j;
+                CollectionTag collectionTag = (CollectionTag)tag;
+                int i = collectionTag.size();
+                int n = j = this.index < 0 ? i + this.index : this.index;
+                if (0 <= j && j < i) {
+                    list.add(collectionTag.get(j));
+                }
+            }
+        }
+
+        @Override
+        public void getOrCreateTag(Tag tag, Supplier<Tag> supplier, List<Tag> list) {
+            this.getTag(tag, list);
+        }
+
+        @Override
+        public Tag createPreferredParentTag() {
+            return new ListTag();
+        }
+
+        @Override
+        public int setTag(Tag tag, Supplier<Tag> supplier) {
+            if (tag instanceof CollectionTag) {
+                int j;
+                CollectionTag collectionTag = (CollectionTag)tag;
+                int i = collectionTag.size();
+                int n = j = this.index < 0 ? i + this.index : this.index;
+                if (0 <= j && j < i) {
+                    Tag tag2 = collectionTag.get(j);
+                    Tag tag3 = supplier.get();
+                    if (!tag3.equals(tag2) && collectionTag.setTag(j, tag3)) {
+                        return 1;
+                    }
+                }
+            }
+            return 0;
+        }
+
+        @Override
+        public int removeTag(Tag tag) {
+            if (tag instanceof CollectionTag) {
+                int j;
+                CollectionTag collectionTag = (CollectionTag)tag;
+                int i = collectionTag.size();
+                int n = j = this.index < 0 ? i + this.index : this.index;
+                if (0 <= j && j < i) {
+                    collectionTag.remove(j);
+                    return 1;
+                }
+            }
+            return 0;
+        }
+    }
+
+    static class MatchObjectNode
+    implements Node {
+        private final String name;
+        private final CompoundTag pattern;
+        private final Predicate<Tag> predicate;
+
+        public MatchObjectNode(String string, CompoundTag compoundTag) {
+            this.name = string;
+            this.pattern = compoundTag;
+            this.predicate = NbtPathArgument.createTagPredicate(compoundTag);
+        }
+
+        @Override
+        public void getTag(Tag tag, List<Tag> list) {
+            Tag tag2;
+            if (tag instanceof CompoundTag && this.predicate.test(tag2 = ((CompoundTag)tag).get(this.name))) {
+                list.add(tag2);
+            }
+        }
+
+        @Override
+        public void getOrCreateTag(Tag tag, Supplier<Tag> supplier, List<Tag> list) {
+            if (tag instanceof CompoundTag) {
+                CompoundTag compoundTag = (CompoundTag)tag;
+                Tag tag2 = compoundTag.get(this.name);
+                if (tag2 == null) {
+                    tag2 = this.pattern.copy();
+                    compoundTag.put(this.name, tag2);
+                    list.add(tag2);
+                } else if (this.predicate.test(tag2)) {
+                    list.add(tag2);
+                }
+            }
+        }
+
+        @Override
+        public Tag createPreferredParentTag() {
+            return new CompoundTag();
+        }
+
+        @Override
+        public int setTag(Tag tag, Supplier<Tag> supplier) {
+            Tag tag3;
+            CompoundTag compoundTag;
+            Tag tag2;
+            if (tag instanceof CompoundTag && this.predicate.test(tag2 = (compoundTag = (CompoundTag)tag).get(this.name)) && !(tag3 = supplier.get()).equals(tag2)) {
+                compoundTag.put(this.name, tag3);
+                return 1;
+            }
+            return 0;
+        }
+
+        @Override
+        public int removeTag(Tag tag) {
+            CompoundTag compoundTag;
+            Tag tag2;
+            if (tag instanceof CompoundTag && this.predicate.test(tag2 = (compoundTag = (CompoundTag)tag).get(this.name))) {
+                compoundTag.remove(this.name);
+                return 1;
+            }
+            return 0;
+        }
+    }
+
+    static class CompoundChildNode
+    implements Node {
+        private final String name;
+
+        public CompoundChildNode(String string) {
+            this.name = string;
+        }
+
+        @Override
+        public void getTag(Tag tag, List<Tag> list) {
+            Tag tag2;
+            if (tag instanceof CompoundTag && (tag2 = ((CompoundTag)tag).get(this.name)) != null) {
+                list.add(tag2);
+            }
+        }
+
+        @Override
+        public void getOrCreateTag(Tag tag, Supplier<Tag> supplier, List<Tag> list) {
+            if (tag instanceof CompoundTag) {
+                Tag tag2;
+                CompoundTag compoundTag = (CompoundTag)tag;
+                if (compoundTag.contains(this.name)) {
+                    tag2 = compoundTag.get(this.name);
+                } else {
+                    tag2 = supplier.get();
+                    compoundTag.put(this.name, tag2);
+                }
+                list.add(tag2);
+            }
+        }
+
+        @Override
+        public Tag createPreferredParentTag() {
+            return new CompoundTag();
+        }
+
+        @Override
+        public int setTag(Tag tag, Supplier<Tag> supplier) {
+            if (tag instanceof CompoundTag) {
+                Tag tag3;
+                CompoundTag compoundTag = (CompoundTag)tag;
+                Tag tag2 = supplier.get();
+                if (!tag2.equals(tag3 = compoundTag.put(this.name, tag2))) {
+                    return 1;
+                }
+            }
+            return 0;
+        }
+
+        @Override
+        public int removeTag(Tag tag) {
+            CompoundTag compoundTag;
+            if (tag instanceof CompoundTag && (compoundTag = (CompoundTag)tag).contains(this.name)) {
+                compoundTag.remove(this.name);
+                return 1;
+            }
+            return 0;
+        }
+    }
+}
+
