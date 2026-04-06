@@ -1,0 +1,29 @@
+/*
+ * Decompiled with CFR 0.152.
+ * 
+ * Could not load the following classes:
+ *  org.jspecify.annotations.Nullable
+ */
+package net.minecraft.world.scores;
+
+import java.util.Objects;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.numbers.NumberFormat;
+import org.jspecify.annotations.Nullable;
+
+public interface ReadOnlyScoreInfo {
+    public int value();
+
+    public boolean isLocked();
+
+    public @Nullable NumberFormat numberFormat();
+
+    default public MutableComponent formatValue(NumberFormat numberFormat) {
+        return ((NumberFormat)Objects.requireNonNullElse((Object)this.numberFormat(), (Object)numberFormat)).format(this.value());
+    }
+
+    public static MutableComponent safeFormatValue(@Nullable ReadOnlyScoreInfo readOnlyScoreInfo, NumberFormat numberFormat) {
+        return readOnlyScoreInfo != null ? readOnlyScoreInfo.formatValue(numberFormat) : numberFormat.format(0);
+    }
+}
+

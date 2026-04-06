@@ -1,0 +1,61 @@
+/*
+ * Decompiled with CFR 0.152.
+ * 
+ * Could not load the following classes:
+ *  net.fabricmc.api.EnvType
+ *  net.fabricmc.api.Environment
+ */
+package net.minecraft.client.particle;
+
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.particle.SingleQuadParticle;
+import net.minecraft.client.particle.SpriteSet;
+import net.minecraft.util.Mth;
+
+@Environment(value=EnvType.CLIENT)
+public abstract class BaseAshSmokeParticle
+extends SingleQuadParticle {
+    private final SpriteSet sprites;
+
+    protected BaseAshSmokeParticle(ClientLevel clientLevel, double d, double e, double f, float g, float h, float i, double j, double k, double l, float m, SpriteSet spriteSet, float n, int o, float p, boolean bl) {
+        super(clientLevel, d, e, f, 0.0, 0.0, 0.0, spriteSet.first());
+        float q;
+        this.friction = 0.96f;
+        this.gravity = p;
+        this.speedUpWhenYMotionIsBlocked = true;
+        this.sprites = spriteSet;
+        this.xd *= (double)g;
+        this.yd *= (double)h;
+        this.zd *= (double)i;
+        this.xd += j;
+        this.yd += k;
+        this.zd += l;
+        this.rCol = q = this.random.nextFloat() * n;
+        this.gCol = q;
+        this.bCol = q;
+        this.quadSize *= 0.75f * m;
+        this.lifetime = (int)((double)o / ((double)this.random.nextFloat() * 0.8 + 0.2) * (double)m);
+        this.lifetime = Math.max(this.lifetime, 1);
+        this.setSpriteFromAge(spriteSet);
+        this.hasPhysics = bl;
+    }
+
+    @Override
+    public SingleQuadParticle.Layer getLayer() {
+        return SingleQuadParticle.Layer.OPAQUE;
+    }
+
+    @Override
+    public float getQuadSize(float f) {
+        return this.quadSize * Mth.clamp(((float)this.age + f) / (float)this.lifetime * 32.0f, 0.0f, 1.0f);
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        this.setSpriteFromAge(this.sprites);
+    }
+}
+
