@@ -2,7 +2,9 @@
   "entity.ruined_portal_overhaul.piglin_illager_ranged": "Piglin Illager Sharpshooter",
   "entity.ruined_portal_overhaul.piglin_illager_brute": "Piglin Illager Brute",
   "entity.ruined_portal_overhaul.piglin_illager_chief": "Piglin Illager Chief",
+  "entity.ruined_portal_overhaul.piglin_illager_shaman": "Piglin Illager Shaman",
   "item.ruined_portal_overhaul.piglin_illager_ranged_spawn_egg": "Piglin Illager Sharpshooter Spawn Egg",
   "item.ruined_portal_overhaul.piglin_illager_brute_spawn_egg": "Piglin Illager Brute Spawn Egg",
-  "item.ruined_portal_overhaul.piglin_illager_chief_spawn_egg": "Piglin Illager Chief Spawn Egg"
+  "item.ruined_portal_overhaul.piglin_illager_chief_spawn_egg": "Piglin Illager Chief Spawn Egg",
+  "item.ruined_portal_overhaul.piglin_illager_shaman_spawn_egg": "Piglin Illager Shaman Spawn Egg"
 }

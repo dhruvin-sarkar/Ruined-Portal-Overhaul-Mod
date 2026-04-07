@@ -1,5 +1,6 @@
 package com.ruinedportaloverhaul.structure;
 
+import com.ruinedportaloverhaul.entity.ModEntities;
 import com.ruinedportaloverhaul.world.ModStructures;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,6 +10,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.StructureManager;
 import net.minecraft.world.level.WorldGenLevel;
@@ -101,6 +103,7 @@ public class PortalDungeonPiece extends StructurePiece {
         this.placePortalFrame(level, chunkBox);
         this.placeSurfaceChests(level, chunkBox, seededRandom, surfaceChests);
         this.placeDeepChests(level, chunkBox, seededRandom, deepChests);
+        this.spawnDungeonMobs(level, chunkBox, seededRandom, tunnels);
     }
 
     private void generateSurfaceScar(
@@ -405,6 +408,49 @@ public class PortalDungeonPiece extends StructurePiece {
         seed = seed * 31L + this.surfaceY;
         seed = seed * 31L + this.centerZ;
         return seed;
+    }
+
+    private void spawnDungeonMobs(WorldGenLevel level, BoundingBox chunkBox, RandomSource random, List<TunnelDefinition> tunnels) {
+        if (!(level instanceof net.minecraft.server.level.ServerLevel serverLevel)) {
+            return;
+        }
+
+        // Surface: 2-4 ranged scattered around the scar
+        int rangedCount = 2 + random.nextInt(3);
+        for (int i = 0; i < rangedCount; i++) {
+            int offsetX = (random.nextInt(SURFACE_RADIUS * 2) - SURFACE_RADIUS) / 2;
+            int offsetZ = (random.nextInt(SURFACE_RADIUS * 2) - SURFACE_RADIUS) / 2;
+            BlockPos spawnPos = new BlockPos(this.centerX + offsetX, this.surfaceY + 1, this.centerZ + offsetZ);
+            if (chunkBox.isInside(spawnPos)) {
+                ModEntities.PIGLIN_ILLAGER_RANGED.spawn(serverLevel, spawnPos, EntitySpawnReason.STRUCTURE);
+            }
+        }
+
+        // Tunnels: 1-2 brutes
+        int bruteCount = 1 + random.nextInt(2);
+        for (int i = 0; i < bruteCount && i < tunnels.size(); i++) {
+            TunnelDefinition tunnel = tunnels.get(random.nextInt(tunnels.size()));
+            int step = tunnel.length / 2;
+            BlockPos spawnPos = new BlockPos(
+                tunnel.startX + tunnel.direction.getStepX() * step,
+                tunnel.floorY + 1,
+                tunnel.startZ + tunnel.direction.getStepZ() * step
+            );
+            if (chunkBox.isInside(spawnPos)) {
+                ModEntities.PIGLIN_ILLAGER_BRUTE.spawn(serverLevel, spawnPos, EntitySpawnReason.STRUCTURE);
+            }
+        }
+
+        // Bottom chamber: 1 chief + 1 shaman
+        int chamberFloor = this.surfaceY - PIT_DEPTH;
+        BlockPos chiefPos = new BlockPos(this.centerX, chamberFloor + 1, this.centerZ);
+        BlockPos shamanPos = new BlockPos(this.centerX + 2, chamberFloor + 1, this.centerZ + 2);
+        if (chunkBox.isInside(chiefPos)) {
+            ModEntities.PIGLIN_ILLAGER_CHIEF.spawn(serverLevel, chiefPos, EntitySpawnReason.STRUCTURE);
+        }
+        if (chunkBox.isInside(shamanPos)) {
+            ModEntities.PIGLIN_ILLAGER_SHAMAN.spawn(serverLevel, shamanPos, EntitySpawnReason.STRUCTURE);
+        }
     }
 
     private record TunnelDefinition(int startX, int floorY, int startZ, Direction direction, int length) {

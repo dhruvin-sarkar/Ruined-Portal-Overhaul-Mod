@@ -11,6 +11,7 @@ public final class RuinedPortalOverhaulClient implements ClientModInitializer {
     private static final Identifier RANGED_TEXTURE = texture("entity/piglin_illager/ranged.png");
     private static final Identifier BRUTE_TEXTURE = texture("entity/piglin_illager/brute.png");
     private static final Identifier CHIEF_TEXTURE = texture("entity/piglin_illager/chief.png");
+    private static final Identifier SHAMAN_TEXTURE = texture("entity/piglin_illager/shaman.png");
 
     @Override
     public void onInitializeClient() {
@@ -25,6 +26,10 @@ public final class RuinedPortalOverhaulClient implements ClientModInitializer {
         EntityRenderers.register(
             ModEntities.PIGLIN_ILLAGER_CHIEF,
             context -> new PiglinIllagerRenderer<>(context, CHIEF_TEXTURE)
+        );
+        EntityRenderers.register(
+            ModEntities.PIGLIN_ILLAGER_SHAMAN,
+            context -> new PiglinIllagerRenderer<>(context, SHAMAN_TEXTURE)
         );
     }
 

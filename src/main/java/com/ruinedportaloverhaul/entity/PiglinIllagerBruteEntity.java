@@ -62,5 +62,11 @@ public class PiglinIllagerBruteEntity extends PiglinIllagerEntity {
     @Override
     protected void populateDefaultEquipmentSlots(RandomSource randomSource, DifficultyInstance difficultyInstance) {
         this.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.GOLDEN_AXE));
+        if (randomSource.nextFloat() < 0.4f) {
+            this.setItemSlot(EquipmentSlot.HEAD, new ItemStack(Items.GOLDEN_HELMET));
+        }
+        if (randomSource.nextFloat() < 0.25f) {
+            this.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.GOLDEN_CHESTPLATE));
+        }
     }
 }

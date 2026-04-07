@@ -20,6 +20,7 @@ public final class ModEntities {
     public static final Identifier PIGLIN_ILLAGER_RANGED_ID = id("piglin_illager_ranged");
     public static final Identifier PIGLIN_ILLAGER_BRUTE_ID = id("piglin_illager_brute");
     public static final Identifier PIGLIN_ILLAGER_CHIEF_ID = id("piglin_illager_chief");
+    public static final Identifier PIGLIN_ILLAGER_SHAMAN_ID = id("piglin_illager_shaman");
 
     public static final EntityType<PiglinIllagerEntity> PIGLIN_ILLAGER_RANGED = registerMonster(
         PIGLIN_ILLAGER_RANGED_ID,
@@ -36,6 +37,11 @@ public final class ModEntities {
         PiglinIllagerChiefEntity::new,
         PiglinIllagerChiefEntity::createAttributes
     );
+    public static final EntityType<PiglinIllagerShamanEntity> PIGLIN_ILLAGER_SHAMAN = registerMonster(
+        PIGLIN_ILLAGER_SHAMAN_ID,
+        PiglinIllagerShamanEntity::new,
+        PiglinIllagerShamanEntity::createAttributes
+    );
 
     public static final Item PIGLIN_ILLAGER_RANGED_SPAWN_EGG = registerSpawnEgg(
         "piglin_illager_ranged_spawn_egg",
@@ -49,6 +55,10 @@ public final class ModEntities {
         "piglin_illager_chief_spawn_egg",
         PIGLIN_ILLAGER_CHIEF
     );
+    public static final Item PIGLIN_ILLAGER_SHAMAN_SPAWN_EGG = registerSpawnEgg(
+        "piglin_illager_shaman_spawn_egg",
+        PIGLIN_ILLAGER_SHAMAN
+    );
 
     private ModEntities() {
     }
@@ -58,6 +68,7 @@ public final class ModEntities {
             entries.accept(PIGLIN_ILLAGER_RANGED_SPAWN_EGG);
             entries.accept(PIGLIN_ILLAGER_BRUTE_SPAWN_EGG);
             entries.accept(PIGLIN_ILLAGER_CHIEF_SPAWN_EGG);
+            entries.accept(PIGLIN_ILLAGER_SHAMAN_SPAWN_EGG);
         });
 
         RuinedPortalOverhaul.LOGGER.info("Registered piglin illager entity hooks");
