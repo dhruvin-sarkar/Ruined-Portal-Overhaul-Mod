@@ -66,6 +66,10 @@ public final class GoldRaidManager {
     }
 
     private static void tickLevel(ServerLevel level) {
+        if (level != level.getServer().overworld()) {
+            return;
+        }
+
         long gameTime = level.getGameTime();
         if (gameTime % 20 == 0) {
             PortalRaidState portalRaidState = PortalRaidState.get(level.getServer());
@@ -73,17 +77,21 @@ public final class GoldRaidManager {
                 if (!hasFullGoldArmor(player)) {
                     continue;
                 }
-                BlockPos portal = findNearbyPortalFrame(level, player.blockPosition(), PORTAL_TRIGGER_RANGE);
+                BlockPos portal = findNearbyPortalFrame(level, player, PORTAL_TRIGGER_RANGE);
                 if (portal == null) {
                     continue;
                 }
                 if (portalRaidState.isCompleted(portal)) {
                     continue;
                 }
-                if (portalRaidState.isRaidActive(portal)) {
-                    continue;
-                }
                 long key = raidKey(level, portal);
+                if (portalRaidState.isRaidActive(portal)) {
+                    if (!ACTIVE_RAIDS.containsKey(key)) {
+                        portalRaidState.clearActiveRaid(portal);
+                    } else {
+                        continue;
+                    }
+                }
                 if (!ACTIVE_RAIDS.containsKey(key)) {
                     startRaid(level, player, portal, key, portalRaidState);
                 }
@@ -292,12 +300,19 @@ public final class GoldRaidManager {
         };
     }
 
-    private static BlockPos findNearbyPortalFrame(ServerLevel level, BlockPos origin, int range) {
+    private static BlockPos findNearbyPortalFrame(ServerLevel level, ServerPlayer player, int range) {
+        BlockPos origin = player.blockPosition();
+        double rangeSquared = (double) range * (double) range;
         for (int y = origin.getY() - 4; y <= origin.getY() + 4; y++) {
             for (int x = origin.getX() - range; x <= origin.getX() + range; x++) {
                 for (int z = origin.getZ() - range; z <= origin.getZ() + range; z++) {
                     BlockPos portalOrigin = findPortalOriginAt(level, x, y, z);
-                    if (portalOrigin != null) {
+                    if (portalOrigin != null
+                        && player.distanceToSqr(
+                            portalOrigin.getX() + 0.5,
+                            portalOrigin.getY() + 1.0,
+                            portalOrigin.getZ() + 0.5
+                        ) <= rangeSquared) {
                         return portalOrigin;
                     }
                 }
