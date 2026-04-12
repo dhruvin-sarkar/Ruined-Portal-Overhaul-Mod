@@ -78,7 +78,7 @@ public class PiglinEvokerEntity extends Evoker {
                 1,
                 (int) Math.round((random.nextDouble() - 0.5) * 3.0)
             );
-            ModEntities.PIGLIN_PILLAGER_VEX.spawn(
+            ModEntities.PIGLIN_VEX.spawn(
                 serverLevel,
                 vex -> {
                     vex.setOwner(this);

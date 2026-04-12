@@ -1,23 +1,24 @@
 package com.ruinedportaloverhaul.client;
 
 import com.ruinedportaloverhaul.RuinedPortalOverhaul;
+import com.ruinedportaloverhaul.client.render.ExiledPiglinRenderer;
 import com.ruinedportaloverhaul.client.render.PiglinIllagerRenderer;
 import com.ruinedportaloverhaul.client.render.PiglinRavagerRenderer;
 import com.ruinedportaloverhaul.client.render.PiglinVexRenderer;
 import com.ruinedportaloverhaul.entity.ModEntities;
 import net.fabricmc.api.ClientModInitializer;
 import net.minecraft.client.renderer.entity.EntityRenderers;
-import net.minecraft.client.renderer.entity.WanderingTraderRenderer;
 import net.minecraft.resources.Identifier;
 
 public final class RuinedPortalOverhaulClient implements ClientModInitializer {
-    private static final Identifier PILLAGER_TEXTURE = texture("entity/piglin_illager/piglin_pillager.png");
-    private static final Identifier VINDICATOR_TEXTURE = texture("entity/piglin_illager/piglin_vindicator.png");
-    private static final Identifier BRUTE_PILLAGER_TEXTURE = texture("entity/piglin_illager/piglin_brute_pillager.png");
-    private static final Identifier ILLUSIONER_TEXTURE = texture("entity/piglin_illager/piglin_illusioner.png");
-    private static final Identifier EVOKER_TEXTURE = texture("entity/piglin_illager/piglin_evoker.png");
-    private static final Identifier RAVAGER_TEXTURE = texture("entity/piglin_illager/piglin_ravager.png");
-    private static final Identifier VEX_TEXTURE = texture("entity/piglin_illager/piglin_pillager_vex.png");
+    private static final Identifier PILLAGER_TEXTURE = texture("entity/piglin_pillager.png");
+    private static final Identifier VINDICATOR_TEXTURE = texture("entity/piglin_vindicator.png");
+    private static final Identifier BRUTE_PILLAGER_TEXTURE = texture("entity/piglin_brute_pillager.png");
+    private static final Identifier ILLUSIONER_TEXTURE = texture("entity/piglin_illusioner.png");
+    private static final Identifier EVOKER_TEXTURE = texture("entity/piglin_evoker.png");
+    private static final Identifier RAVAGER_TEXTURE = texture("entity/piglin_ravager.png");
+    private static final Identifier VEX_TEXTURE = texture("entity/piglin_vex.png");
+    private static final Identifier EXILED_PIGLIN_TEXTURE = texture("entity/exiled_piglin.png");
 
     @Override
     public void onInitializeClient() {
@@ -46,12 +47,12 @@ public final class RuinedPortalOverhaulClient implements ClientModInitializer {
             context -> new PiglinRavagerRenderer(context, RAVAGER_TEXTURE)
         );
         EntityRenderers.register(
-            ModEntities.PIGLIN_PILLAGER_VEX,
+            ModEntities.PIGLIN_VEX,
             context -> new PiglinVexRenderer(context, VEX_TEXTURE)
         );
         EntityRenderers.register(
-            ModEntities.EXILED_PIGLIN_TRADER,
-            WanderingTraderRenderer::new
+            ModEntities.EXILED_PIGLIN,
+            context -> new ExiledPiglinRenderer(context, EXILED_PIGLIN_TEXTURE)
         );
     }
 

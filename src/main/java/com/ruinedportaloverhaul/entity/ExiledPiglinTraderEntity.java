@@ -25,13 +25,17 @@ import net.minecraft.world.level.storage.ValueOutput;
 
 public class ExiledPiglinTraderEntity extends WanderingTrader {
     private static final long DESPAWN_AFTER_TICKS = 72_000L;
+    private static final long RESTOCK_INTERVAL_TICKS = 40_000L;
     private static final List<Component> TRADE_MESSAGES = List.of(
         Component.literal("...the portal remembers you."),
         Component.literal("Gold speaks louder than oaths."),
-        Component.literal("Take what the Nether left behind.")
+        Component.literal("Take what the Nether left behind."),
+        Component.literal("No clan. No throne. Still, I trade."),
+        Component.literal("Spend fast. The scar will not stay quiet.")
     );
 
     private long spawnGameTime = -1L;
+    private long lastRestockGameTime = -1L;
 
     public ExiledPiglinTraderEntity(EntityType<? extends ExiledPiglinTraderEntity> entityType, Level level) {
         super(entityType, level);
@@ -52,8 +56,13 @@ public class ExiledPiglinTraderEntity extends WanderingTrader {
     @Override
     protected void updateTrades(ServerLevel serverLevel) {
         MerchantOffers offers = this.getOffers();
+        offers.clear();
         offers.add(new MerchantOffer(new ItemCost(Items.GOLD_INGOT, 8), new ItemStack(Items.MAGMA_CREAM, 3), 5, 1, 0.05f));
         offers.add(new MerchantOffer(new ItemCost(Items.GOLD_INGOT, 12), new ItemStack(Items.CRYING_OBSIDIAN, 2), 4, 1, 0.05f));
+        offers.add(new MerchantOffer(new ItemCost(Items.GOLD_INGOT, 6), new ItemStack(Items.NETHER_BRICK, 16), 8, 1, 0.05f));
+        offers.add(new MerchantOffer(new ItemCost(Items.GOLD_INGOT, 10), new ItemStack(Items.BLAZE_POWDER, 4), 6, 1, 0.05f));
+        offers.add(new MerchantOffer(new ItemCost(Items.GOLD_INGOT, 18), new ItemStack(Items.OBSIDIAN, 3), 4, 2, 0.05f));
+        offers.add(new MerchantOffer(new ItemCost(Items.GOLD_INGOT, 24), new ItemStack(Items.GOLDEN_APPLE), 2, 3, 0.05f));
         offers.add(new MerchantOffer(new ItemCost(Items.GOLD_BLOCK, 2), new ItemStack(Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE), 1, 5, 0.05f));
         offers.add(new MerchantOffer(new ItemCost(Items.GOLD_INGOT, 32), Optional.empty(), new ItemStack(Items.ANCIENT_DEBRIS), 0, 1, 5, 0.05f));
     }
@@ -78,6 +87,15 @@ public class ExiledPiglinTraderEntity extends WanderingTrader {
         if (this.spawnGameTime < 0L) {
             this.spawnGameTime = this.level().getGameTime();
         }
+        if (this.lastRestockGameTime < 0L) {
+            this.lastRestockGameTime = this.level().getGameTime();
+        }
+        if (this.level().getGameTime() - this.lastRestockGameTime >= RESTOCK_INTERVAL_TICKS) {
+            for (MerchantOffer offer : this.getOffers()) {
+                offer.resetUses();
+            }
+            this.lastRestockGameTime = this.level().getGameTime();
+        }
         if (this.level().getGameTime() - this.spawnGameTime > DESPAWN_AFTER_TICKS) {
             this.discard();
         }
@@ -92,12 +110,14 @@ public class ExiledPiglinTraderEntity extends WanderingTrader {
     protected void addAdditionalSaveData(ValueOutput valueOutput) {
         super.addAdditionalSaveData(valueOutput);
         valueOutput.putLong("SpawnGameTime", this.spawnGameTime);
+        valueOutput.putLong("LastRestockGameTime", this.lastRestockGameTime);
     }
 
     @Override
     protected void readAdditionalSaveData(ValueInput valueInput) {
         super.readAdditionalSaveData(valueInput);
         this.spawnGameTime = valueInput.getLongOr("SpawnGameTime", -1L);
+        this.lastRestockGameTime = valueInput.getLongOr("LastRestockGameTime", -1L);
         this.setInvulnerable(true);
         this.setDespawnDelay(0);
     }

@@ -3,6 +3,7 @@ package com.ruinedportaloverhaul.raid;
 import com.ruinedportaloverhaul.entity.ModEntities;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -79,9 +80,12 @@ public final class GoldRaidManager {
                 if (portalRaidState.isCompleted(portal)) {
                     continue;
                 }
+                if (portalRaidState.isRaidActive(portal)) {
+                    continue;
+                }
                 long key = raidKey(level, portal);
                 if (!ACTIVE_RAIDS.containsKey(key)) {
-                    startRaid(level, player, portal, key);
+                    startRaid(level, player, portal, key, portalRaidState);
                 }
             }
         }
@@ -107,10 +111,13 @@ public final class GoldRaidManager {
             state.bossBar.addPlayer(player);
         }
 
-        state.activeMobs.removeIf(uuid -> {
+        boolean removedDeadMobs = state.activeMobs.removeIf(uuid -> {
             Entity entity = state.level.getEntity(uuid);
             return !(entity instanceof LivingEntity living) || !living.isAlive();
         });
+        if (removedDeadMobs) {
+            state.persistWaveState();
+        }
 
         if (!state.activeMobs.isEmpty()) {
             float progress = Math.max(0.05f, state.activeMobs.size() / (float) state.waveSize);
@@ -137,10 +144,14 @@ public final class GoldRaidManager {
         state.bossBar.setName(Component.literal(WAVE_LABELS[state.waveIndex]));
         spawnWave(state);
         state.delayTicks = WAVE_DELAY_TICKS;
+        state.persistWaveState();
         return false;
     }
 
-    private static void startRaid(ServerLevel level, ServerPlayer player, BlockPos origin, long key) {
+    private static void startRaid(ServerLevel level, ServerPlayer player, BlockPos origin, long key, PortalRaidState portalRaidState) {
+        if (!portalRaidState.beginRaid(origin)) {
+            return;
+        }
         ServerBossEvent bossBar = new ServerBossEvent(
             Component.literal(WAVE_LABELS[0]),
             BossEvent.BossBarColor.YELLOW,
@@ -148,10 +159,11 @@ public final class GoldRaidManager {
         );
         bossBar.setDarkenScreen(true);
         bossBar.setCreateWorldFog(false);
-        RaidState state = new RaidState(level, origin, bossBar);
+        RaidState state = new RaidState(level, origin, bossBar, portalRaidState);
         ACTIVE_RAIDS.put(key, state);
         spawnWave(state);
         state.delayTicks = WAVE_DELAY_TICKS;
+        state.persistWaveState();
     }
 
     private static void spawnWave(RaidState state) {
@@ -187,6 +199,7 @@ public final class GoldRaidManager {
             }
         }
         state.bossBar.setProgress(1.0f);
+        state.persistWaveState();
     }
 
     @SafeVarargs
@@ -222,11 +235,11 @@ public final class GoldRaidManager {
         ignitePortal(state.level, state.origin);
         spawnBossChest(state.level, state.origin);
         spawnExiledTrader(state.level, state.origin);
-        PortalRaidState.get(state.level.getServer()).markCompleted(state.origin);
+        state.portalRaidState.markCompleted(state.origin);
 
         Component message = Component.literal("The portal accepts the tribute.");
         for (ServerPlayer player : state.level.getPlayers(player -> player.distanceToSqr(state.origin.getX() + 0.5, state.origin.getY() + 0.5, state.origin.getZ() + 0.5) < 1600.0)) {
-            player.displayClientMessage(message, false);
+            player.displayClientMessage(message, true);
         }
     }
 
@@ -248,7 +261,8 @@ public final class GoldRaidManager {
     }
 
     private static void spawnExiledTrader(ServerLevel level, BlockPos origin) {
-        com.ruinedportaloverhaul.entity.ExiledPiglinTraderEntity trader = ModEntities.EXILED_PIGLIN_TRADER.spawn(
+        level.setBlock(origin.offset(2, 1, 1), Blocks.NETHER_BRICK_FENCE.defaultBlockState(), 3);
+        com.ruinedportaloverhaul.entity.ExiledPiglinTraderEntity trader = ModEntities.EXILED_PIGLIN.spawn(
             level,
             origin.offset(2, 1, 0),
             EntitySpawnReason.MOB_SUMMONED
@@ -320,17 +334,26 @@ public final class GoldRaidManager {
         private final ServerLevel level;
         private final BlockPos origin;
         private final ServerBossEvent bossBar;
+        private final PortalRaidState portalRaidState;
         private final List<UUID> activeMobs = new ArrayList<>();
         private int waveIndex;
         private int delayTicks;
         private int waveSize;
 
-        private RaidState(ServerLevel level, BlockPos origin, ServerBossEvent bossBar) {
+        private RaidState(ServerLevel level, BlockPos origin, ServerBossEvent bossBar, PortalRaidState portalRaidState) {
             this.level = level;
             this.origin = origin;
             this.bossBar = bossBar;
+            this.portalRaidState = portalRaidState;
             this.waveIndex = 0;
             this.delayTicks = 0;
+        }
+
+        private void persistWaveState() {
+            long waveEndTick = this.activeMobs.isEmpty() && this.delayTicks > 0
+                ? this.level.getGameTime() + this.delayTicks
+                : 0L;
+            this.portalRaidState.updateWave(this.origin, this.waveIndex + 1, new HashSet<>(this.activeMobs), waveEndTick);
         }
     }
 

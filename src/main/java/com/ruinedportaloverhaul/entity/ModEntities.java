@@ -24,8 +24,8 @@ public final class ModEntities {
     public static final Identifier PIGLIN_ILLUSIONER_ID = id("piglin_illusioner");
     public static final Identifier PIGLIN_EVOKER_ID = id("piglin_evoker");
     public static final Identifier PIGLIN_RAVAGER_ID = id("piglin_ravager");
-    public static final Identifier PIGLIN_PILLAGER_VEX_ID = id("piglin_pillager_vex");
-    public static final Identifier EXILED_PIGLIN_TRADER_ID = id("exiled_piglin_trader");
+    public static final Identifier PIGLIN_VEX_ID = id("piglin_vex");
+    public static final Identifier EXILED_PIGLIN_ID = id("exiled_piglin");
 
     public static final EntityType<PiglinPillagerEntity> PIGLIN_PILLAGER = registerMonster(
         PIGLIN_PILLAGER_ID,
@@ -69,15 +69,15 @@ public final class ModEntities {
         1.95f,
         2.2f
     );
-    public static final EntityType<PiglinVexEntity> PIGLIN_PILLAGER_VEX = registerMonster(
-        PIGLIN_PILLAGER_VEX_ID,
+    public static final EntityType<PiglinVexEntity> PIGLIN_VEX = registerMonster(
+        PIGLIN_VEX_ID,
         PiglinVexEntity::new,
         PiglinVexEntity::createAttributes,
         0.4f,
         0.8f
     );
-    public static final EntityType<ExiledPiglinTraderEntity> EXILED_PIGLIN_TRADER = registerMob(
-        EXILED_PIGLIN_TRADER_ID,
+    public static final EntityType<ExiledPiglinTraderEntity> EXILED_PIGLIN = registerMob(
+        EXILED_PIGLIN_ID,
         ExiledPiglinTraderEntity::new,
         ExiledPiglinTraderEntity::createAttributes,
         MobCategory.CREATURE,
@@ -109,9 +109,9 @@ public final class ModEntities {
         "piglin_ravager_spawn_egg",
         PIGLIN_RAVAGER
     );
-    public static final Item PIGLIN_PILLAGER_VEX_SPAWN_EGG = registerSpawnEgg(
-        "piglin_pillager_vex_spawn_egg",
-        PIGLIN_PILLAGER_VEX
+    public static final Item PIGLIN_VEX_SPAWN_EGG = registerSpawnEgg(
+        "piglin_vex_spawn_egg",
+        PIGLIN_VEX
     );
 
     private ModEntities() {
@@ -125,7 +125,7 @@ public final class ModEntities {
             entries.accept(PIGLIN_ILLUSIONER_SPAWN_EGG);
             entries.accept(PIGLIN_EVOKER_SPAWN_EGG);
             entries.accept(PIGLIN_RAVAGER_SPAWN_EGG);
-            entries.accept(PIGLIN_PILLAGER_VEX_SPAWN_EGG);
+            entries.accept(PIGLIN_VEX_SPAWN_EGG);
         });
 
         RuinedPortalOverhaul.LOGGER.info("Registered piglin raid entity hooks");

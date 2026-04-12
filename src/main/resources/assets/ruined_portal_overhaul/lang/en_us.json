@@ -5,12 +5,13 @@
   "entity.ruined_portal_overhaul.piglin_illusioner": "Piglin Illusioner",
   "entity.ruined_portal_overhaul.piglin_evoker": "Piglin Evoker",
   "entity.ruined_portal_overhaul.piglin_ravager": "Piglin Ravager",
-  "entity.ruined_portal_overhaul.piglin_pillager_vex": "Piglin Vex",
+  "entity.ruined_portal_overhaul.piglin_vex": "Piglin Vex",
+  "entity.ruined_portal_overhaul.exiled_piglin": "Exiled Piglin",
   "item.ruined_portal_overhaul.piglin_pillager_spawn_egg": "Piglin Pillager Spawn Egg",
   "item.ruined_portal_overhaul.piglin_vindicator_spawn_egg": "Piglin Vindicator Spawn Egg",
   "item.ruined_portal_overhaul.piglin_brute_pillager_spawn_egg": "Piglin Brute Pillager Spawn Egg",
   "item.ruined_portal_overhaul.piglin_illusioner_spawn_egg": "Piglin Illusioner Spawn Egg",
   "item.ruined_portal_overhaul.piglin_evoker_spawn_egg": "Piglin Evoker Spawn Egg",
   "item.ruined_portal_overhaul.piglin_ravager_spawn_egg": "Piglin Ravager Spawn Egg",
-  "item.ruined_portal_overhaul.piglin_pillager_vex_spawn_egg": "Piglin Vex Spawn Egg"
+  "item.ruined_portal_overhaul.piglin_vex_spawn_egg": "Piglin Vex Spawn Egg"
 }
