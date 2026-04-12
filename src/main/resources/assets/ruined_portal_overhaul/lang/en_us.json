@@ -1,10 +1,16 @@
 {
-  "entity.ruined_portal_overhaul.piglin_illager_ranged": "Piglin Illager Sharpshooter",
-  "entity.ruined_portal_overhaul.piglin_illager_brute": "Piglin Illager Brute",
-  "entity.ruined_portal_overhaul.piglin_illager_chief": "Piglin Illager Chief",
-  "entity.ruined_portal_overhaul.piglin_illager_shaman": "Piglin Illager Shaman",
-  "item.ruined_portal_overhaul.piglin_illager_ranged_spawn_egg": "Piglin Illager Sharpshooter Spawn Egg",
-  "item.ruined_portal_overhaul.piglin_illager_brute_spawn_egg": "Piglin Illager Brute Spawn Egg",
-  "item.ruined_portal_overhaul.piglin_illager_chief_spawn_egg": "Piglin Illager Chief Spawn Egg",
-  "item.ruined_portal_overhaul.piglin_illager_shaman_spawn_egg": "Piglin Illager Shaman Spawn Egg"
+  "entity.ruined_portal_overhaul.piglin_pillager": "Piglin Pillager",
+  "entity.ruined_portal_overhaul.piglin_vindicator": "Piglin Vindicator",
+  "entity.ruined_portal_overhaul.piglin_brute_pillager": "Piglin Brute Pillager",
+  "entity.ruined_portal_overhaul.piglin_illusioner": "Piglin Illusioner",
+  "entity.ruined_portal_overhaul.piglin_evoker": "Piglin Evoker",
+  "entity.ruined_portal_overhaul.piglin_ravager": "Piglin Ravager",
+  "entity.ruined_portal_overhaul.piglin_pillager_vex": "Piglin Vex",
+  "item.ruined_portal_overhaul.piglin_pillager_spawn_egg": "Piglin Pillager Spawn Egg",
+  "item.ruined_portal_overhaul.piglin_vindicator_spawn_egg": "Piglin Vindicator Spawn Egg",
+  "item.ruined_portal_overhaul.piglin_brute_pillager_spawn_egg": "Piglin Brute Pillager Spawn Egg",
+  "item.ruined_portal_overhaul.piglin_illusioner_spawn_egg": "Piglin Illusioner Spawn Egg",
+  "item.ruined_portal_overhaul.piglin_evoker_spawn_egg": "Piglin Evoker Spawn Egg",
+  "item.ruined_portal_overhaul.piglin_ravager_spawn_egg": "Piglin Ravager Spawn Egg",
+  "item.ruined_portal_overhaul.piglin_pillager_vex_spawn_egg": "Piglin Vex Spawn Egg"
 }

@@ -31,11 +31,11 @@ public class PortalDungeonPiece extends StructurePiece {
 
     private static final ResourceKey<LootTable> SURFACE_LOOT = ResourceKey.create(
         Registries.LOOT_TABLE,
-        ModStructures.id("chests/portal_dungeon_surface")
+        ModStructures.id("chests/portal_surface")
     );
     private static final ResourceKey<LootTable> DEPTH_LOOT = ResourceKey.create(
         Registries.LOOT_TABLE,
-        ModStructures.id("chests/portal_dungeon_depth")
+        ModStructures.id("chests/portal_deep")
     );
 
     private final int centerX;
@@ -415,20 +415,20 @@ public class PortalDungeonPiece extends StructurePiece {
             return;
         }
 
-        // Surface: 2-4 ranged scattered around the scar
-        int rangedCount = 2 + random.nextInt(3);
-        for (int i = 0; i < rangedCount; i++) {
+        // Surface: 3-5 piglin pillagers
+        int pillagerCount = 3 + random.nextInt(3);
+        for (int i = 0; i < pillagerCount; i++) {
             int offsetX = (random.nextInt(SURFACE_RADIUS * 2) - SURFACE_RADIUS) / 2;
             int offsetZ = (random.nextInt(SURFACE_RADIUS * 2) - SURFACE_RADIUS) / 2;
             BlockPos spawnPos = new BlockPos(this.centerX + offsetX, this.surfaceY + 1, this.centerZ + offsetZ);
             if (chunkBox.isInside(spawnPos)) {
-                ModEntities.PIGLIN_ILLAGER_RANGED.spawn(serverLevel, spawnPos, EntitySpawnReason.STRUCTURE);
+                ModEntities.PIGLIN_PILLAGER.spawn(serverLevel, spawnPos, EntitySpawnReason.STRUCTURE);
             }
         }
 
-        // Tunnels: 1-2 brutes
-        int bruteCount = 1 + random.nextInt(2);
-        for (int i = 0; i < bruteCount && i < tunnels.size(); i++) {
+        // Tunnels: 1 brute pillager + 1-2 vindicators
+        int vindicatorCount = 1 + random.nextInt(2);
+        for (int i = 0; i < vindicatorCount && i < tunnels.size(); i++) {
             TunnelDefinition tunnel = tunnels.get(random.nextInt(tunnels.size()));
             int step = tunnel.length / 2;
             BlockPos spawnPos = new BlockPos(
@@ -437,19 +437,29 @@ public class PortalDungeonPiece extends StructurePiece {
                 tunnel.startZ + tunnel.direction.getStepZ() * step
             );
             if (chunkBox.isInside(spawnPos)) {
-                ModEntities.PIGLIN_ILLAGER_BRUTE.spawn(serverLevel, spawnPos, EntitySpawnReason.STRUCTURE);
+                ModEntities.PIGLIN_VINDICATOR.spawn(serverLevel, spawnPos, EntitySpawnReason.STRUCTURE);
             }
         }
 
-        // Bottom chamber: 1 chief + 1 shaman
-        int chamberFloor = this.surfaceY - PIT_DEPTH;
-        BlockPos chiefPos = new BlockPos(this.centerX, chamberFloor + 1, this.centerZ);
-        BlockPos shamanPos = new BlockPos(this.centerX + 2, chamberFloor + 1, this.centerZ + 2);
-        if (chunkBox.isInside(chiefPos)) {
-            ModEntities.PIGLIN_ILLAGER_CHIEF.spawn(serverLevel, chiefPos, EntitySpawnReason.STRUCTURE);
+        TunnelDefinition bruteTunnel = tunnels.get(random.nextInt(tunnels.size()));
+        BlockPos brutePos = new BlockPos(
+            bruteTunnel.startX + bruteTunnel.direction.getStepX() * (bruteTunnel.length - 2),
+            bruteTunnel.floorY + 1,
+            bruteTunnel.startZ + bruteTunnel.direction.getStepZ() * (bruteTunnel.length - 2)
+        );
+        if (chunkBox.isInside(brutePos)) {
+            ModEntities.PIGLIN_BRUTE_PILLAGER.spawn(serverLevel, brutePos, EntitySpawnReason.STRUCTURE);
         }
-        if (chunkBox.isInside(shamanPos)) {
-            ModEntities.PIGLIN_ILLAGER_SHAMAN.spawn(serverLevel, shamanPos, EntitySpawnReason.STRUCTURE);
+
+        // Bottom chamber: 1 illusioner + 1 evoker
+        int chamberFloor = this.surfaceY - PIT_DEPTH;
+        BlockPos illusionerPos = new BlockPos(this.centerX - 1, chamberFloor + 1, this.centerZ);
+        BlockPos evokerPos = new BlockPos(this.centerX + 1, chamberFloor + 1, this.centerZ);
+        if (chunkBox.isInside(illusionerPos)) {
+            ModEntities.PIGLIN_ILLUSIONER.spawn(serverLevel, illusionerPos, EntitySpawnReason.STRUCTURE);
+        }
+        if (chunkBox.isInside(evokerPos)) {
+            ModEntities.PIGLIN_EVOKER.spawn(serverLevel, evokerPos, EntitySpawnReason.STRUCTURE);
         }
     }
 

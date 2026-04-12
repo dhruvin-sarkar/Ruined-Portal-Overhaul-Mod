@@ -1,6 +1,7 @@
 package com.ruinedportaloverhaul;
 
 import com.ruinedportaloverhaul.entity.ModEntities;
+import com.ruinedportaloverhaul.raid.GoldRaidManager;
 import com.ruinedportaloverhaul.world.ModStructures;
 import net.fabricmc.api.ModInitializer;
 import org.slf4j.Logger;
@@ -15,5 +16,6 @@ public class RuinedPortalOverhaul implements ModInitializer {
         LOGGER.info("Initializing {}", MOD_ID);
         ModEntities.initialize();
         ModStructures.initialize();
+        GoldRaidManager.initialize();
     }
 }

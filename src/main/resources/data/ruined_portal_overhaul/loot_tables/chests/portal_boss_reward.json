@@ -1,0 +1,169 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": {
+        "type": "minecraft:uniform",
+        "min": 5.0,
+        "max": 7.0
+      },
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:netherite_ingot",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:netherite_scrap",
+          "weight": 8,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 2.0,
+                "max": 4.0
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:enchanted_golden_apple",
+          "weight": 4
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:totem_of_undying",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:enchanted_book",
+          "weight": 5,
+          "functions": [
+            {
+              "function": "minecraft:set_enchantments",
+              "enchantments": {
+                "minecraft:mending": 1
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:enchanted_book",
+          "weight": 5,
+          "functions": [
+            {
+              "function": "minecraft:set_enchantments",
+              "enchantments": {
+                "minecraft:fortune": 3
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:enchanted_book",
+          "weight": 5,
+          "functions": [
+            {
+              "function": "minecraft:set_enchantments",
+              "enchantments": {
+                "minecraft:looting": 3
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:gold_block",
+          "weight": 8,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 2.0,
+                "max": 4.0
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:diamond",
+          "weight": 7,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 4.0,
+                "max": 8.0
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:netherite_upgrade_smithing_template",
+          "weight": 4
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:ancient_debris",
+          "weight": 3,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1.0,
+                "max": 2.0
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:tripwire_hook",
+          "weight": 2,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_name": "{\"text\":\"Corrupted Portal Key\",\"italic\":false}",
+                "minecraft:lore": [
+                  "{\"text\":\"It hums. You don't know why yet.\",\"italic\":false,\"color\":\"gray\"}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:echo_shard",
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_name": "{\"text\":\"Shard of the Nether\",\"italic\":false}",
+                "minecraft:lore": [
+                  "{\"text\":\"A fragment of nether energy, still warm to the touch.\",\"italic\":false,\"color\":\"gray\"}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
