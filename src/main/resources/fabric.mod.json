@@ -3,7 +3,14 @@
 	"id": "ruined_portal_overhaul",
 	"version": "${version}",
 	"name": "Ruined Portal Overhaul",
-	"description": "Transforms overworld ruined portals into corrupted portal dungeons with custom Piglin Illagers, loot, and expansion hooks for future raid content.",
+	"description": "Transforms overworld ruined portals into corrupted portal dungeons with custom Piglin Illagers, tribute raids, and Nether-touched rewards.",
+	"authors": [
+		"Dhruv Sarkar"
+	],
+	"contact": {
+		"sources": "https://github.com/dhruvin-sarkar/Ruined-Portal-Overhaul-Mod",
+		"issues": "https://github.com/dhruvin-sarkar/Ruined-Portal-Overhaul-Mod/issues"
+	},
 	"license": "Apache-2.0",
 	"icon": "assets/ruined_portal_overhaul/icon.png",
 	"environment": "*",

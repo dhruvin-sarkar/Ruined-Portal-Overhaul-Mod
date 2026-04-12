@@ -11,6 +11,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.illager.Vindicator;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 
@@ -30,7 +31,7 @@ public class PiglinVindicatorEntity extends Vindicator {
     protected void populateDefaultEquipmentSlots(RandomSource randomSource, DifficultyInstance difficultyInstance) {
         ItemStack axe = new ItemStack(Items.GOLDEN_AXE);
         if (randomSource.nextFloat() < 0.20f) {
-            Holder.Reference<?> enchantment = this.level()
+            Holder.Reference<Enchantment> enchantment = this.level()
                 .registryAccess()
                 .lookupOrThrow(Registries.ENCHANTMENT)
                 .getOrThrow(Enchantments.SHARPNESS);

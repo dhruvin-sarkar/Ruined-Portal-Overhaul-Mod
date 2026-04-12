@@ -67,12 +67,16 @@ public final class GoldRaidManager {
     private static void tickLevel(ServerLevel level) {
         long gameTime = level.getGameTime();
         if (gameTime % 20 == 0) {
+            PortalRaidState portalRaidState = PortalRaidState.get(level.getServer());
             for (ServerPlayer player : level.players()) {
                 if (!hasFullGoldArmor(player)) {
                     continue;
                 }
                 BlockPos portal = findNearbyPortalFrame(level, player.blockPosition(), PORTAL_TRIGGER_RANGE);
                 if (portal == null) {
+                    continue;
+                }
+                if (portalRaidState.isCompleted(portal)) {
                     continue;
                 }
                 long key = raidKey(level, portal);
@@ -206,7 +210,7 @@ public final class GoldRaidManager {
             1,
             (int) Math.round(Math.sin(angle) * radius)
         );
-        LivingEntity entity = type.spawn(state.level, spawnPos, EntitySpawnReason.EVENT);
+        LivingEntity entity = type.spawn(state.level, spawnPos, EntitySpawnReason.MOB_SUMMONED);
         if (entity instanceof Mob mob) {
             mob.setTarget(state.level.getNearestPlayer(spawnPos.getX(), spawnPos.getY(), spawnPos.getZ(), 24.0, false));
         }
@@ -214,10 +218,16 @@ public final class GoldRaidManager {
     }
 
     private static void finishRaid(RaidState state) {
+        state.bossBar.removeAllPlayers();
         ignitePortal(state.level, state.origin);
         spawnBossChest(state.level, state.origin);
         spawnExiledTrader(state.level, state.origin);
-        state.bossBar.removeAllPlayers();
+        PortalRaidState.get(state.level.getServer()).markCompleted(state.origin);
+
+        Component message = Component.literal("The portal accepts the tribute.");
+        for (ServerPlayer player : state.level.getPlayers(player -> player.distanceToSqr(state.origin.getX() + 0.5, state.origin.getY() + 0.5, state.origin.getZ() + 0.5) < 1600.0)) {
+            player.displayClientMessage(message, false);
+        }
     }
 
     private static void ignitePortal(ServerLevel level, BlockPos origin) {
@@ -229,7 +239,7 @@ public final class GoldRaidManager {
     }
 
     private static void spawnBossChest(ServerLevel level, BlockPos origin) {
-        BlockPos chestPos = origin.offset(0, 1, 0);
+        BlockPos chestPos = origin.offset(3, 1, 0);
         level.setBlock(chestPos, Blocks.CHEST.defaultBlockState(), 2);
         if (level.getBlockEntity(chestPos) instanceof RandomizableContainerBlockEntity chest) {
             chest.setLootTable(BOSS_REWARD_LOOT);
@@ -238,13 +248,15 @@ public final class GoldRaidManager {
     }
 
     private static void spawnExiledTrader(ServerLevel level, BlockPos origin) {
-        LivingEntity piglin = EntityType.PIGLIN.spawn(level, origin.offset(2, 1, 0), EntitySpawnReason.EVENT);
-        if (piglin != null) {
-            piglin.setCustomName(Component.literal("Exiled Piglin"));
-            piglin.setCustomNameVisible(true);
-            if (piglin instanceof Mob mob) {
-                mob.setNoAi(true);
-            }
+        com.ruinedportaloverhaul.entity.ExiledPiglinTraderEntity trader = ModEntities.EXILED_PIGLIN_TRADER.spawn(
+            level,
+            origin.offset(2, 1, 0),
+            EntitySpawnReason.MOB_SUMMONED
+        );
+        if (trader != null) {
+            trader.setCustomName(Component.literal("Exiled Piglin"));
+            trader.setCustomNameVisible(true);
+            trader.rememberSpawnTime(level.getGameTime());
         }
     }
 
@@ -267,14 +279,12 @@ public final class GoldRaidManager {
     }
 
     private static BlockPos findNearbyPortalFrame(ServerLevel level, BlockPos origin, int range) {
-        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
         for (int y = origin.getY() - 4; y <= origin.getY() + 4; y++) {
             for (int x = origin.getX() - range; x <= origin.getX() + range; x++) {
                 for (int z = origin.getZ() - range; z <= origin.getZ() + range; z++) {
-                    cursor.set(x, y, z);
-                    BlockState state = level.getBlockState(cursor);
-                    if (state.is(Blocks.OBSIDIAN) || state.is(Blocks.CRYING_OBSIDIAN) || state.is(BlockTags.PORTALS)) {
-                        return cursor.immutable();
+                    BlockPos portalOrigin = findPortalOriginAt(level, x, y, z);
+                    if (portalOrigin != null) {
+                        return portalOrigin;
                     }
                 }
             }
@@ -282,8 +292,28 @@ public final class GoldRaidManager {
         return null;
     }
 
+    private static BlockPos findPortalOriginAt(ServerLevel level, int centerX, int baseY, int centerZ) {
+        boolean hasFrame = isPortalFrame(level, centerX - 1, baseY, centerZ)
+            && isPortalFrame(level, centerX + 1, baseY, centerZ)
+            && isPortalFrame(level, centerX - 1, baseY + 1, centerZ)
+            && isPortalFrame(level, centerX + 1, baseY + 1, centerZ)
+            && isPortalFrame(level, centerX - 1, baseY + 2, centerZ)
+            && isPortalFrame(level, centerX + 1, baseY + 2, centerZ);
+
+        if (!hasFrame) {
+            return null;
+        }
+
+        return new BlockPos(centerX, baseY - 1, centerZ);
+    }
+
+    private static boolean isPortalFrame(ServerLevel level, int x, int y, int z) {
+        BlockState state = level.getBlockState(new BlockPos(x, y, z));
+        return state.is(Blocks.OBSIDIAN) || state.is(Blocks.CRYING_OBSIDIAN) || state.is(BlockTags.PORTALS);
+    }
+
     private static long raidKey(ServerLevel level, BlockPos portalPos) {
-        return ((long) level.dimension().location().hashCode() << 32) ^ portalPos.asLong();
+        return ((long) level.dimension().hashCode() << 32) ^ portalPos.asLong();
     }
 
     private static final class RaidState {

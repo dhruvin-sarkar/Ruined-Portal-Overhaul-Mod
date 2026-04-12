@@ -7,6 +7,7 @@ import com.ruinedportaloverhaul.client.render.PiglinVexRenderer;
 import com.ruinedportaloverhaul.entity.ModEntities;
 import net.fabricmc.api.ClientModInitializer;
 import net.minecraft.client.renderer.entity.EntityRenderers;
+import net.minecraft.client.renderer.entity.WanderingTraderRenderer;
 import net.minecraft.resources.Identifier;
 
 public final class RuinedPortalOverhaulClient implements ClientModInitializer {
@@ -47,6 +48,10 @@ public final class RuinedPortalOverhaulClient implements ClientModInitializer {
         EntityRenderers.register(
             ModEntities.PIGLIN_PILLAGER_VEX,
             context -> new PiglinVexRenderer(context, VEX_TEXTURE)
+        );
+        EntityRenderers.register(
+            ModEntities.EXILED_PIGLIN_TRADER,
+            WanderingTraderRenderer::new
         );
     }
 

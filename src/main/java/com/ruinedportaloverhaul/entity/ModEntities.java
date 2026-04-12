@@ -25,6 +25,7 @@ public final class ModEntities {
     public static final Identifier PIGLIN_EVOKER_ID = id("piglin_evoker");
     public static final Identifier PIGLIN_RAVAGER_ID = id("piglin_ravager");
     public static final Identifier PIGLIN_PILLAGER_VEX_ID = id("piglin_pillager_vex");
+    public static final Identifier EXILED_PIGLIN_TRADER_ID = id("exiled_piglin_trader");
 
     public static final EntityType<PiglinPillagerEntity> PIGLIN_PILLAGER = registerMonster(
         PIGLIN_PILLAGER_ID,
@@ -74,6 +75,14 @@ public final class ModEntities {
         PiglinVexEntity::createAttributes,
         0.4f,
         0.8f
+    );
+    public static final EntityType<ExiledPiglinTraderEntity> EXILED_PIGLIN_TRADER = registerMob(
+        EXILED_PIGLIN_TRADER_ID,
+        ExiledPiglinTraderEntity::new,
+        ExiledPiglinTraderEntity::createAttributes,
+        MobCategory.CREATURE,
+        0.6f,
+        1.95f
     );
 
     public static final Item PIGLIN_PILLAGER_SPAWN_EGG = registerSpawnEgg(
@@ -133,10 +142,21 @@ public final class ModEntities {
         float width,
         float height
     ) {
+        return registerMob(identifier, factory, attributes, MobCategory.MONSTER, width, height);
+    }
+
+    private static <T extends Mob> EntityType<T> registerMob(
+        Identifier identifier,
+        EntityType.EntityFactory<T> factory,
+        Supplier<AttributeSupplier.Builder> attributes,
+        MobCategory category,
+        float width,
+        float height
+    ) {
         return Registry.register(
             BuiltInRegistries.ENTITY_TYPE,
             identifier,
-            FabricEntityType.Builder.createMob(factory, MobCategory.MONSTER, mob -> mob.defaultAttributes(attributes))
+            FabricEntityType.Builder.createMob(factory, category, mob -> mob.defaultAttributes(attributes))
                 .sized(width, height)
                 .clientTrackingRange(8)
                 .updateInterval(3)

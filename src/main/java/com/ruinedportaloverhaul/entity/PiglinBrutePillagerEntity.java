@@ -17,6 +17,7 @@ import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 
@@ -37,13 +38,18 @@ public class PiglinBrutePillagerEntity extends Pillager {
     @Override
     protected void registerGoals() {
         super.registerGoals();
-        this.goalSelector.addGoal(1, new MeleeAttackGoal(this, 1.0, false));
+        this.goalSelector.addGoal(1, new CloseRangeMeleeGoal());
+    }
+
+    private boolean isTargetWithinMeleeFallbackRange() {
+        LivingEntity target = this.getTarget();
+        return target != null && this.distanceToSqr(target) <= 9.0;
     }
 
     @Override
     protected void populateDefaultEquipmentSlots(RandomSource randomSource, DifficultyInstance difficultyInstance) {
         ItemStack crossbow = new ItemStack(Items.CROSSBOW);
-        Holder.Reference<?> enchantment = this.level()
+        Holder.Reference<Enchantment> enchantment = this.level()
             .registryAccess()
             .lookupOrThrow(Registries.ENCHANTMENT)
             .getOrThrow(Enchantments.MULTISHOT);
@@ -68,5 +74,21 @@ public class PiglinBrutePillagerEntity extends Pillager {
         arrow.shoot(dx, dy, dz, 1.5f, 1.0f);
         serverLevel.addFreshEntity(arrow);
         this.playSound(SoundEvents.CROSSBOW_SHOOT, 1.0f, 1.0f / (this.getRandom().nextFloat() * 0.4f + 0.8f));
+    }
+
+    private final class CloseRangeMeleeGoal extends MeleeAttackGoal {
+        private CloseRangeMeleeGoal() {
+            super(PiglinBrutePillagerEntity.this, 1.0, false);
+        }
+
+        @Override
+        public boolean canUse() {
+            return PiglinBrutePillagerEntity.this.isTargetWithinMeleeFallbackRange() && super.canUse();
+        }
+
+        @Override
+        public boolean canContinueToUse() {
+            return PiglinBrutePillagerEntity.this.isTargetWithinMeleeFallbackRange() && super.canContinueToUse();
+        }
     }
 }

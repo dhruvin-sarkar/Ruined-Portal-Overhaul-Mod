@@ -16,6 +16,7 @@ import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 
@@ -36,7 +37,7 @@ public class PiglinPillagerEntity extends Pillager {
     protected void populateDefaultEquipmentSlots(RandomSource randomSource, DifficultyInstance difficultyInstance) {
         ItemStack crossbow = new ItemStack(Items.CROSSBOW);
         if (randomSource.nextFloat() < 0.25f) {
-            Holder.Reference<?> enchantment = this.level()
+            Holder.Reference<Enchantment> enchantment = this.level()
                 .registryAccess()
                 .lookupOrThrow(Registries.ENCHANTMENT)
                 .getOrThrow(Enchantments.QUICK_CHARGE);

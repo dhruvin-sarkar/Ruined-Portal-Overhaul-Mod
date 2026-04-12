@@ -1,6 +1,5 @@
 package com.ruinedportaloverhaul.entity;
 
-import com.ruinedportaloverhaul.entity.ModEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;

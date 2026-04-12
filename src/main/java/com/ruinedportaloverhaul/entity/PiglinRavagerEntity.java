@@ -1,6 +1,5 @@
 package com.ruinedportaloverhaul.entity;
 
-import com.ruinedportaloverhaul.entity.ModEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -15,6 +14,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.illager.Vindicator;
 import net.minecraft.world.entity.monster.Ravager;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -47,10 +47,8 @@ public class PiglinRavagerEntity extends Ravager {
         }
 
         if (this.getRoarTick() == 10) {
-            for (LivingEntity target : serverLevel.getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(6.0))) {
-                if (target != this) {
-                    target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 40, 0), this);
-                }
+            for (Player target : serverLevel.getEntitiesOfClass(Player.class, this.getBoundingBox().inflate(6.0))) {
+                target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 40, 0), this);
             }
         }
 
@@ -81,7 +79,7 @@ public class PiglinRavagerEntity extends Ravager {
                 EntitySpawnReason.MOB_SUMMONED
             );
             if (rider != null) {
-                rider.startRiding(this, true);
+                rider.startRiding(this, true, true);
             }
         }
         return data;

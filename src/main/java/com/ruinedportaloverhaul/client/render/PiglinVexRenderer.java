@@ -2,7 +2,6 @@ package com.ruinedportaloverhaul.client.render;
 
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.VexRenderer;
-import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.client.renderer.entity.state.VexRenderState;
 import net.minecraft.resources.Identifier;
 
@@ -16,11 +15,6 @@ public class PiglinVexRenderer extends VexRenderer {
 
     @Override
     public Identifier getTextureLocation(VexRenderState state) {
-        return this.texture;
-    }
-
-    @Override
-    public Identifier getTextureLocation(LivingEntityRenderState state) {
         return this.texture;
     }
 }
