@@ -2,6 +2,8 @@ package com.ruinedportaloverhaul.entity;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.entity.EntityType;
@@ -78,7 +80,7 @@ public class PiglinEvokerEntity extends Evoker {
                 1,
                 (int) Math.round((random.nextDouble() - 0.5) * 3.0)
             );
-            ModEntities.PIGLIN_VEX.spawn(
+            PiglinVexEntity spawnedVex = ModEntities.PIGLIN_VEX.spawn(
                 serverLevel,
                 vex -> {
                     vex.setOwner(this);
@@ -93,6 +95,9 @@ public class PiglinEvokerEntity extends Evoker {
                 true,
                 false
             );
+            if (spawnedVex != null) {
+                serverLevel.playSound(null, spawnPos, SoundEvents.VEX_CHARGE, SoundSource.HOSTILE, 0.8f, 1.2f);
+            }
         }
     }
 }

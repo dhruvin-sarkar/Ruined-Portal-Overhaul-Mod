@@ -57,6 +57,7 @@ public class ExiledPiglinTraderEntity extends WanderingTrader {
     protected void updateTrades(ServerLevel serverLevel) {
         MerchantOffers offers = this.getOffers();
         offers.clear();
+        // Magma cream has no vanilla crafting path back to gold, so this trade cannot create a gold loop.
         offers.add(new MerchantOffer(new ItemCost(Items.GOLD_INGOT, 8), new ItemStack(Items.MAGMA_CREAM, 3), 5, 1, 0.05f));
         offers.add(new MerchantOffer(new ItemCost(Items.GOLD_INGOT, 12), new ItemStack(Items.CRYING_OBSIDIAN, 2), 4, 1, 0.05f));
         offers.add(new MerchantOffer(new ItemCost(Items.GOLD_INGOT, 6), new ItemStack(Items.NETHER_BRICK, 16), 8, 1, 0.05f));
@@ -69,6 +70,14 @@ public class ExiledPiglinTraderEntity extends WanderingTrader {
 
     @Override
     public InteractionResult mobInteract(Player player, InteractionHand interactionHand) {
+        Player tradingPlayer = this.getTradingPlayer();
+        if (tradingPlayer != null && tradingPlayer != player) {
+            if (!this.level().isClientSide()) {
+                player.displayClientMessage(Component.literal("The Exiled Piglin is already trading."), true);
+            }
+            return InteractionResult.SUCCESS_SERVER;
+        }
+
         boolean canOpenTrades = this.isAlive() && !this.isTrading() && !this.isBaby();
         InteractionResult result = super.mobInteract(player, interactionHand);
         if (canOpenTrades && !this.level().isClientSide() && this.getTradingPlayer() == player) {
@@ -76,6 +85,12 @@ public class ExiledPiglinTraderEntity extends WanderingTrader {
             player.displayClientMessage(TRADE_MESSAGES.get(random.nextInt(TRADE_MESSAGES.size())), true);
         }
         return result;
+    }
+
+    @Override
+    public boolean stillValid(Player player) {
+        Player tradingPlayer = this.getTradingPlayer();
+        return super.stillValid(player) && (tradingPlayer == null || tradingPlayer == player);
     }
 
     @Override

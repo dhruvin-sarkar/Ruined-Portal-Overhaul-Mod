@@ -48,7 +48,7 @@ public class PortalDungeonPiece extends StructurePiece {
             0,
             new BoundingBox(
                 center.getX() - SURFACE_RADIUS,
-                center.getY() - PIT_DEPTH - 2,
+                Math.max(3, center.getY() - PIT_DEPTH - 2),
                 center.getZ() - SURFACE_RADIUS,
                 center.getX() + SURFACE_RADIUS,
                 center.getY() + 8,
@@ -159,7 +159,7 @@ public class PortalDungeonPiece extends StructurePiece {
     }
 
     private void generatePit(WorldGenLevel level, BoundingBox chunkBox) {
-        int minY = Math.max(level.getMinY() + 2, this.surfaceY - PIT_DEPTH);
+        int minY = Math.max(level.getMinY() + 2, this.chamberFloor());
 
         for (int y = this.surfaceY - 1; y >= minY; y--) {
             for (int x = this.centerX - PIT_RADIUS; x <= this.centerX + PIT_RADIUS; x++) {
@@ -187,7 +187,7 @@ public class PortalDungeonPiece extends StructurePiece {
     }
 
     private void generateBottomChamber(WorldGenLevel level, BoundingBox chunkBox) {
-        int chamberFloor = this.surfaceY - PIT_DEPTH;
+        int chamberFloor = this.chamberFloor();
 
         for (int x = this.centerX - 4; x <= this.centerX + 4; x++) {
             for (int z = this.centerZ - 4; z <= this.centerZ + 4; z++) {
@@ -232,6 +232,9 @@ public class PortalDungeonPiece extends StructurePiece {
     private void placeSurfacePools(WorldGenLevel level, BoundingBox chunkBox, List<BlockPos> lavaPools) {
         for (BlockPos target : lavaPools) {
             BlockPos topPos = this.findTerrainTop(level, target.getX(), target.getZ());
+            if (topPos.getY() <= 62) {
+                continue;
+            }
             boolean submerged = !level.getFluidState(topPos.above()).isEmpty();
 
             for (int x = target.getX() - 1; x <= target.getX(); x++) {
@@ -248,20 +251,27 @@ public class PortalDungeonPiece extends StructurePiece {
 
     private void placePortalFrame(WorldGenLevel level, BoundingBox chunkBox) {
         int baseY = this.surfaceY + 1;
+        int leftX = this.centerX - 2;
+        int rightX = this.centerX + 1;
+        int topY = baseY + 4;
 
-        for (int y = 0; y <= 5; y++) {
-            this.placePortalBlock(level, chunkBox, this.centerX - 1, baseY + y, this.centerZ, y);
-            this.placePortalBlock(level, chunkBox, this.centerX + 1, baseY + y, this.centerZ, y);
+        for (int y = baseY; y <= topY; y++) {
+            this.placePortalBlock(level, chunkBox, leftX, y, this.centerZ, y);
+            this.placePortalBlock(level, chunkBox, rightX, y, this.centerZ, y + 20);
         }
 
-        for (int x = -1; x <= 1; x++) {
-            this.placePortalBlock(level, chunkBox, this.centerX + x, baseY, this.centerZ, x + 10);
-            if (x != 0) {
-                this.placePortalBlock(level, chunkBox, this.centerX + x, baseY + 5, this.centerZ, x + 20);
+        for (int x = leftX; x <= rightX; x++) {
+            this.placePortalBlock(level, chunkBox, x, baseY, this.centerZ, x + 10);
+            this.placePortalBlock(level, chunkBox, x, topY, this.centerZ, x + 30);
+        }
+
+        for (int x = leftX + 1; x < rightX; x++) {
+            for (int y = baseY + 1; y < topY; y++) {
+                this.setBlockIfInside(level, chunkBox, new BlockPos(x, y, this.centerZ), Blocks.AIR.defaultBlockState());
             }
         }
 
-        for (int x = this.centerX - 1; x <= this.centerX + 1; x++) {
+        for (int x = leftX; x <= rightX; x++) {
             for (int z = this.centerZ - 1; z <= this.centerZ + 1; z++) {
                 this.setBlockIfInside(level, chunkBox, new BlockPos(x, this.surfaceY, z), Blocks.NETHERRACK.defaultBlockState());
             }
@@ -269,10 +279,6 @@ public class PortalDungeonPiece extends StructurePiece {
     }
 
     private void placePortalBlock(WorldGenLevel level, BoundingBox chunkBox, int x, int y, int z, int salt) {
-        if ((salt == 21) || (salt == 11)) {
-            return;
-        }
-
         BlockState state = ((x + y + z + salt) & 1) == 0
             ? Blocks.OBSIDIAN.defaultBlockState()
             : Blocks.CRYING_OBSIDIAN.defaultBlockState();
@@ -321,18 +327,19 @@ public class PortalDungeonPiece extends StructurePiece {
     }
 
     private List<BlockPos> chooseDeepChests(RandomSource random) {
+        int chamberFloor = this.chamberFloor();
         List<BlockPos> candidates = List.of(
-            new BlockPos(this.centerX, this.surfaceY - PIT_DEPTH + 1, this.centerZ - 9),
-            new BlockPos(this.centerX + 9, this.surfaceY - PIT_DEPTH + 1, this.centerZ),
-            new BlockPos(this.centerX, this.surfaceY - PIT_DEPTH + 1, this.centerZ + 9),
-            new BlockPos(this.centerX - 9, this.surfaceY - PIT_DEPTH + 1, this.centerZ)
+            new BlockPos(this.centerX, chamberFloor + 1, this.centerZ - 9),
+            new BlockPos(this.centerX + 9, chamberFloor + 1, this.centerZ),
+            new BlockPos(this.centerX, chamberFloor + 1, this.centerZ + 9),
+            new BlockPos(this.centerX - 9, chamberFloor + 1, this.centerZ)
         );
 
         return this.pickUniquePositions(random, candidates, 2);
     }
 
     private List<TunnelDefinition> chooseTunnels(RandomSource random) {
-        int chamberFloor = this.surfaceY - PIT_DEPTH;
+        int chamberFloor = this.chamberFloor();
         List<TunnelDefinition> tunnels = new ArrayList<>();
         tunnels.add(new TunnelDefinition(this.centerX, chamberFloor, this.centerZ - 4, Direction.NORTH, 6 + random.nextInt(4)));
         tunnels.add(new TunnelDefinition(this.centerX + 4, chamberFloor, this.centerZ, Direction.EAST, 6 + random.nextInt(4)));
@@ -363,7 +370,7 @@ public class PortalDungeonPiece extends StructurePiece {
     }
 
     private boolean isPortalPedestal(int x, int z) {
-        return x >= this.centerX - 1 && x <= this.centerX + 1 && z >= this.centerZ - 1 && z <= this.centerZ + 1;
+        return x >= this.centerX - 2 && x <= this.centerX + 1 && z >= this.centerZ - 1 && z <= this.centerZ + 1;
     }
 
     private BlockPos findTerrainTop(WorldGenLevel level, int x, int z) {
@@ -394,6 +401,10 @@ public class PortalDungeonPiece extends StructurePiece {
         return ((x + z + y) & 3) == 0
             ? Blocks.CRACKED_NETHER_BRICKS.defaultBlockState()
             : Blocks.NETHER_BRICKS.defaultBlockState();
+    }
+
+    private int chamberFloor() {
+        return Math.max(5, this.surfaceY - PIT_DEPTH);
     }
 
     private void setBlockIfInside(WorldGenLevel level, BoundingBox chunkBox, BlockPos pos, BlockState state) {
@@ -452,7 +463,7 @@ public class PortalDungeonPiece extends StructurePiece {
         }
 
         // Bottom chamber: 1 illusioner + 1 evoker
-        int chamberFloor = this.surfaceY - PIT_DEPTH;
+        int chamberFloor = this.chamberFloor();
         BlockPos illusionerPos = new BlockPos(this.centerX - 1, chamberFloor + 1, this.centerZ);
         BlockPos evokerPos = new BlockPos(this.centerX + 1, chamberFloor + 1, this.centerZ);
         if (chunkBox.isInside(illusionerPos)) {

@@ -2,7 +2,6 @@ package com.ruinedportaloverhaul.entity;
 
 import com.ruinedportaloverhaul.RuinedPortalOverhaul;
 import java.util.function.Supplier;
-import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityType;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -13,9 +12,6 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
-import net.minecraft.world.item.CreativeModeTabs;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.SpawnEggItem;
 
 public final class ModEntities {
     public static final Identifier PIGLIN_PILLAGER_ID = id("piglin_pillager");
@@ -85,49 +81,10 @@ public final class ModEntities {
         1.95f
     );
 
-    public static final Item PIGLIN_PILLAGER_SPAWN_EGG = registerSpawnEgg(
-        "piglin_pillager_spawn_egg",
-        PIGLIN_PILLAGER
-    );
-    public static final Item PIGLIN_VINDICATOR_SPAWN_EGG = registerSpawnEgg(
-        "piglin_vindicator_spawn_egg",
-        PIGLIN_VINDICATOR
-    );
-    public static final Item PIGLIN_BRUTE_PILLAGER_SPAWN_EGG = registerSpawnEgg(
-        "piglin_brute_pillager_spawn_egg",
-        PIGLIN_BRUTE_PILLAGER
-    );
-    public static final Item PIGLIN_ILLUSIONER_SPAWN_EGG = registerSpawnEgg(
-        "piglin_illusioner_spawn_egg",
-        PIGLIN_ILLUSIONER
-    );
-    public static final Item PIGLIN_EVOKER_SPAWN_EGG = registerSpawnEgg(
-        "piglin_evoker_spawn_egg",
-        PIGLIN_EVOKER
-    );
-    public static final Item PIGLIN_RAVAGER_SPAWN_EGG = registerSpawnEgg(
-        "piglin_ravager_spawn_egg",
-        PIGLIN_RAVAGER
-    );
-    public static final Item PIGLIN_VEX_SPAWN_EGG = registerSpawnEgg(
-        "piglin_vex_spawn_egg",
-        PIGLIN_VEX
-    );
-
     private ModEntities() {
     }
 
     public static void initialize() {
-        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.SPAWN_EGGS).register(entries -> {
-            entries.accept(PIGLIN_PILLAGER_SPAWN_EGG);
-            entries.accept(PIGLIN_VINDICATOR_SPAWN_EGG);
-            entries.accept(PIGLIN_BRUTE_PILLAGER_SPAWN_EGG);
-            entries.accept(PIGLIN_ILLUSIONER_SPAWN_EGG);
-            entries.accept(PIGLIN_EVOKER_SPAWN_EGG);
-            entries.accept(PIGLIN_RAVAGER_SPAWN_EGG);
-            entries.accept(PIGLIN_VEX_SPAWN_EGG);
-        });
-
         RuinedPortalOverhaul.LOGGER.info("Registered piglin raid entity hooks");
     }
 
@@ -165,11 +122,4 @@ public final class ModEntities {
         );
     }
 
-    private static Item registerSpawnEgg(String path, EntityType<? extends Mob> entityType) {
-        return Registry.register(
-            BuiltInRegistries.ITEM,
-            id(path),
-            new SpawnEggItem(new Item.Properties().spawnEgg(entityType))
-        );
-    }
 }

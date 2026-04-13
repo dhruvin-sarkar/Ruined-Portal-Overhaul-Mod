@@ -109,6 +109,19 @@ public final class PortalRaidState extends SavedData {
         }
     }
 
+    public List<ActiveRaidSnapshot> activeRaidSnapshots() {
+        List<ActiveRaidSnapshot> snapshots = new ArrayList<>();
+        for (BlockPos portalOrigin : this.activeRaidLocations) {
+            snapshots.add(new ActiveRaidSnapshot(
+                portalOrigin,
+                this.currentWaveNumbers.getOrDefault(portalOrigin, 0),
+                this.waveEndTimeTicks.getOrDefault(portalOrigin, 0L),
+                new HashSet<>(this.waveTrackerUuids.getOrDefault(portalOrigin, Set.of()))
+            ));
+        }
+        return snapshots;
+    }
+
     private List<ActiveRaidData> snapshotActiveRaids() {
         List<ActiveRaidData> activeRaids = new ArrayList<>();
         for (BlockPos portalOrigin : this.activeRaidLocations) {
@@ -134,5 +147,13 @@ public final class PortalRaidState extends SavedData {
             Codec.LONG.fieldOf("wave_end_time_ticks").forGetter(ActiveRaidData::waveEndTimeTicks),
             UUIDUtil.CODEC_SET.fieldOf("wave_mobs").forGetter(ActiveRaidData::waveMobs)
         ).apply(instance, ActiveRaidData::new));
+    }
+
+    public record ActiveRaidSnapshot(
+        BlockPos portalOrigin,
+        int currentWaveNumber,
+        long waveEndTimeTicks,
+        Set<java.util.UUID> waveMobs
+    ) {
     }
 }

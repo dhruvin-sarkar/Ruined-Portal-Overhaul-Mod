@@ -44,3 +44,4 @@ replay_*.log
 *.md
 !README.md
 !CLAUDE.md
+!SPEC.md

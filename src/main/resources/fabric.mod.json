@@ -1,9 +1,9 @@
 {
 	"schemaVersion": 1,
 	"id": "ruined_portal_overhaul",
-	"version": "${version}",
+	"version": "1.0.0",
 	"name": "Ruined Portal Overhaul",
-	"description": "Transforms overworld ruined portals into corrupted portal dungeons with custom Piglin Illagers, tribute raids, and Nether-touched rewards.",
+	"description": "Ruined Portal Overhaul transforms every overworld ruined portal encounter into a Massive Portal Dungeon: a scorched surface scar with netherrack, magma, crying obsidian, lava, loot chests, and a deep Nether-brick pit with tunnels, guards, and deeper treasure.\n\nExplorers who gather and equip a full set of gold armor can awaken the Gold Tribute Raid at the portal frame. Five escalating waves of Piglin Illager variants attack with crossbows, axes, illusions, ravagers, evocation magic, boss-bar progress, inter-wave warnings, server-side particles, and dramatic raid audio.\n\nCompleting the raid lights the ruined frame into a functional Nether portal, spawns a boss reward chest, and summons the Exiled Piglin Trader for a short-lived gold-based reward shop. The system tracks completion per portal location so each dungeon becomes a one-time survival challenge rather than a repeatable farm.",
 	"authors": [
 		"Dhruv Sarkar"
 	],
