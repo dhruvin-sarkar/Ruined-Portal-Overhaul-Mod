@@ -67,6 +67,10 @@ public class PortalDungeonPiece extends StructurePiece {
         tag.putInt("CenterZ", this.centerZ);
     }
 
+    public BlockPos portalOrigin() {
+        return new BlockPos(this.centerX, this.surfaceY, this.centerZ);
+    }
+
     @Override
     public void postProcess(
         WorldGenLevel level,

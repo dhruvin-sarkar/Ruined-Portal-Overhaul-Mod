@@ -2,9 +2,13 @@ package com.ruinedportaloverhaul.raid;
 
 import com.ruinedportaloverhaul.entity.ModEntities;
 import com.ruinedportaloverhaul.entity.ExiledPiglinTraderEntity;
+import com.ruinedportaloverhaul.structure.PortalDungeonPiece;
+import com.ruinedportaloverhaul.structure.PortalStructureHelper;
+import com.ruinedportaloverhaul.world.ModStructures;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -30,33 +34,48 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.BossEvent;
+import net.minecraft.world.Difficulty;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.monster.Ghast;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.NetherPortalBlock;
 import net.minecraft.world.level.block.entity.RandomizableContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.levelgen.structure.StructurePiece;
+import net.minecraft.world.level.levelgen.structure.StructureStart;
 import net.minecraft.world.level.storage.loot.LootTable;
+import net.minecraft.world.phys.AABB;
 
 public final class GoldRaidManager {
     private static final int APPROACH_TRIGGER_RANGE = 48;
     private static final int TRIBUTE_TRIGGER_RANGE = 24;
     private static final int RAID_TITLE_PLAYER_RANGE = 64;
-    private static final int AMBIENT_PARTICLE_RANGE = 48;
+    private static final int AMBIENT_PARTICLE_RANGE = PortalStructureHelper.OUTER_RADIUS;
     private static final int BOSS_BAR_PLAYER_RANGE = 48;
+    private static final int PRE_RAID_SPAWNER_SCAN_RADIUS = Math.max(80, PortalStructureHelper.MIDDLE_RADIUS + 28);
     private static final int RAID_SCAN_INTERVAL_TICKS = 10;
     private static final int AMBIENT_PARTICLE_INTERVAL_TICKS = 40;
+    private static final int AMBIENT_SPAWN_INTERVAL_TICKS = 80;
+    private static final int AMBIENT_MOB_CAP = 8;
+    private static final int ANCHORED_GHAST_CAP = 2;
+    private static final int GHAST_SPAWN_INTERVAL_TICKS = 240;
+    private static final int GHAST_ANCHOR_RADIUS = PortalStructureHelper.OUTER_RADIUS + 32;
+    private static final int GHAST_ANCHOR_TICKS = 20 * 180;
     private static final int INTER_WAVE_PULSE_INTERVAL_TICKS = 60;
     private static final int WAVE_DELAY_TICKS = 300;
     private static final double BOSS_BAR_PLAYER_RANGE_SQUARED = BOSS_BAR_PLAYER_RANGE * BOSS_BAR_PLAYER_RANGE;
+    private static final String PORTAL_GHAST_TAG = "rpo_portal_ghast";
+    private static final String PORTAL_GHAST_ORIGIN_TAG_PREFIX = "rpo_origin_";
 
     private static final ResourceKey<LootTable> BOSS_REWARD_LOOT = ResourceKey.create(
         Registries.LOOT_TABLE,
@@ -72,6 +91,24 @@ public final class GoldRaidManager {
     };
 
     private static final Map<Long, RaidState> ACTIVE_RAIDS = new HashMap<>();
+    private static final Map<Long, Long> NEXT_AMBIENT_SPAWN_TICK = new HashMap<>();
+    private static final Map<Long, Long> NEXT_GHAST_SPAWN_TICK = new HashMap<>();
+    private static final Map<UUID, PortalGhastAnchor> ANCHORED_GHASTS = new HashMap<>();
+
+    private static final List<AmbientSpawnEntry> OUTER_AMBIENT_SPAWNS = List.of(
+        new AmbientSpawnEntry(EntityType.ZOMBIFIED_PIGLIN, 8),
+        new AmbientSpawnEntry(EntityType.MAGMA_CUBE, 2)
+    );
+    private static final List<AmbientSpawnEntry> MIDDLE_AMBIENT_SPAWNS = List.of(
+        new AmbientSpawnEntry(EntityType.ZOMBIFIED_PIGLIN, 6),
+        new AmbientSpawnEntry(EntityType.MAGMA_CUBE, 3),
+        new AmbientSpawnEntry(EntityType.BLAZE, 2)
+    );
+    private static final List<AmbientSpawnEntry> INNER_AMBIENT_SPAWNS = List.of(
+        new AmbientSpawnEntry(EntityType.BLAZE, 5),
+        new AmbientSpawnEntry(EntityType.WITHER_SKELETON, 3),
+        new AmbientSpawnEntry(EntityType.MAGMA_CUBE, 2)
+    );
 
     private GoldRaidManager() {
     }
@@ -96,12 +133,17 @@ public final class GoldRaidManager {
         restorePersistedRaids(level, portalRaidState);
 
         if (gameTime % AMBIENT_PARTICLE_INTERVAL_TICKS == 0) {
-            spawnAmbientPortalParticles(level);
+            tickPortalZoneAtmosphere(level, portalRaidState, gameTime);
+        }
+
+        if (gameTime % AMBIENT_SPAWN_INTERVAL_TICKS == 0) {
+            tickPortalZoneNaturalSpawns(level, portalRaidState, gameTime);
         }
 
         if (gameTime % RAID_SCAN_INTERVAL_TICKS == 0) {
+            cleanupAnchoredGhasts(level, gameTime);
             for (ServerPlayer player : level.players()) {
-                BlockPos portal = findNearbyPortalFrame(level, player, APPROACH_TRIGGER_RANGE);
+                BlockPos portal = findNearbyGeneratedPortal(level, player, APPROACH_TRIGGER_RANGE);
                 if (portal == null || portalRaidState.isCompleted(portal)) {
                     continue;
                 }
@@ -210,8 +252,8 @@ public final class GoldRaidManager {
         int maxY = Math.min(level.getMaxY(), origin.getY() + 20);
         BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
 
-        for (int x = origin.getX() - 80; x <= origin.getX() + 80; x++) {
-            for (int z = origin.getZ() - 80; z <= origin.getZ() + 80; z++) {
+        for (int x = origin.getX() - PRE_RAID_SPAWNER_SCAN_RADIUS; x <= origin.getX() + PRE_RAID_SPAWNER_SCAN_RADIUS; x++) {
+            for (int z = origin.getZ() - PRE_RAID_SPAWNER_SCAN_RADIUS; z <= origin.getZ() + PRE_RAID_SPAWNER_SCAN_RADIUS; z++) {
                 for (int y = minY; y <= maxY; y++) {
                     cursor.set(x, y, z);
                     if (level.isLoaded(cursor) && level.getBlockState(cursor).is(Blocks.SPAWNER)) {
@@ -301,7 +343,6 @@ public final class GoldRaidManager {
         if (!portalRaidState.beginRaid(origin)) {
             return;
         }
-        disablePreRaidSpawners(level, portalRaidState, origin);
         ServerBossEvent bossBar = new ServerBossEvent(
             Component.literal(WAVE_LABELS[0]),
             BossEvent.BossBarColor.YELLOW,
@@ -313,6 +354,7 @@ public final class GoldRaidManager {
         ACTIVE_RAIDS.put(key, state);
         playRaidStartEffects(level, origin);
         broadcastRaidStartTitle(level, origin);
+        disablePreRaidSpawners(level, portalRaidState, origin);
         spawnWave(state);
         state.delayTicks = WAVE_DELAY_TICKS;
         state.persistWaveState();
@@ -494,17 +536,42 @@ public final class GoldRaidManager {
         }
     }
 
-    private static void spawnAmbientPortalParticles(ServerLevel level) {
+    private static void tickPortalZoneAtmosphere(ServerLevel level, PortalRaidState portalRaidState, long gameTime) {
         Set<BlockPos> emitted = new HashSet<>();
         for (ServerPlayer player : level.players()) {
-            BlockPos portal = findNearbyPortalFrame(level, player, AMBIENT_PARTICLE_RANGE);
-            if (portal != null && emitted.add(portal.immutable())) {
-                spawnAmbientPortalParticles(level, portal);
+            BlockPos portal = findPortalDungeonOrigin(level, player.blockPosition(), AMBIENT_PARTICLE_RANGE);
+            if (portal == null || portalRaidState.isCompleted(portal)) {
+                continue;
+            }
+            spawnPlayerAtmosphere(level, player, portal, gameTime);
+            if (emitted.add(portal.immutable())) {
+                spawnAmbientPortalFrameParticles(level, portal);
             }
         }
     }
 
-    private static void spawnAmbientPortalParticles(ServerLevel level, BlockPos origin) {
+    private static void spawnPlayerAtmosphere(ServerLevel level, ServerPlayer player, BlockPos origin, long gameTime) {
+        double distance = horizontalDistance(player.blockPosition(), origin);
+        if (distance > PortalStructureHelper.OUTER_RADIUS) {
+            return;
+        }
+        double intensity = 1.0 - Math.min(1.0, distance / PortalStructureHelper.OUTER_RADIUS);
+        double y = player.getY() + 5.0 + intensity * 4.0;
+        int ashCount = 10 + (int) Math.round(intensity * 32.0);
+        int sporeCount = 4 + (int) Math.round(intensity * 18.0);
+        int smokeCount = 2 + (int) Math.round(intensity * 9.0);
+        spawnParticle(level, ParticleTypes.ASH, player.getX(), y, player.getZ(), ashCount, 20.0, 8.0, 20.0, 0.01);
+        spawnParticle(level, ParticleTypes.CRIMSON_SPORE, player.getX(), y - 1.5, player.getZ(), sporeCount, 18.0, 6.0, 18.0, 0.01);
+        spawnParticle(level, ParticleTypes.LARGE_SMOKE, player.getX(), y - 2.5, player.getZ(), smokeCount, 14.0, 5.0, 14.0, 0.01);
+        if (intensity > 0.45 && gameTime % 120 == 0) {
+            level.playSound(null, player.blockPosition(), SoundEvents.LAVA_AMBIENT, SoundSource.AMBIENT, 0.35f, 0.7f);
+        }
+        if (intensity > 0.65) {
+            spawnParticle(level, ParticleTypes.DRIPPING_LAVA, player.getX(), player.getY() + 8.0, player.getZ(), 2, 12.0, 5.0, 12.0, 0.01);
+        }
+    }
+
+    private static void spawnAmbientPortalFrameParticles(ServerLevel level, BlockPos origin) {
         PortalInterior interior = findPortalInterior(level, origin);
         if (interior != null) {
             for (BlockPos framePos : interior.frameBlocks()) {
@@ -528,6 +595,238 @@ public final class GoldRaidManager {
         spawnParticle(level, ParticleTypes.FLAME, origin.getX() + radius + 0.5, surfaceY + 0.5, origin.getZ() - radius + 0.5, 1, 0.1, 0.1, 0.1, 0.01);
         spawnParticle(level, ParticleTypes.FLAME, origin.getX() - radius + 0.5, surfaceY + 0.5, origin.getZ() + radius + 0.5, 1, 0.1, 0.1, 0.1, 0.01);
         spawnParticle(level, ParticleTypes.FLAME, origin.getX() + radius + 0.5, surfaceY + 0.5, origin.getZ() + radius + 0.5, 1, 0.1, 0.1, 0.1, 0.01);
+    }
+
+    private static void tickPortalZoneNaturalSpawns(ServerLevel level, PortalRaidState portalRaidState, long gameTime) {
+        Set<BlockPos> attempted = new HashSet<>();
+        for (ServerPlayer player : level.players()) {
+            BlockPos portal = findPortalDungeonOrigin(level, player.blockPosition(), PortalStructureHelper.OUTER_RADIUS);
+            if (portal == null
+                || !attempted.add(portal.immutable())
+                || portalRaidState.isCompleted(portal)
+                || portalRaidState.isRaidActive(portal)
+                || level.getDifficulty() == Difficulty.PEACEFUL) {
+                continue;
+            }
+
+            long key = raidKey(level, portal);
+            trySpawnAmbientGroundMob(level, player, portal, key, gameTime);
+            trySpawnAnchoredGhast(level, player, portal, key, gameTime);
+        }
+    }
+
+    private static void trySpawnAmbientGroundMob(ServerLevel level, ServerPlayer player, BlockPos origin, long key, long gameTime) {
+        long nextSpawnTick = NEXT_AMBIENT_SPAWN_TICK.getOrDefault(key, 0L);
+        if (gameTime < nextSpawnTick || countPortalAmbientMobs(level, origin) >= AMBIENT_MOB_CAP) {
+            return;
+        }
+
+        double distance = horizontalDistance(player.blockPosition(), origin);
+        List<AmbientSpawnEntry> entries = ambientSpawnEntries(distance);
+        EntityType<? extends LivingEntity> type = pickAmbientType(level.getRandom(), entries);
+        BlockPos spawnPos = findAmbientGroundSpawnPosition(level, player, origin, type, distance);
+        if (spawnPos == null) {
+            NEXT_AMBIENT_SPAWN_TICK.put(key, gameTime + 40L);
+            return;
+        }
+
+        LivingEntity entity = type.spawn(level, spawnPos, EntitySpawnReason.EVENT);
+        if (entity instanceof Mob mob) {
+            mob.setTarget(player);
+        }
+        if (entity != null) {
+            spawnParticle(level, ParticleTypes.LARGE_SMOKE, spawnPos.getX() + 0.5, spawnPos.getY() + 0.5, spawnPos.getZ() + 0.5, 8, 0.4, 0.4, 0.4, 0.02);
+            NEXT_AMBIENT_SPAWN_TICK.put(key, gameTime + 180L + level.getRandom().nextInt(120));
+        }
+    }
+
+    private static void trySpawnAnchoredGhast(ServerLevel level, ServerPlayer player, BlockPos origin, long key, long gameTime) {
+        if (horizontalDistance(player.blockPosition(), origin) > PortalStructureHelper.MIDDLE_RADIUS + 20
+            || gameTime < NEXT_GHAST_SPAWN_TICK.getOrDefault(key, 0L)
+            || countAnchoredGhasts(level, origin) >= ANCHORED_GHAST_CAP) {
+            return;
+        }
+
+        BlockPos spawnPos = findGhastSpawnPosition(level, player, origin);
+        if (spawnPos == null) {
+            NEXT_GHAST_SPAWN_TICK.put(key, gameTime + 80L);
+            return;
+        }
+
+        Ghast ghast = EntityType.GHAST.spawn(level, spawnPos, EntitySpawnReason.EVENT);
+        if (ghast != null) {
+            ghast.addTag(PORTAL_GHAST_TAG);
+            ghast.addTag(PORTAL_GHAST_ORIGIN_TAG_PREFIX + origin.asLong());
+            ANCHORED_GHASTS.put(ghast.getUUID(), new PortalGhastAnchor(origin.immutable(), gameTime + GHAST_ANCHOR_TICKS));
+            spawnParticle(level, ParticleTypes.CRIMSON_SPORE, spawnPos.getX() + 0.5, spawnPos.getY() + 2.0, spawnPos.getZ() + 0.5, 30, 3.0, 2.0, 3.0, 0.02);
+            level.playSound(null, spawnPos, SoundEvents.GHAST_AMBIENT, SoundSource.HOSTILE, 2.0f, 0.65f);
+            NEXT_GHAST_SPAWN_TICK.put(key, gameTime + GHAST_SPAWN_INTERVAL_TICKS + level.getRandom().nextInt(160));
+        }
+    }
+
+    private static List<AmbientSpawnEntry> ambientSpawnEntries(double portalDistance) {
+        if (portalDistance <= PortalStructureHelper.INNER_RADIUS + 8) {
+            return INNER_AMBIENT_SPAWNS;
+        }
+        if (portalDistance <= PortalStructureHelper.MIDDLE_RADIUS) {
+            return MIDDLE_AMBIENT_SPAWNS;
+        }
+        return OUTER_AMBIENT_SPAWNS;
+    }
+
+    private static EntityType<? extends LivingEntity> pickAmbientType(RandomSource random, List<AmbientSpawnEntry> entries) {
+        int totalWeight = 0;
+        for (AmbientSpawnEntry entry : entries) {
+            totalWeight += entry.weight();
+        }
+        int roll = random.nextInt(Math.max(1, totalWeight));
+        for (AmbientSpawnEntry entry : entries) {
+            roll -= entry.weight();
+            if (roll < 0) {
+                return entry.type();
+            }
+        }
+        return entries.get(entries.size() - 1).type();
+    }
+
+    private static BlockPos findAmbientGroundSpawnPosition(
+        ServerLevel level,
+        ServerPlayer player,
+        BlockPos origin,
+        EntityType<? extends LivingEntity> type,
+        double playerPortalDistance
+    ) {
+        RandomSource random = level.getRandom();
+        double minPortalRadius = playerPortalDistance <= PortalStructureHelper.MIDDLE_RADIUS
+            ? PortalStructureHelper.INNER_RADIUS + 3.0
+            : PortalStructureHelper.MIDDLE_RADIUS + 2.0;
+        double maxPortalRadius = playerPortalDistance <= PortalStructureHelper.MIDDLE_RADIUS
+            ? PortalStructureHelper.MIDDLE_RADIUS + 8.0
+            : PortalStructureHelper.OUTER_RADIUS - 4.0;
+
+        for (int attempt = 0; attempt < 18; attempt++) {
+            double angle = random.nextDouble() * Math.PI * 2.0;
+            double playerRadius = 18.0 + random.nextDouble() * 28.0;
+            int x = player.blockPosition().getX() + (int) Math.round(Math.cos(angle) * playerRadius);
+            int z = player.blockPosition().getZ() + (int) Math.round(Math.sin(angle) * playerRadius);
+            double portalRadius = horizontalDistance(x, z, origin);
+            if (portalRadius < minPortalRadius || portalRadius > maxPortalRadius) {
+                continue;
+            }
+            BlockPos surface = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, new BlockPos(x, origin.getY(), z));
+            for (int yOffset = 0; yOffset <= 2; yOffset++) {
+                BlockPos candidate = surface.above(yOffset);
+                if (canSpawnWaveMobAt(level, type, candidate)) {
+                    return candidate;
+                }
+            }
+        }
+        return null;
+    }
+
+    private static BlockPos findGhastSpawnPosition(ServerLevel level, ServerPlayer player, BlockPos origin) {
+        RandomSource random = level.getRandom();
+        for (int attempt = 0; attempt < 18; attempt++) {
+            double angle = random.nextDouble() * Math.PI * 2.0;
+            double radius = 18.0 + random.nextDouble() * (PortalStructureHelper.MIDDLE_RADIUS + 26.0);
+            int x = origin.getX() + (int) Math.round(Math.cos(angle) * radius);
+            int z = origin.getZ() + (int) Math.round(Math.sin(angle) * radius);
+            if (horizontalDistance(x, z, origin) > PortalStructureHelper.OUTER_RADIUS - 12) {
+                continue;
+            }
+            BlockPos surface = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, new BlockPos(x, origin.getY(), z));
+            int y = Math.min(level.getMaxY() - 6, Math.max(surface.getY() + 12, player.blockPosition().getY() + 18 + random.nextInt(18)));
+            BlockPos candidate = new BlockPos(x, y, z);
+            if (hasClearGhastVolume(level, candidate)) {
+                return candidate;
+            }
+        }
+        return null;
+    }
+
+    private static boolean hasClearGhastVolume(ServerLevel level, BlockPos base) {
+        if (!level.getWorldBorder().isWithinBounds(base)
+            || !level.noCollision(EntityType.GHAST.getSpawnAABB(base.getX() + 0.5, base.getY(), base.getZ() + 0.5))) {
+            return false;
+        }
+        for (int dx = -2; dx <= 2; dx++) {
+            for (int dy = 0; dy < 4; dy++) {
+                for (int dz = -2; dz <= 2; dz++) {
+                    BlockPos pos = base.offset(dx, dy, dz);
+                    if (!level.getWorldBorder().isWithinBounds(pos)
+                        || !level.getFluidState(pos).isEmpty()
+                        || !level.getBlockState(pos).isAir()) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    private static int countPortalAmbientMobs(ServerLevel level, BlockPos origin) {
+        AABB zone = new AABB(origin).inflate(PortalStructureHelper.OUTER_RADIUS, 64.0, PortalStructureHelper.OUTER_RADIUS);
+        return level.getEntities((Entity) null, zone, entity -> entity instanceof Mob mob
+            && mob.isAlive()
+            && isPortalAmbientType(entity.getType())).size();
+    }
+
+    private static boolean isPortalAmbientType(EntityType<?> type) {
+        return type == EntityType.ZOMBIFIED_PIGLIN
+            || type == EntityType.MAGMA_CUBE
+            || type == EntityType.BLAZE
+            || type == EntityType.WITHER_SKELETON;
+    }
+
+    private static int countAnchoredGhasts(ServerLevel level, BlockPos origin) {
+        AABB zone = new AABB(origin).inflate(GHAST_ANCHOR_RADIUS, 96.0, GHAST_ANCHOR_RADIUS);
+        return level.getEntities(EntityType.GHAST, zone, ghast -> ghast.isAlive()
+            && ghast.getTags().contains(PORTAL_GHAST_TAG)
+            && taggedGhastOrigin(ghast).map(taggedOrigin -> horizontalDistance(taggedOrigin, origin) <= 1.0).orElse(false)).size();
+    }
+
+    private static void cleanupAnchoredGhasts(ServerLevel level, long gameTime) {
+        Iterator<Map.Entry<UUID, PortalGhastAnchor>> iterator = ANCHORED_GHASTS.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<UUID, PortalGhastAnchor> entry = iterator.next();
+            Entity entity = level.getEntity(entry.getKey());
+            PortalGhastAnchor anchor = entry.getValue();
+            if (!(entity instanceof Ghast ghast) || !ghast.isAlive()) {
+                iterator.remove();
+                continue;
+            }
+            if (gameTime > anchor.expireTick()
+                || horizontalDistance(ghast.blockPosition(), anchor.origin()) > GHAST_ANCHOR_RADIUS) {
+                spawnParticle(level, ParticleTypes.LARGE_SMOKE, ghast.getX(), ghast.getY() + 1.5, ghast.getZ(), 20, 2.0, 2.0, 2.0, 0.02);
+                ghast.discard();
+                iterator.remove();
+            }
+        }
+
+        for (ServerPlayer player : level.players()) {
+            AABB scan = new AABB(player.blockPosition()).inflate(GHAST_ANCHOR_RADIUS, 96.0, GHAST_ANCHOR_RADIUS);
+            for (Ghast ghast : level.getEntities(EntityType.GHAST, scan, ghast -> ghast.getTags().contains(PORTAL_GHAST_TAG))) {
+                taggedGhastOrigin(ghast).ifPresent(origin -> {
+                    if (horizontalDistance(ghast.blockPosition(), origin) > GHAST_ANCHOR_RADIUS) {
+                        ghast.discard();
+                    }
+                });
+            }
+        }
+    }
+
+    private static java.util.Optional<BlockPos> taggedGhastOrigin(Ghast ghast) {
+        for (String tag : ghast.getTags()) {
+            if (!tag.startsWith(PORTAL_GHAST_ORIGIN_TAG_PREFIX)) {
+                continue;
+            }
+            try {
+                return java.util.Optional.of(BlockPos.of(Long.parseLong(tag.substring(PORTAL_GHAST_ORIGIN_TAG_PREFIX.length()))));
+            } catch (NumberFormatException ignored) {
+                return java.util.Optional.empty();
+            }
+        }
+        return java.util.Optional.empty();
     }
 
     private static void playRaidStartEffects(ServerLevel level, BlockPos origin) {
@@ -729,7 +1028,36 @@ public final class GoldRaidManager {
         return null;
     }
 
+    private static BlockPos findNearbyGeneratedPortal(ServerLevel level, ServerPlayer player, int range) {
+        BlockPos portal = findPortalDungeonOrigin(level, player.blockPosition(), range);
+        if (portal != null) {
+            return portal;
+        }
+        return findNearbyPortalFrame(level, player, range);
+    }
+
+    private static BlockPos findPortalDungeonOrigin(ServerLevel level, BlockPos pos, int range) {
+        double rangeSquared = (double) range * (double) range;
+        for (StructureStart start : level.structureManager().startsForStructure(
+            new ChunkPos(pos),
+            structure -> structure.type() == ModStructures.PORTAL_DUNGEON_TYPE
+        )) {
+            for (StructurePiece piece : start.getPieces()) {
+                if (piece instanceof PortalDungeonPiece dungeonPiece) {
+                    BlockPos origin = dungeonPiece.portalOrigin();
+                    if (horizontalDistanceSqr(pos, origin) <= rangeSquared) {
+                        return origin;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
     private static BlockPos findPortalOriginAt(ServerLevel level, int centerX, int baseY, int centerZ) {
+        if (!isPortalFrame(level, centerX, baseY, centerZ)) {
+            return null;
+        }
         BlockPos origin = new BlockPos(centerX, baseY - 1, centerZ);
         return findPortalInterior(level, origin) == null ? null : origin;
     }
@@ -741,6 +1069,22 @@ public final class GoldRaidManager {
 
     private static long raidKey(ServerLevel level, BlockPos portalPos) {
         return ((long) level.dimension().hashCode() << 32) ^ portalPos.asLong();
+    }
+
+    private static double horizontalDistance(BlockPos first, BlockPos second) {
+        return Math.sqrt(horizontalDistanceSqr(first, second));
+    }
+
+    private static double horizontalDistance(int x, int z, BlockPos origin) {
+        double dx = x - origin.getX();
+        double dz = z - origin.getZ();
+        return Math.sqrt(dx * dx + dz * dz);
+    }
+
+    private static double horizontalDistanceSqr(BlockPos first, BlockPos second) {
+        double dx = first.getX() - second.getX();
+        double dz = first.getZ() - second.getZ();
+        return dx * dx + dz * dz;
     }
 
     private static int expectedWaveSize(int waveIndex) {
@@ -787,6 +1131,12 @@ public final class GoldRaidManager {
     }
 
     private record SpawnEntry(EntityType<? extends LivingEntity> type, int count) {
+    }
+
+    private record AmbientSpawnEntry(EntityType<? extends LivingEntity> type, int weight) {
+    }
+
+    private record PortalGhastAnchor(BlockPos origin, long expireTick) {
     }
 
     private record PortalInterior(Direction.Axis axis, List<BlockPos> blocks, List<BlockPos> frameBlocks) {
