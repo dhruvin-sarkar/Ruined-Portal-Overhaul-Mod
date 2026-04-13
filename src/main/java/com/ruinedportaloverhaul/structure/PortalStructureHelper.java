@@ -275,7 +275,7 @@ public final class PortalStructureHelper {
             int zOffset = frame.width() == 4 && i >= 2 ? (i == 2 ? -1 : 1) : 0;
             int length = 2 + (i & 1);
             for (int drop = 1; drop <= length; drop++) {
-                set(level, pieceBox, chunkBox, new BlockPos(origin.getX() + dx, topY - drop, origin.getZ() + zOffset), Blocks.CHAIN.defaultBlockState());
+                set(level, pieceBox, chunkBox, new BlockPos(origin.getX() + dx, topY - drop, origin.getZ() + zOffset), Blocks.IRON_CHAIN.defaultBlockState());
             }
         }
     }
@@ -295,7 +295,7 @@ public final class PortalStructureHelper {
 
     private static void placeAnchor(WorldGenLevel level, BoundingBox pieceBox, BoundingBox chunkBox, BlockPos origin) {
         set(level, pieceBox, chunkBox, origin.offset(4, 1, 0), Blocks.NETHER_BRICK_FENCE.defaultBlockState());
-        set(level, pieceBox, chunkBox, origin.offset(4, 1, 1), Blocks.NETHER_BRICK_FENCE_GATE.defaultBlockState());
+        set(level, pieceBox, chunkBox, origin.offset(4, 1, 1), Blocks.CRIMSON_FENCE_GATE.defaultBlockState());
     }
 
     private static BlockState pickMiddleGround(RandomSource random) {
@@ -579,7 +579,7 @@ public final class PortalStructureHelper {
             BlockPos center = new BlockPos(x, y, z);
             carveTunnelSegment(level, pieceBox, chunkBox, center, random);
             if (step % 8 == 4) {
-                set(level, pieceBox, chunkBox, center.offset(2, -1, 0), Blocks.SOUL_FIRE_TORCH.defaultBlockState());
+                set(level, pieceBox, chunkBox, center.offset(2, -1, 0), Blocks.SOUL_TORCH.defaultBlockState());
             }
             last = center;
         }

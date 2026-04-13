@@ -7,13 +7,17 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.illager.Evoker;
 import net.minecraft.world.entity.projectile.EvokerFangs;
-import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 
 public class PiglinEvokerEntity extends Evoker {
@@ -22,6 +26,7 @@ public class PiglinEvokerEntity extends Evoker {
 
     private int fangCooldown;
     private int vexCooldown;
+    private boolean summonedDesperationVex;
 
     public PiglinEvokerEntity(EntityType<? extends PiglinEvokerEntity> entityType, Level level) {
         super(entityType, level);
@@ -31,6 +36,12 @@ public class PiglinEvokerEntity extends Evoker {
         return Evoker.createAttributes()
             .add(Attributes.MAX_HEALTH, 45.0)
             .add(Attributes.MOVEMENT_SPEED, 0.25);
+    }
+
+    @Override
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, EntitySpawnReason reason, SpawnGroupData spawnData) {
+        SpawnGroupData result = super.finalizeSpawn(level, difficulty, reason, spawnData);
+        return PiglinDifficultyScaler.applyHardHealth(this, level, result);
     }
 
     @Override
@@ -48,6 +59,11 @@ public class PiglinEvokerEntity extends Evoker {
             return;
         }
 
+        if (!this.summonedDesperationVex && this.getHealth() <= this.getMaxHealth() * 0.5f) {
+            summonPiglinVexes(serverLevel, 1);
+            this.summonedDesperationVex = true;
+        }
+
         double distance = this.distanceToSqr(target);
         if (distance <= 196.0 && this.fangCooldown <= 0) {
             castMagmaEruption(serverLevel, target.position());
@@ -56,9 +72,21 @@ public class PiglinEvokerEntity extends Evoker {
         }
 
         if (distance <= 256.0 && this.vexCooldown <= 0) {
-            summonPiglinVexes(serverLevel);
+            summonPiglinVexes(serverLevel, 3);
             this.vexCooldown = VEX_COOLDOWN_TICKS;
         }
+    }
+
+    @Override
+    protected void addAdditionalSaveData(ValueOutput valueOutput) {
+        super.addAdditionalSaveData(valueOutput);
+        valueOutput.putBoolean("SummonedDesperationVex", this.summonedDesperationVex);
+    }
+
+    @Override
+    protected void readAdditionalSaveData(ValueInput valueInput) {
+        super.readAdditionalSaveData(valueInput);
+        this.summonedDesperationVex = valueInput.getBooleanOr("SummonedDesperationVex", false);
     }
 
     private void castMagmaEruption(ServerLevel serverLevel, Vec3 center) {
@@ -72,9 +100,9 @@ public class PiglinEvokerEntity extends Evoker {
         }
     }
 
-    private void summonPiglinVexes(ServerLevel serverLevel) {
+    private void summonPiglinVexes(ServerLevel serverLevel, int count) {
         RandomSource random = this.getRandom();
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < count; i++) {
             BlockPos spawnPos = this.blockPosition().offset(
                 (int) Math.round((random.nextDouble() - 0.5) * 3.0),
                 1,

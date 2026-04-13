@@ -7,8 +7,10 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
@@ -20,6 +22,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.ServerLevelAccessor;
 
 public class PiglinBrutePillagerEntity extends Pillager {
     private static final float ARROW_DAMAGE = 7.0f;
@@ -33,6 +36,12 @@ public class PiglinBrutePillagerEntity extends Pillager {
             .add(Attributes.MAX_HEALTH, 55.0)
             .add(Attributes.MOVEMENT_SPEED, 0.27)
             .add(Attributes.ATTACK_DAMAGE, 12.0);
+    }
+
+    @Override
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, EntitySpawnReason reason, SpawnGroupData spawnData) {
+        SpawnGroupData result = super.finalizeSpawn(level, difficulty, reason, spawnData);
+        return PiglinDifficultyScaler.applyHardHealth(this, level, result);
     }
 
     @Override

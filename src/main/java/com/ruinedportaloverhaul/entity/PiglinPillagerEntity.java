@@ -7,8 +7,10 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.illager.Pillager;
@@ -19,6 +21,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.ServerLevelAccessor;
 
 public class PiglinPillagerEntity extends Pillager {
     private static final float ARROW_DAMAGE = 5.0f;
@@ -31,6 +34,12 @@ public class PiglinPillagerEntity extends Pillager {
         return Pillager.createAttributes()
             .add(Attributes.MAX_HEALTH, 30.0)
             .add(Attributes.MOVEMENT_SPEED, 0.32);
+    }
+
+    @Override
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, EntitySpawnReason reason, SpawnGroupData spawnData) {
+        SpawnGroupData result = super.finalizeSpawn(level, difficulty, reason, spawnData);
+        return PiglinDifficultyScaler.applyHardHealth(this, level, result);
     }
 
     @Override

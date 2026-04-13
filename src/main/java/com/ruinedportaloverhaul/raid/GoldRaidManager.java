@@ -480,7 +480,7 @@ public final class GoldRaidManager {
     private static void spawnExiledTrader(ServerLevel level, BlockPos origin) {
         // Treat the trader as the raid completion event spawn so its lifecycle matches the encounter state.
         level.setBlock(origin.offset(4, 1, 0), Blocks.NETHER_BRICK_FENCE.defaultBlockState(), 3);
-        level.setBlock(origin.offset(4, 1, 1), Blocks.NETHER_BRICK_FENCE_GATE.defaultBlockState(), 3);
+        level.setBlock(origin.offset(4, 1, 1), Blocks.CRIMSON_FENCE_GATE.defaultBlockState(), 3);
         ExiledPiglinTraderEntity trader = ModEntities.EXILED_PIGLIN.spawn(
             level,
             origin.offset(4, 1, -1),
@@ -534,6 +534,15 @@ public final class GoldRaidManager {
         level.playSound(null, origin, SoundEvents.WITHER_SPAWN, SoundSource.HOSTILE, 1.5f, 1.0f);
         spawnRandomizedParticleBurst(level, origin, ParticleTypes.LARGE_SMOKE, 40, 3.0, 0.01);
         spawnRandomizedParticleBurst(level, origin, ParticleTypes.FLAME, 20, 3.0, 0.01);
+    }
+
+    private static void broadcastRaidStartTitle(ServerLevel level, BlockPos origin) {
+        double rangeSquared = RAID_TITLE_PLAYER_RANGE * RAID_TITLE_PLAYER_RANGE;
+        for (ServerPlayer player : level.getPlayers(player -> player.distanceToSqr(origin.getX() + 0.5, origin.getY() + 1.0, origin.getZ() + 0.5) <= rangeSquared)) {
+            player.connection.send(new ClientboundSetTitlesAnimationPacket(10, 40, 20));
+            player.connection.send(new ClientboundSetTitleTextPacket(Component.literal("The Tribute Begins").withStyle(ChatFormatting.DARK_RED)));
+            player.connection.send(new ClientboundSetSubtitleTextPacket(Component.literal("Survive the waves...").withStyle(ChatFormatting.RED)));
+        }
     }
 
     private static void spawnInterWavePulse(ServerLevel level, BlockPos origin) {
@@ -611,7 +620,15 @@ public final class GoldRaidManager {
     }
 
     private static PortalInterior findPortalInterior(ServerLevel level, BlockPos origin, Direction.Axis axis) {
-        List<BlockPos> frameBlocks = portalFrameBlocks(origin, axis);
+        PortalInterior compact = findPortalInterior(level, origin, axis, 4, 5);
+        if (compact != null) {
+            return compact;
+        }
+        return findPortalInterior(level, origin, axis, 6, 7);
+    }
+
+    private static PortalInterior findPortalInterior(ServerLevel level, BlockPos origin, Direction.Axis axis, int width, int height) {
+        List<BlockPos> frameBlocks = portalFrameBlocks(origin, axis, width, height);
         for (BlockPos frameBlock : frameBlocks) {
             if (!isPortalFrame(level, frameBlock.getX(), frameBlock.getY(), frameBlock.getZ())) {
                 return null;
@@ -620,30 +637,35 @@ public final class GoldRaidManager {
 
         List<BlockPos> interiorBlocks = new ArrayList<>();
         int baseY = origin.getY() + 1;
+        int left = -width / 2;
+        int right = left + width - 1;
+        int topY = baseY + height - 1;
         if (axis == Direction.Axis.X) {
-            for (int x = origin.getX() - 1; x <= origin.getX(); x++) {
-                for (int y = baseY + 1; y <= baseY + 3; y++) {
+            for (int x = origin.getX() + left + 1; x < origin.getX() + right; x++) {
+                for (int y = baseY + 1; y < topY; y++) {
                     interiorBlocks.add(new BlockPos(x, y, origin.getZ()));
                 }
             }
         } else {
-            for (int z = origin.getZ() - 1; z <= origin.getZ(); z++) {
-                for (int y = baseY + 1; y <= baseY + 3; y++) {
+            for (int z = origin.getZ() + left + 1; z < origin.getZ() + right; z++) {
+                for (int y = baseY + 1; y < topY; y++) {
                     interiorBlocks.add(new BlockPos(origin.getX(), y, z));
                 }
             }
         }
-        return new PortalInterior(axis, interiorBlocks);
+        return new PortalInterior(axis, interiorBlocks, frameBlocks);
     }
 
-    private static List<BlockPos> portalFrameBlocks(BlockPos origin, Direction.Axis axis) {
+    private static List<BlockPos> portalFrameBlocks(BlockPos origin, Direction.Axis axis, int width, int height) {
         List<BlockPos> blocks = new ArrayList<>();
         int baseY = origin.getY() + 1;
-        int topY = baseY + 4;
+        int topY = baseY + height - 1;
+        int left = -width / 2;
+        int right = left + width - 1;
 
         if (axis == Direction.Axis.X) {
-            int leftX = origin.getX() - 2;
-            int rightX = origin.getX() + 1;
+            int leftX = origin.getX() + left;
+            int rightX = origin.getX() + right;
             for (int y = baseY; y <= topY; y++) {
                 blocks.add(new BlockPos(leftX, y, origin.getZ()));
                 blocks.add(new BlockPos(rightX, y, origin.getZ()));
@@ -653,8 +675,8 @@ public final class GoldRaidManager {
                 blocks.add(new BlockPos(x, topY, origin.getZ()));
             }
         } else {
-            int leftZ = origin.getZ() - 2;
-            int rightZ = origin.getZ() + 1;
+            int leftZ = origin.getZ() + left;
+            int rightZ = origin.getZ() + right;
             for (int y = baseY; y <= topY; y++) {
                 blocks.add(new BlockPos(origin.getX(), y, leftZ));
                 blocks.add(new BlockPos(origin.getX(), y, rightZ));
@@ -689,7 +711,7 @@ public final class GoldRaidManager {
     private static BlockPos findNearbyPortalFrame(ServerLevel level, ServerPlayer player, int range) {
         BlockPos origin = player.blockPosition();
         double rangeSquared = (double) range * (double) range;
-        for (int y = origin.getY() - 4; y <= origin.getY() + 4; y++) {
+        for (int y = origin.getY() - 8; y <= origin.getY() + 8; y++) {
             for (int x = origin.getX() - range; x <= origin.getX() + range; x++) {
                 for (int z = origin.getZ() - range; z <= origin.getZ() + range; z++) {
                     BlockPos portalOrigin = findPortalOriginAt(level, x, y, z);
@@ -727,7 +749,7 @@ public final class GoldRaidManager {
             case 1 -> 9;
             case 2 -> 9;
             case 3 -> 7;
-            case 4 -> 9;
+            case 4 -> 8;
             default -> 0;
         };
     }
@@ -767,6 +789,6 @@ public final class GoldRaidManager {
     private record SpawnEntry(EntityType<? extends LivingEntity> type, int count) {
     }
 
-    private record PortalInterior(Direction.Axis axis, List<BlockPos> blocks) {
+    private record PortalInterior(Direction.Axis axis, List<BlockPos> blocks, List<BlockPos> frameBlocks) {
     }
 }
