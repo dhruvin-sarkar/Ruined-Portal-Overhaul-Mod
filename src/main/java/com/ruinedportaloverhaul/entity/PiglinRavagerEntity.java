@@ -4,15 +4,11 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.DamageTypeTags;
-import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.monster.illager.Vindicator;
 import net.minecraft.world.entity.monster.Ravager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -62,26 +58,5 @@ public class PiglinRavagerEntity extends Ravager {
                 }
             }
         }
-    }
-
-    @Override
-    public net.minecraft.world.entity.SpawnGroupData finalizeSpawn(
-        net.minecraft.world.level.ServerLevelAccessor levelAccessor,
-        DifficultyInstance difficultyInstance,
-        EntitySpawnReason spawnReason,
-        net.minecraft.world.entity.SpawnGroupData spawnGroupData
-    ) {
-        net.minecraft.world.entity.SpawnGroupData data = super.finalizeSpawn(levelAccessor, difficultyInstance, spawnReason, spawnGroupData);
-        if (levelAccessor instanceof ServerLevel serverLevel) {
-            Vindicator rider = ModEntities.PIGLIN_VINDICATOR.spawn(
-                serverLevel,
-                this.blockPosition().above(),
-                EntitySpawnReason.MOB_SUMMONED
-            );
-            if (rider != null) {
-                rider.startRiding(this, true, true);
-            }
-        }
-        return data;
     }
 }

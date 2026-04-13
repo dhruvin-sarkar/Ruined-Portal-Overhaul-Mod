@@ -39,6 +39,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.NetherPortalBlock;
 import net.minecraft.world.level.block.entity.RandomizableContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.storage.loot.LootTable;
 
 public final class GoldRaidManager {
@@ -139,6 +140,10 @@ public final class GoldRaidManager {
                 portalRaidState.clearActiveRaid(origin);
                 continue;
             }
+            if (!snapshot.waveMobs().isEmpty() && !level.isPositionEntityTicking(origin)) {
+                // Wait for the portal entity section before resolving persisted wave UUIDs after a restart.
+                continue;
+            }
 
             int waveIndex = Math.max(0, Math.min(WAVE_LABELS.length - 1, snapshot.currentWaveNumber() - 1));
             ServerBossEvent bossBar = new ServerBossEvent(
@@ -166,6 +171,11 @@ public final class GoldRaidManager {
 
     private static boolean tickRaid(RaidState state) {
         syncBossBarPlayers(state);
+
+        if (!state.activeMobs.isEmpty() && !state.level.isPositionEntityTicking(state.origin)) {
+            // Do not count unloaded wave mobs as dead; pause until the portal area is ticking entities again.
+            return false;
+        }
 
         boolean removedDeadMobs = state.activeMobs.removeIf(uuid -> {
             Entity entity = state.level.getEntity(uuid);
@@ -290,26 +300,28 @@ public final class GoldRaidManager {
 
     @SafeVarargs
     private static void spawnWave(RaidState state, SpawnEntry... entries) {
+        // Use one global spawn slot per wave so different mob groups do not overlap on the same ring points.
+        int spawnSlot = state.waveIndex * 3;
         for (SpawnEntry entry : entries) {
             for (int i = 0; i < entry.count; i++) {
-                LivingEntity entity = spawnMob(state, entry.type, i);
+                LivingEntity entity = spawnMob(state, entry.type, spawnSlot++);
                 if (entity != null) {
-                    state.activeMobs.add(entity.getUUID());
-                    state.waveSize++;
+                    trackWaveMob(state, entity);
+                    if (entry.type == ModEntities.PIGLIN_RAVAGER) {
+                        LivingEntity rider = spawnRavagerRider(state, entity);
+                        if (rider != null) {
+                            trackWaveMob(state, rider);
+                        }
+                    }
                 }
             }
         }
     }
 
     private static LivingEntity spawnMob(RaidState state, EntityType<? extends LivingEntity> type, int offsetIndex) {
-        double angle = (Math.PI * 2.0) * ((offsetIndex + state.waveIndex * 3) / 12.0);
-        double radius = 6.0 + (offsetIndex % 3);
-        BlockPos spawnPos = state.origin.offset(
-            (int) Math.round(Math.cos(angle) * radius),
-            1,
-            (int) Math.round(Math.sin(angle) * radius)
-        );
-        LivingEntity entity = type.spawn(state.level, spawnPos, EntitySpawnReason.MOB_SUMMONED);
+        // Resolve a collision-free surface point before spawning so wave mobs do not start inside scar or tunnel blocks.
+        BlockPos spawnPos = findWaveSpawnPosition(state, type, offsetIndex);
+        LivingEntity entity = type.spawn(state.level, spawnPos, EntitySpawnReason.EVENT);
         if (entity instanceof Mob mob) {
             mob.setTarget(state.level.getNearestPlayer(spawnPos.getX(), spawnPos.getY(), spawnPos.getZ(), 24.0, false));
         }
@@ -317,6 +329,54 @@ public final class GoldRaidManager {
             playHighThreatSpawnSound(state.level, type, spawnPos);
         }
         return entity;
+    }
+
+    private static void trackWaveMob(RaidState state, LivingEntity entity) {
+        state.activeMobs.add(entity.getUUID());
+        state.waveSize++;
+    }
+
+    private static LivingEntity spawnRavagerRider(RaidState state, LivingEntity ravager) {
+        // Spawn the rider after the ravager exists, then track it so raid completion waits for the whole threat.
+        BlockPos riderPos = ravager.blockPosition().above();
+        LivingEntity rider = ModEntities.PIGLIN_VINDICATOR.spawn(state.level, riderPos, EntitySpawnReason.EVENT);
+        if (rider instanceof Mob mob) {
+            mob.setTarget(state.level.getNearestPlayer(riderPos.getX(), riderPos.getY(), riderPos.getZ(), 24.0, false));
+        }
+        if (rider != null) {
+            rider.startRiding(ravager, true, true);
+        }
+        return rider;
+    }
+
+    private static BlockPos findWaveSpawnPosition(RaidState state, EntityType<? extends LivingEntity> type, int offsetIndex) {
+        for (int attempt = 0; attempt < 12; attempt++) {
+            int slot = offsetIndex + attempt;
+            double angle = (Math.PI * 2.0) * (slot / 12.0);
+            double radius = 6.0 + (slot % 4);
+            BlockPos horizontal = state.origin.offset(
+                (int) Math.round(Math.cos(angle) * radius),
+                0,
+                (int) Math.round(Math.sin(angle) * radius)
+            );
+            BlockPos surface = state.level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, horizontal);
+            for (int yOffset = 0; yOffset <= 2; yOffset++) {
+                BlockPos candidate = surface.above(yOffset);
+                if (canSpawnWaveMobAt(state.level, type, candidate)) {
+                    return candidate;
+                }
+            }
+        }
+        return state.origin.above(2);
+    }
+
+    private static boolean canSpawnWaveMobAt(ServerLevel level, EntityType<? extends LivingEntity> type, BlockPos pos) {
+        // 1.21.11 footing check: use face support instead of deprecated blocksMotion for wave spawn safety.
+        return level.getWorldBorder().isWithinBounds(pos)
+            && level.getFluidState(pos).isEmpty()
+            && level.getFluidState(pos.above()).isEmpty()
+            && level.getBlockState(pos.below()).isFaceSturdy(level, pos.below(), Direction.UP)
+            && level.noCollision(type.getSpawnAABB(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5));
     }
 
     private static void finishRaid(RaidState state) {
@@ -359,11 +419,12 @@ public final class GoldRaidManager {
     }
 
     private static void spawnExiledTrader(ServerLevel level, BlockPos origin) {
+        // Treat the trader as the raid completion event spawn so its lifecycle matches the encounter state.
         level.setBlock(origin.offset(2, 1, 1), Blocks.NETHER_BRICK_FENCE.defaultBlockState(), 3);
         ExiledPiglinTraderEntity trader = ModEntities.EXILED_PIGLIN.spawn(
             level,
             origin.offset(2, 1, 0),
-            EntitySpawnReason.MOB_SUMMONED
+            EntitySpawnReason.EVENT
         );
         if (trader != null) {
             trader.setCustomName(Component.literal("Exiled Piglin"));
@@ -605,8 +666,8 @@ public final class GoldRaidManager {
             case 0 -> 6;
             case 1 -> 9;
             case 2 -> 9;
-            case 3 -> 6;
-            case 4 -> 8;
+            case 3 -> 7;
+            case 4 -> 9;
             default -> 0;
         };
     }
