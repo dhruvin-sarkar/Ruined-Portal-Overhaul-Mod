@@ -1,5 +1,6 @@
 {
   "type": "ruined_portal_overhaul:portal_dungeon",
   "biomes": "#minecraft:has_structure/ruined_portal_standard",
-  "step": "surface_structures"
+  "step": "surface_structures",
+  "spawn_overrides": {}
 }
