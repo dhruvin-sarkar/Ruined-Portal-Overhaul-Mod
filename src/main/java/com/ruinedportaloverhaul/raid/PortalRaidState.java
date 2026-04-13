@@ -19,6 +19,8 @@ import net.minecraft.world.level.saveddata.SavedDataType;
 public final class PortalRaidState extends SavedData {
     private static final String COMPLETED_PORTALS_KEY = "completed_portals";
     private static final String ACTIVE_RAIDS_KEY = "active_raids";
+    private static final String ACTIVATED_PORTALS_KEY = "activated_portals";
+    private static final String PORTAL_SPAWNERS_KEY = "portal_spawners";
 
     public static final Codec<PortalRaidState> CODEC = RecordCodecBuilder.create(instance -> instance.group(
         BlockPos.CODEC.listOf()
@@ -26,7 +28,13 @@ public final class PortalRaidState extends SavedData {
             .forGetter(state -> new ArrayList<>(state.completedPortals)),
         ActiveRaidData.CODEC.listOf()
             .optionalFieldOf(ACTIVE_RAIDS_KEY, List.of())
-            .forGetter(PortalRaidState::snapshotActiveRaids)
+            .forGetter(PortalRaidState::snapshotActiveRaids),
+        BlockPos.CODEC.listOf()
+            .optionalFieldOf(ACTIVATED_PORTALS_KEY, List.of())
+            .forGetter(state -> new ArrayList<>(state.activatedPortals)),
+        PortalSpawnerData.CODEC.listOf()
+            .optionalFieldOf(PORTAL_SPAWNERS_KEY, List.of())
+            .forGetter(PortalRaidState::snapshotPortalSpawners)
     ).apply(instance, PortalRaidState::new));
 
     private static final SavedDataType<PortalRaidState> TYPE = new SavedDataType<>(
@@ -37,7 +45,9 @@ public final class PortalRaidState extends SavedData {
     );
 
     private final Set<BlockPos> completedPortals = new HashSet<>();
+    private final Set<BlockPos> activatedPortals = new HashSet<>();
     private final Set<BlockPos> activeRaidLocations = new HashSet<>();
+    private final Map<BlockPos, List<BlockPos>> portalSpawners = new HashMap<>();
     private final Map<BlockPos, Set<java.util.UUID>> waveTrackerUuids = new HashMap<>();
     private final Map<BlockPos, Integer> currentWaveNumbers = new HashMap<>();
     private final Map<BlockPos, Long> waveEndTimeTicks = new HashMap<>();
@@ -45,14 +55,23 @@ public final class PortalRaidState extends SavedData {
     public PortalRaidState() {
     }
 
-    private PortalRaidState(List<BlockPos> completedPortals, List<ActiveRaidData> activeRaids) {
+    private PortalRaidState(
+        List<BlockPos> completedPortals,
+        List<ActiveRaidData> activeRaids,
+        List<BlockPos> activatedPortals,
+        List<PortalSpawnerData> portalSpawners
+    ) {
         this.completedPortals.addAll(completedPortals);
+        this.activatedPortals.addAll(activatedPortals);
         for (ActiveRaidData activeRaid : activeRaids) {
             BlockPos portalOrigin = activeRaid.portalOrigin().immutable();
             this.activeRaidLocations.add(portalOrigin);
             this.currentWaveNumbers.put(portalOrigin, activeRaid.currentWaveNumber());
             this.waveEndTimeTicks.put(portalOrigin, activeRaid.waveEndTimeTicks());
             this.waveTrackerUuids.put(portalOrigin, new HashSet<>(activeRaid.waveMobs()));
+        }
+        for (PortalSpawnerData spawnerData : portalSpawners) {
+            this.portalSpawners.put(spawnerData.portalOrigin().immutable(), immutablePositions(spawnerData.spawners()));
         }
     }
 
@@ -67,6 +86,31 @@ public final class PortalRaidState extends SavedData {
 
     public boolean isRaidActive(BlockPos portalOrigin) {
         return this.activeRaidLocations.contains(portalOrigin.immutable());
+    }
+
+    public boolean isApproachActivated(BlockPos portalOrigin) {
+        return this.activatedPortals.contains(portalOrigin.immutable());
+    }
+
+    public boolean markApproachActivated(BlockPos portalOrigin) {
+        if (this.activatedPortals.add(portalOrigin.immutable())) {
+            this.setDirty();
+            return true;
+        }
+        return false;
+    }
+
+    public void setPortalSpawners(BlockPos portalOrigin, List<BlockPos> spawners) {
+        BlockPos origin = portalOrigin.immutable();
+        List<BlockPos> immutableSpawners = immutablePositions(spawners);
+        if (!immutableSpawners.equals(this.portalSpawners.get(origin))) {
+            this.portalSpawners.put(origin, immutableSpawners);
+            this.setDirty();
+        }
+    }
+
+    public List<BlockPos> portalSpawners(BlockPos portalOrigin) {
+        return new ArrayList<>(this.portalSpawners.getOrDefault(portalOrigin.immutable(), List.of()));
     }
 
     public boolean beginRaid(BlockPos portalOrigin) {
@@ -104,7 +148,9 @@ public final class PortalRaidState extends SavedData {
     public void markCompleted(BlockPos portalOrigin) {
         BlockPos origin = portalOrigin.immutable();
         this.clearActiveRaid(origin);
-        if (this.completedPortals.add(origin)) {
+        boolean changed = this.completedPortals.add(origin);
+        changed |= this.portalSpawners.remove(origin) != null;
+        if (changed) {
             this.setDirty();
         }
     }
@@ -135,6 +181,22 @@ public final class PortalRaidState extends SavedData {
         return activeRaids;
     }
 
+    private List<PortalSpawnerData> snapshotPortalSpawners() {
+        List<PortalSpawnerData> spawners = new ArrayList<>();
+        for (Map.Entry<BlockPos, List<BlockPos>> entry : this.portalSpawners.entrySet()) {
+            spawners.add(new PortalSpawnerData(entry.getKey(), entry.getValue()));
+        }
+        return spawners;
+    }
+
+    private static List<BlockPos> immutablePositions(List<BlockPos> positions) {
+        List<BlockPos> immutable = new ArrayList<>();
+        for (BlockPos pos : positions) {
+            immutable.add(pos.immutable());
+        }
+        return immutable;
+    }
+
     private record ActiveRaidData(
         BlockPos portalOrigin,
         int currentWaveNumber,
@@ -147,6 +209,13 @@ public final class PortalRaidState extends SavedData {
             Codec.LONG.fieldOf("wave_end_time_ticks").forGetter(ActiveRaidData::waveEndTimeTicks),
             UUIDUtil.CODEC_SET.fieldOf("wave_mobs").forGetter(ActiveRaidData::waveMobs)
         ).apply(instance, ActiveRaidData::new));
+    }
+
+    private record PortalSpawnerData(BlockPos portalOrigin, List<BlockPos> spawners) {
+        private static final Codec<PortalSpawnerData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            BlockPos.CODEC.fieldOf("portal_origin").forGetter(PortalSpawnerData::portalOrigin),
+            BlockPos.CODEC.listOf().fieldOf("spawners").forGetter(PortalSpawnerData::spawners)
+        ).apply(instance, PortalSpawnerData::new));
     }
 
     public record ActiveRaidSnapshot(

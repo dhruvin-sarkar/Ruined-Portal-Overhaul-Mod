@@ -15,7 +15,11 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket;
+import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket;
+import net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerBossEvent;
@@ -43,9 +47,12 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.storage.loot.LootTable;
 
 public final class GoldRaidManager {
-    private static final int PORTAL_TRIGGER_RANGE = 12;
-    private static final int AMBIENT_PARTICLE_RANGE = 24;
+    private static final int APPROACH_TRIGGER_RANGE = 48;
+    private static final int TRIBUTE_TRIGGER_RANGE = 24;
+    private static final int RAID_TITLE_PLAYER_RANGE = 64;
+    private static final int AMBIENT_PARTICLE_RANGE = 48;
     private static final int BOSS_BAR_PLAYER_RANGE = 48;
+    private static final int RAID_SCAN_INTERVAL_TICKS = 10;
     private static final int AMBIENT_PARTICLE_INTERVAL_TICKS = 40;
     private static final int INTER_WAVE_PULSE_INTERVAL_TICKS = 60;
     private static final int WAVE_DELAY_TICKS = 300;
@@ -92,23 +99,23 @@ public final class GoldRaidManager {
             spawnAmbientPortalParticles(level);
         }
 
-        if (gameTime % 20 == 0) {
+        if (gameTime % RAID_SCAN_INTERVAL_TICKS == 0) {
             for (ServerPlayer player : level.players()) {
-                if (!hasFullGoldArmor(player)) {
+                BlockPos portal = findNearbyPortalFrame(level, player, APPROACH_TRIGGER_RANGE);
+                if (portal == null || portalRaidState.isCompleted(portal)) {
                     continue;
                 }
-                BlockPos portal = findNearbyPortalFrame(level, player, PORTAL_TRIGGER_RANGE);
-                if (portal == null) {
-                    continue;
+
+                if (portalRaidState.markApproachActivated(portal)) {
+                    playApproachActivation(level, player, portal);
+                    persistKnownSpawners(level, portalRaidState, portal);
                 }
-                if (portalRaidState.isCompleted(portal)) {
-                    continue;
-                }
+
                 long key = raidKey(level, portal);
-                if (portalRaidState.isRaidActive(portal)) {
-                    continue;
-                }
-                if (!ACTIVE_RAIDS.containsKey(key)) {
+                if (hasFullGoldArmor(player)
+                    && !portalRaidState.isRaidActive(portal)
+                    && !ACTIVE_RAIDS.containsKey(key)
+                    && player.distanceToSqr(portal.getX() + 0.5, portal.getY() + 1.0, portal.getZ() + 0.5) <= TRIBUTE_TRIGGER_RANGE * TRIBUTE_TRIGGER_RANGE) {
                     startRaid(level, portal, key, portalRaidState);
                 }
             }
@@ -167,6 +174,53 @@ public final class GoldRaidManager {
             }
             ACTIVE_RAIDS.put(key, state);
         }
+    }
+
+    private static void playApproachActivation(ServerLevel level, ServerPlayer player, BlockPos origin) {
+        player.displayClientMessage(Component.literal("...something stirs.").withStyle(ChatFormatting.DARK_PURPLE), true);
+        level.playSound(null, origin, SoundEvents.PORTAL_AMBIENT, SoundSource.HOSTILE, 0.4f, 0.6f);
+    }
+
+    private static void persistKnownSpawners(ServerLevel level, PortalRaidState portalRaidState, BlockPos origin) {
+        if (!portalRaidState.portalSpawners(origin).isEmpty()) {
+            return;
+        }
+        List<BlockPos> spawners = scanPreRaidSpawners(level, origin);
+        if (!spawners.isEmpty()) {
+            portalRaidState.setPortalSpawners(origin, spawners);
+        }
+    }
+
+    private static void disablePreRaidSpawners(ServerLevel level, PortalRaidState portalRaidState, BlockPos origin) {
+        persistKnownSpawners(level, portalRaidState, origin);
+        List<BlockPos> spawners = portalRaidState.portalSpawners(origin);
+        if (spawners.isEmpty()) {
+            spawners = scanPreRaidSpawners(level, origin);
+        }
+        for (BlockPos spawner : spawners) {
+            if (level.isLoaded(spawner) && level.getBlockState(spawner).is(Blocks.SPAWNER)) {
+                level.setBlock(spawner, Blocks.AIR.defaultBlockState(), 3);
+            }
+        }
+    }
+
+    private static List<BlockPos> scanPreRaidSpawners(ServerLevel level, BlockPos origin) {
+        List<BlockPos> spawners = new ArrayList<>();
+        int minY = Math.max(level.getMinY(), origin.getY() - 60);
+        int maxY = Math.min(level.getMaxY(), origin.getY() + 20);
+        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
+
+        for (int x = origin.getX() - 80; x <= origin.getX() + 80; x++) {
+            for (int z = origin.getZ() - 80; z <= origin.getZ() + 80; z++) {
+                for (int y = minY; y <= maxY; y++) {
+                    cursor.set(x, y, z);
+                    if (level.isLoaded(cursor) && level.getBlockState(cursor).is(Blocks.SPAWNER)) {
+                        spawners.add(cursor.immutable());
+                    }
+                }
+            }
+        }
+        return spawners;
     }
 
     private static boolean tickRaid(RaidState state) {
@@ -247,6 +301,7 @@ public final class GoldRaidManager {
         if (!portalRaidState.beginRaid(origin)) {
             return;
         }
+        disablePreRaidSpawners(level, portalRaidState, origin);
         ServerBossEvent bossBar = new ServerBossEvent(
             Component.literal(WAVE_LABELS[0]),
             BossEvent.BossBarColor.YELLOW,
@@ -256,8 +311,9 @@ public final class GoldRaidManager {
         bossBar.setCreateWorldFog(false);
         RaidState state = new RaidState(level, origin, bossBar, portalRaidState);
         ACTIVE_RAIDS.put(key, state);
-        spawnWave(state);
         playRaidStartEffects(level, origin);
+        broadcastRaidStartTitle(level, origin);
+        spawnWave(state);
         state.delayTicks = WAVE_DELAY_TICKS;
         state.persistWaveState();
     }
@@ -287,7 +343,7 @@ public final class GoldRaidManager {
             case 4 -> spawnWave(
                 state,
                 new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 4),
-                new SpawnEntry(ModEntities.PIGLIN_ILLUSIONER, 2),
+                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 2),
                 new SpawnEntry(ModEntities.PIGLIN_RAVAGER, 1),
                 new SpawnEntry(ModEntities.PIGLIN_EVOKER, 1)
             );
@@ -300,14 +356,17 @@ public final class GoldRaidManager {
 
     @SafeVarargs
     private static void spawnWave(RaidState state, SpawnEntry... entries) {
-        // Use one global spawn slot per wave so different mob groups do not overlap on the same ring points.
-        int spawnSlot = state.waveIndex * 3;
+        int totalMobs = 0;
+        for (SpawnEntry entry : entries) {
+            totalMobs += entry.count;
+        }
+        int spawnSlot = 0;
         for (SpawnEntry entry : entries) {
             for (int i = 0; i < entry.count; i++) {
-                LivingEntity entity = spawnMob(state, entry.type, spawnSlot++);
+                LivingEntity entity = spawnMob(state, entry.type, spawnSlot++, totalMobs);
                 if (entity != null) {
                     trackWaveMob(state, entity);
-                    if (entry.type == ModEntities.PIGLIN_RAVAGER) {
+                    if (entry.type == ModEntities.PIGLIN_RAVAGER && state.waveIndex != 4) {
                         LivingEntity rider = spawnRavagerRider(state, entity);
                         if (rider != null) {
                             trackWaveMob(state, rider);
@@ -318,9 +377,9 @@ public final class GoldRaidManager {
         }
     }
 
-    private static LivingEntity spawnMob(RaidState state, EntityType<? extends LivingEntity> type, int offsetIndex) {
+    private static LivingEntity spawnMob(RaidState state, EntityType<? extends LivingEntity> type, int offsetIndex, int totalMobs) {
         // Resolve a collision-free surface point before spawning so wave mobs do not start inside scar or tunnel blocks.
-        BlockPos spawnPos = findWaveSpawnPosition(state, type, offsetIndex);
+        BlockPos spawnPos = findWaveSpawnPosition(state, type, offsetIndex, totalMobs);
         LivingEntity entity = type.spawn(state.level, spawnPos, EntitySpawnReason.EVENT);
         if (entity instanceof Mob mob) {
             mob.setTarget(state.level.getNearestPlayer(spawnPos.getX(), spawnPos.getY(), spawnPos.getZ(), 24.0, false));
@@ -349,17 +408,17 @@ public final class GoldRaidManager {
         return rider;
     }
 
-    private static BlockPos findWaveSpawnPosition(RaidState state, EntityType<? extends LivingEntity> type, int offsetIndex) {
+    private static BlockPos findWaveSpawnPosition(RaidState state, EntityType<? extends LivingEntity> type, int offsetIndex, int totalMobs) {
         for (int attempt = 0; attempt < 12; attempt++) {
             int slot = offsetIndex + attempt;
-            double angle = (Math.PI * 2.0) * (slot / 12.0);
-            double radius = 6.0 + (slot % 4);
+            double angle = (Math.PI * 2.0) * (slot / (double) Math.max(1, totalMobs));
+            double radius = 12.0;
             BlockPos horizontal = state.origin.offset(
                 (int) Math.round(Math.cos(angle) * radius),
                 0,
                 (int) Math.round(Math.sin(angle) * radius)
             );
-            BlockPos surface = state.level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, horizontal);
+            BlockPos surface = state.level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING, horizontal);
             for (int yOffset = 0; yOffset <= 2; yOffset++) {
                 BlockPos candidate = surface.above(yOffset);
                 if (canSpawnWaveMobAt(state.level, type, candidate)) {
@@ -420,10 +479,11 @@ public final class GoldRaidManager {
 
     private static void spawnExiledTrader(ServerLevel level, BlockPos origin) {
         // Treat the trader as the raid completion event spawn so its lifecycle matches the encounter state.
-        level.setBlock(origin.offset(2, 1, 1), Blocks.NETHER_BRICK_FENCE.defaultBlockState(), 3);
+        level.setBlock(origin.offset(4, 1, 0), Blocks.NETHER_BRICK_FENCE.defaultBlockState(), 3);
+        level.setBlock(origin.offset(4, 1, 1), Blocks.NETHER_BRICK_FENCE_GATE.defaultBlockState(), 3);
         ExiledPiglinTraderEntity trader = ModEntities.EXILED_PIGLIN.spawn(
             level,
-            origin.offset(2, 1, 0),
+            origin.offset(4, 1, -1),
             EntitySpawnReason.EVENT
         );
         if (trader != null) {
@@ -447,7 +507,7 @@ public final class GoldRaidManager {
     private static void spawnAmbientPortalParticles(ServerLevel level, BlockPos origin) {
         PortalInterior interior = findPortalInterior(level, origin);
         if (interior != null) {
-            for (BlockPos framePos : portalFrameBlocks(origin, interior.axis())) {
+            for (BlockPos framePos : interior.frameBlocks()) {
                 level.sendParticles(
                     ParticleTypes.PORTAL,
                     framePos.getX() + 0.5,
@@ -471,7 +531,7 @@ public final class GoldRaidManager {
     }
 
     private static void playRaidStartEffects(ServerLevel level, BlockPos origin) {
-        level.playSound(null, origin, SoundEvents.WITHER_SPAWN, SoundSource.HOSTILE, 1.0f, 1.2f);
+        level.playSound(null, origin, SoundEvents.WITHER_SPAWN, SoundSource.HOSTILE, 1.5f, 1.0f);
         spawnRandomizedParticleBurst(level, origin, ParticleTypes.LARGE_SMOKE, 40, 3.0, 0.01);
         spawnRandomizedParticleBurst(level, origin, ParticleTypes.FLAME, 20, 3.0, 0.01);
     }
