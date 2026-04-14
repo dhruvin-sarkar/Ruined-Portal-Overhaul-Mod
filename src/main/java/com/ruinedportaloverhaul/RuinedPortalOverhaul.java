@@ -1,6 +1,7 @@
 package com.ruinedportaloverhaul;
 
 import com.ruinedportaloverhaul.entity.ModEntities;
+import com.ruinedportaloverhaul.network.ModNetworking;
 import com.ruinedportaloverhaul.raid.GoldRaidManager;
 import com.ruinedportaloverhaul.world.ModStructures;
 import com.ruinedportaloverhaul.world.ModWorldGen;
@@ -18,6 +19,7 @@ public class RuinedPortalOverhaul implements ModInitializer {
         ModEntities.initialize();
         ModStructures.initialize();
         ModWorldGen.initialize();
+        ModNetworking.initialize();
         GoldRaidManager.initialize();
     }
 }

@@ -1,6 +1,7 @@
 package com.ruinedportaloverhaul.client;
 
 import com.ruinedportaloverhaul.RuinedPortalOverhaul;
+import com.ruinedportaloverhaul.client.atmosphere.PortalAtmosphereClient;
 import com.ruinedportaloverhaul.client.render.ExiledPiglinRenderer;
 import com.ruinedportaloverhaul.client.render.PiglinIllagerRenderer;
 import com.ruinedportaloverhaul.client.render.PiglinRavagerRenderer;
@@ -22,6 +23,7 @@ public final class RuinedPortalOverhaulClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
+        PortalAtmosphereClient.initialize();
         EntityRenderers.register(
             ModEntities.PIGLIN_PILLAGER,
             context -> new PiglinIllagerRenderer<>(context, PILLAGER_TEXTURE)

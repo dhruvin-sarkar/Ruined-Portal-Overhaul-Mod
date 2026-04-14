@@ -25,6 +25,12 @@ public final class PortalStructureHelper {
     public static final int OUTER_RADIUS = 136;
     public static final int PIT_DEPTH = 45;
 
+    private enum SurfacePaletteRegion {
+        BASALT_DELTA,
+        CRIMSON_SCAR,
+        SOUL_ASH
+    }
+
     private PortalStructureHelper() {
     }
 
@@ -56,9 +62,7 @@ public final class PortalStructureHelper {
                 }
 
                 BlockPos top = terrainTop(level, x, z);
-                BlockState ground = random.nextFloat() < 0.06f
-                    ? Blocks.MAGMA_BLOCK.defaultBlockState()
-                    : Blocks.NETHERRACK.defaultBlockState();
+                BlockState ground = pickInnerGround(origin, x, z, distance, random);
                 setColumn(level, pieceBox, chunkBox, top, ground, 3);
                 convertLocalWaterToLava(level, pieceBox, chunkBox, top);
                 set(level, pieceBox, chunkBox, top.above(), Blocks.AIR.defaultBlockState());
@@ -92,7 +96,7 @@ public final class PortalStructureHelper {
                 }
 
                 BlockPos top = terrainTop(level, x, z);
-                setColumn(level, pieceBox, chunkBox, top, pickMiddleGround(random), distance < MIDDLE_RADIUS * 0.65 ? 3 : 2);
+                setColumn(level, pieceBox, chunkBox, top, pickMiddleGround(origin, x, z, random), distance < MIDDLE_RADIUS * 0.65 ? 3 : 2);
                 convertLocalWaterToLava(level, pieceBox, chunkBox, top);
                 if (random.nextFloat() < 0.08f) {
                     set(level, pieceBox, chunkBox, top.above(), Blocks.AIR.defaultBlockState());
@@ -162,7 +166,7 @@ public final class PortalStructureHelper {
 
                 RandomSource localRandom = RandomSource.create(seed ^ hashColumn(x, z));
                 BlockPos center = terrainTop(level, x, z);
-                placeOuterPatch(level, pieceBox, chunkBox, center, localRandom, gradient);
+                placeOuterPatch(level, pieceBox, chunkBox, origin, center, localRandom, gradient);
             }
         }
     }
@@ -178,10 +182,13 @@ public final class PortalStructureHelper {
         int chamberFloorY = chamberCenterY - 6;
         BlockPos chamberCenter = new BlockPos(origin.getX(), chamberCenterY, origin.getZ());
 
-        carvePit(level, pieceBox, chunkBox, origin, chamberCenterY + 6);
+        int pitBottomY = chamberCenterY + 6;
+        carvePit(level, pieceBox, chunkBox, origin, pitBottomY);
+        placePitLavaSeeps(level, pieceBox, chunkBox, origin, pitBottomY, random);
         carvePrimaryChamber(level, pieceBox, chunkBox, chamberCenter, random);
         placeChamberSpikes(level, pieceBox, chunkBox, chamberCenter, random);
         placeLargeLavaLake(level, pieceBox, chunkBox, new BlockPos(origin.getX(), chamberFloorY + 1, origin.getZ()), random);
+        placeChamberLavaVents(level, pieceBox, chunkBox, chamberCenter, random);
 
         for (int i = 0; i < 6; i++) {
             placeCeilingGlowstone(level, pieceBox, chunkBox, chamberCenter.offset(random.nextInt(17) - 8, 7, random.nextInt(17) - 8), random);
@@ -223,10 +230,13 @@ public final class PortalStructureHelper {
         List<BlockPos> spawners = new ArrayList<>();
         BlockPos firstSurfaceSpawner = terrainTopIfColumnInside(level, chunkBox, origin.offset(24, 0, -14));
         BlockPos secondSurfaceSpawner = terrainTopIfColumnInside(level, chunkBox, origin.offset(-22, 0, 18));
-        spawners.add(firstSurfaceSpawner == null ? null : placeConfiguredSpawner(level, pieceBox, chunkBox, firstSurfaceSpawner.above(), EntityType.ZOMBIFIED_PIGLIN, 3, 6, 140, 280, 24, 8, false));
-        spawners.add(secondSurfaceSpawner == null ? null : placeConfiguredSpawner(level, pieceBox, chunkBox, secondSurfaceSpawner.above(), EntityType.ZOMBIFIED_PIGLIN, 3, 6, 140, 280, 24, 8, false));
-        spawners.add(placeConfiguredSpawner(level, pieceBox, chunkBox, layout.chamberCenter().offset(6, -5, 0), EntityType.MAGMA_CUBE, 4, 8, 120, 240, 16, 10, true));
-        spawners.add(placeConfiguredSpawner(level, pieceBox, chunkBox, layout.tunnelSpawner().above(), EntityType.WITHER_SKELETON, 2, 10, 280, 560, 20, 12, false));
+        BlockPos thirdSurfaceSpawner = terrainTopIfColumnInside(level, chunkBox, origin.offset(10, 0, 27));
+        spawners.add(firstSurfaceSpawner == null ? null : placeConfiguredSpawner(level, pieceBox, chunkBox, firstSurfaceSpawner.above(), EntityType.ZOMBIFIED_PIGLIN, 4, 8, 100, 200, 24, 12, false));
+        spawners.add(secondSurfaceSpawner == null ? null : placeConfiguredSpawner(level, pieceBox, chunkBox, secondSurfaceSpawner.above(), EntityType.ZOMBIFIED_PIGLIN, 4, 8, 100, 200, 24, 12, false));
+        spawners.add(thirdSurfaceSpawner == null ? null : placeConfiguredSpawner(level, pieceBox, chunkBox, thirdSurfaceSpawner.above(), EntityType.ZOMBIFIED_PIGLIN, 3, 8, 120, 220, 24, 12, false));
+        spawners.add(placeConfiguredSpawner(level, pieceBox, chunkBox, layout.chamberCenter().offset(6, -5, 0), EntityType.MAGMA_CUBE, 5, 9, 90, 180, 18, 14, true));
+        spawners.add(placeConfiguredSpawner(level, pieceBox, chunkBox, layout.chamberCenter().offset(-7, -3, 4), EntityType.BLAZE, 2, 9, 160, 300, 20, 12, false));
+        spawners.add(placeConfiguredSpawner(level, pieceBox, chunkBox, layout.tunnelSpawner().above(), EntityType.WITHER_SKELETON, 3, 10, 200, 360, 20, 14, false));
         spawners.removeIf(pos -> pos == null);
         return spawners;
     }
@@ -333,18 +343,115 @@ public final class PortalStructureHelper {
         set(level, pieceBox, chunkBox, origin.offset(4, 1, 1), Blocks.CRIMSON_FENCE_GATE.defaultBlockState());
     }
 
-    private static BlockState pickMiddleGround(RandomSource random) {
+    private static BlockState pickInnerGround(BlockPos origin, int x, int z, double distance, RandomSource random) {
+        SurfacePaletteRegion region = surfaceRegion(origin, x, z);
         float roll = random.nextFloat();
-        if (roll < 0.72f) {
-            return Blocks.NETHERRACK.defaultBlockState();
+        if (roll < 0.018f) {
+            return Blocks.MAGMA_BLOCK.defaultBlockState();
         }
-        if (roll < 0.86f) {
-            return Blocks.SOUL_SAND.defaultBlockState();
+        if (distance < 7.5) {
+            if (roll < 0.42f) {
+                return Blocks.BLACKSTONE.defaultBlockState();
+            }
+            if (roll < 0.62f) {
+                return Blocks.BASALT.defaultBlockState();
+            }
         }
-        if (roll < 0.94f) {
-            return Blocks.BLACKSTONE.defaultBlockState();
+        return switch (region) {
+            case BASALT_DELTA -> roll < 0.48f
+                ? Blocks.BLACKSTONE.defaultBlockState()
+                : roll < 0.78f ? Blocks.BASALT.defaultBlockState() : Blocks.NETHERRACK.defaultBlockState();
+            case CRIMSON_SCAR -> roll < 0.66f
+                ? Blocks.NETHERRACK.defaultBlockState()
+                : roll < 0.84f ? Blocks.CRIMSON_NYLIUM.defaultBlockState() : Blocks.BLACKSTONE.defaultBlockState();
+            case SOUL_ASH -> roll < 0.42f
+                ? Blocks.SOUL_SOIL.defaultBlockState()
+                : roll < 0.64f ? Blocks.SOUL_SAND.defaultBlockState() : Blocks.NETHERRACK.defaultBlockState();
+        };
+    }
+
+    private static BlockState pickMiddleGround(BlockPos origin, int x, int z, RandomSource random) {
+        SurfacePaletteRegion region = surfaceRegion(origin, x, z);
+        float roll = random.nextFloat();
+        return switch (region) {
+            case BASALT_DELTA -> {
+                if (roll < 0.34f) {
+                    yield Blocks.BLACKSTONE.defaultBlockState();
+                }
+                if (roll < 0.64f) {
+                    yield Blocks.BASALT.defaultBlockState();
+                }
+                if (roll < 0.83f) {
+                    yield Blocks.SMOOTH_BASALT.defaultBlockState();
+                }
+                if (roll < 0.985f) {
+                    yield Blocks.NETHERRACK.defaultBlockState();
+                }
+                yield Blocks.MAGMA_BLOCK.defaultBlockState();
+            }
+            case CRIMSON_SCAR -> {
+                if (roll < 0.56f) {
+                    yield Blocks.NETHERRACK.defaultBlockState();
+                }
+                if (roll < 0.76f) {
+                    yield Blocks.CRIMSON_NYLIUM.defaultBlockState();
+                }
+                if (roll < 0.89f) {
+                    yield Blocks.BLACKSTONE.defaultBlockState();
+                }
+                if (roll < 0.985f) {
+                    yield Blocks.BASALT.defaultBlockState();
+                }
+                yield Blocks.MAGMA_BLOCK.defaultBlockState();
+            }
+            case SOUL_ASH -> {
+                if (roll < 0.44f) {
+                    yield Blocks.SOUL_SOIL.defaultBlockState();
+                }
+                if (roll < 0.68f) {
+                    yield Blocks.SOUL_SAND.defaultBlockState();
+                }
+                if (roll < 0.83f) {
+                    yield Blocks.NETHERRACK.defaultBlockState();
+                }
+                if (roll < 0.985f) {
+                    yield Blocks.BLACKSTONE.defaultBlockState();
+                }
+                yield Blocks.MAGMA_BLOCK.defaultBlockState();
+            }
+        };
+    }
+
+    private static BlockState pickOuterGround(BlockPos origin, int x, int z, RandomSource random) {
+        SurfacePaletteRegion region = surfaceRegion(origin, x, z);
+        float roll = random.nextFloat();
+        return switch (region) {
+            case BASALT_DELTA -> roll < 0.43f
+                ? Blocks.BLACKSTONE.defaultBlockState()
+                : roll < 0.78f ? Blocks.BASALT.defaultBlockState() : Blocks.NETHERRACK.defaultBlockState();
+            case CRIMSON_SCAR -> roll < 0.70f
+                ? Blocks.NETHERRACK.defaultBlockState()
+                : roll < 0.86f ? Blocks.CRIMSON_NYLIUM.defaultBlockState() : Blocks.BLACKSTONE.defaultBlockState();
+            case SOUL_ASH -> roll < 0.52f
+                ? Blocks.SOUL_SOIL.defaultBlockState()
+                : roll < 0.74f ? Blocks.SOUL_SAND.defaultBlockState() : Blocks.NETHERRACK.defaultBlockState();
+        };
+    }
+
+    private static SurfacePaletteRegion surfaceRegion(BlockPos origin, int x, int z) {
+        double angle = Math.atan2(z - origin.getZ(), x - origin.getX());
+        double sector = (angle + Math.PI) / (Math.PI * 2.0);
+        double broadWarp = coordinateNoise(origin.asLong() ^ 0x65A2B4C9E2D51B7AL, x / 18, z / 18) * 0.30 - 0.15;
+        double localWarp = coordinateNoise(origin.asLong() ^ 0x2E3B6A13D821C91DL, x / 7, z / 7) * 0.10 - 0.05;
+        sector = sector + broadWarp + localWarp;
+        sector -= Math.floor(sector);
+        if (sector < 0.34) {
+            return SurfacePaletteRegion.BASALT_DELTA;
         }
-        return Blocks.MAGMA_BLOCK.defaultBlockState();
+        if (sector < 0.67) {
+            return SurfacePaletteRegion.CRIMSON_SCAR;
+        }
+        return SurfacePaletteRegion.SOUL_ASH;
     }
 
     private static BlockState pickLavaRimBlock(RandomSource random) {
@@ -452,6 +559,7 @@ public final class PortalStructureHelper {
         WorldGenLevel level,
         BoundingBox pieceBox,
         BoundingBox chunkBox,
+        BlockPos origin,
         BlockPos center,
         RandomSource random,
         double gradient
@@ -469,17 +577,12 @@ public final class PortalStructureHelper {
                 if (convertLocalWaterToLava(level, pieceBox, chunkBox, top)) {
                     continue;
                 }
-                float roll = random.nextFloat();
-                if (roll < 0.72f) {
-                    set(level, pieceBox, chunkBox, top, Blocks.NETHERRACK.defaultBlockState());
-                } else if (roll < 0.87f) {
-                    set(level, pieceBox, chunkBox, top, Blocks.SOUL_SAND.defaultBlockState());
-                } else if (roll < 0.981f) {
-                    set(level, pieceBox, chunkBox, top.above(), Blocks.DEAD_BUSH.defaultBlockState());
-                } else if (roll < 0.996f) {
+                setColumn(level, pieceBox, chunkBox, top, pickOuterGround(origin, top.getX(), top.getZ(), random), 2);
+                float accentRoll = random.nextFloat();
+                if (accentRoll < 0.004f * gradient) {
                     set(level, pieceBox, chunkBox, top, Blocks.CRYING_OBSIDIAN.defaultBlockState());
-                } else {
-                    placeBonePillar(level, pieceBox, chunkBox, top.above(), 1 + random.nextInt(2));
+                } else if (accentRoll < 0.0055f * gradient) {
+                    placeBonePillar(level, pieceBox, chunkBox, top.above(), 1);
                 }
             }
         }
@@ -507,19 +610,77 @@ public final class PortalStructureHelper {
         int topY = origin.getY();
         for (int y = topY; y >= bottomY; y--) {
             double t = (topY - y) / (double) Math.max(1, topY - bottomY);
-            double radius = 9.5 - t * 3.0;
-            for (int dx = -11; dx <= 11; dx++) {
-                for (int dz = -11; dz <= 11; dz++) {
-                    double noise = coordinateNoise(origin.asLong(), origin.getX() + dx, origin.getZ() + dz) * 1.6 - 0.8;
+            double mouthFlare = t < 0.18 ? (1.0 - t / 0.18) * 2.8 : 0.0;
+            double radius = 7.1 - t * 1.5 + mouthFlare;
+            for (int dx = -14; dx <= 14; dx++) {
+                for (int dz = -14; dz <= 14; dz++) {
+                    long layerSeed = origin.asLong() ^ (long) y * 341873128712L;
+                    double noise = coordinateNoise(layerSeed, origin.getX() + dx, origin.getZ() + dz) * 2.4 - 1.2;
                     double distance = Math.sqrt(dx * dx + dz * dz) + noise;
                     BlockPos pos = new BlockPos(origin.getX() + dx, y, origin.getZ() + dz);
                     if (distance <= radius) {
-                        set(level, pieceBox, chunkBox, pos, Blocks.AIR.defaultBlockState());
-                    } else if (distance <= radius + 1.4) {
+                        carveNetherAir(level, pieceBox, chunkBox, pos);
+                    } else if (y < topY - 2 && distance <= radius + 1.9) {
                         set(level, pieceBox, chunkBox, pos, corruptedWallBlock(pos));
                     }
                 }
             }
+        }
+        erodePitMouth(level, pieceBox, chunkBox, origin);
+    }
+
+    private static void erodePitMouth(
+        WorldGenLevel level,
+        BoundingBox pieceBox,
+        BoundingBox chunkBox,
+        BlockPos origin
+    ) {
+        for (int dx = -15; dx <= 15; dx++) {
+            for (int dz = -15; dz <= 15; dz++) {
+                double distance = Math.sqrt(dx * dx + dz * dz);
+                double raggedRadius = 8.8 + coordinateNoise(origin.asLong() ^ 0x4F2C1A9D77B13E5BL, origin.getX() + dx, origin.getZ() + dz) * 3.8 - 1.9;
+                BlockPos pos = origin.offset(dx, 0, dz);
+                if (distance <= raggedRadius - 0.9) {
+                    carveNetherAir(level, pieceBox, chunkBox, pos);
+                    if (coordinateNoise(origin.asLong() ^ 0x0D1B54A32F5B827CL, pos.getX(), pos.getZ()) < 0.45) {
+                        carveNetherAir(level, pieceBox, chunkBox, pos.below());
+                    }
+                } else if (distance <= raggedRadius + 3.7) {
+                    double rubble = coordinateNoise(origin.asLong() ^ 0x3C27A21E158B572FL, pos.getX(), pos.getZ());
+                    if (rubble < 0.62) {
+                        setColumn(level, pieceBox, chunkBox, pos, pickPitRimBlock(pos), rubble < 0.32 ? 3 : 2);
+                    }
+                    if (rubble > 0.86 && distance <= raggedRadius + 1.6) {
+                        carveNetherAir(level, pieceBox, chunkBox, pos.below());
+                    }
+                }
+            }
+        }
+    }
+
+    private static void placePitLavaSeeps(
+        WorldGenLevel level,
+        BoundingBox pieceBox,
+        BoundingBox chunkBox,
+        BlockPos origin,
+        int bottomY,
+        RandomSource random
+    ) {
+        int verticalRange = Math.max(1, origin.getY() - bottomY - 7);
+        for (int i = 0; i < 12; i++) {
+            double angle = random.nextDouble() * Math.PI * 2.0;
+            int y = origin.getY() - 8 - random.nextInt(verticalRange);
+            double depth = (origin.getY() - y) / (double) Math.max(1, origin.getY() - bottomY);
+            double radius = 8.0 - depth * 2.2 + random.nextDouble() * 1.5;
+            BlockPos source = new BlockPos(
+                origin.getX() + (int) Math.round(Math.cos(angle) * radius),
+                y,
+                origin.getZ() + (int) Math.round(Math.sin(angle) * radius)
+            );
+            set(level, pieceBox, chunkBox, source.below(), pickLavaRimBlock(random));
+            set(level, pieceBox, chunkBox, source, Blocks.LAVA.defaultBlockState());
+            set(level, pieceBox, chunkBox, source.above(), Blocks.AIR.defaultBlockState());
+            set(level, pieceBox, chunkBox, source.relative(Direction.Plane.HORIZONTAL.getRandomDirection(random)), pickLavaRimBlock(random));
         }
     }
 
@@ -536,7 +697,7 @@ public final class PortalStructureHelper {
                     double normalized = (dx * dx) / 196.0 + (dy * dy) / 64.0 + (dz * dz) / 196.0;
                     BlockPos pos = center.offset(dx, dy, dz);
                     if (normalized <= 0.86) {
-                        set(level, pieceBox, chunkBox, pos, Blocks.AIR.defaultBlockState());
+                        carveNetherAir(level, pieceBox, chunkBox, pos);
                     } else if (normalized <= 1.10) {
                         set(level, pieceBox, chunkBox, pos, pickChamberWall(level, pos, random));
                     }
@@ -555,22 +716,46 @@ public final class PortalStructureHelper {
         BlockPos center,
         RandomSource random
     ) {
-        int radiusX = 9 + random.nextInt(3);
-        int radiusZ = 7 + random.nextInt(3);
+        int radiusX = 11 + random.nextInt(3);
+        int radiusZ = 9 + random.nextInt(3);
         for (int dx = -radiusX - 1; dx <= radiusX + 1; dx++) {
             for (int dz = -radiusZ - 1; dz <= radiusZ + 1; dz++) {
                 double normalized = (dx * dx) / (double) (radiusX * radiusX) + (dz * dz) / (double) (radiusZ * radiusZ);
                 BlockPos pos = center.offset(dx, 0, dz);
                 if (normalized <= 1.0) {
-                    set(level, pieceBox, chunkBox, pos.below(), Blocks.NETHERRACK.defaultBlockState());
+                    set(level, pieceBox, chunkBox, pos.below(), pickLavaRimBlock(random));
                     set(level, pieceBox, chunkBox, pos, Blocks.LAVA.defaultBlockState());
                     set(level, pieceBox, chunkBox, pos.above(), Blocks.AIR.defaultBlockState());
-                    if (random.nextFloat() < 0.08f) {
+                    if (random.nextFloat() < 0.12f) {
                         placeBasaltColumn(level, pieceBox, chunkBox, pos.above(), 2 + random.nextInt(5));
                     }
                 } else if (normalized <= 1.35) {
                     set(level, pieceBox, chunkBox, pos, pickLavaRimBlock(random));
                 }
+            }
+        }
+    }
+
+    private static void placeChamberLavaVents(
+        WorldGenLevel level,
+        BoundingBox pieceBox,
+        BoundingBox chunkBox,
+        BlockPos chamberCenter,
+        RandomSource random
+    ) {
+        for (int i = 0; i < 9; i++) {
+            double angle = random.nextDouble() * Math.PI * 2.0;
+            double radius = 8.0 + random.nextDouble() * 7.0;
+            BlockPos vent = chamberCenter.offset(
+                (int) Math.round(Math.cos(angle) * radius),
+                -5 + random.nextInt(3),
+                (int) Math.round(Math.sin(angle) * radius)
+            );
+            set(level, pieceBox, chunkBox, vent.below(), pickLavaRimBlock(random));
+            set(level, pieceBox, chunkBox, vent, Blocks.LAVA.defaultBlockState());
+            set(level, pieceBox, chunkBox, vent.above(), Blocks.AIR.defaultBlockState());
+            if (random.nextFloat() < 0.45f) {
+                set(level, pieceBox, chunkBox, vent.relative(Direction.Plane.HORIZONTAL.getRandomDirection(random)), Blocks.MAGMA_BLOCK.defaultBlockState());
             }
         }
     }
@@ -692,7 +877,7 @@ public final class PortalStructureHelper {
             if (step % 8 == 4) {
                 set(level, pieceBox, chunkBox, center.offset(2, -1, 0), Blocks.SOUL_TORCH.defaultBlockState());
             }
-            if (step > 6 && step % 12 == 5 && random.nextFloat() < 0.75f) {
+            if (step > 6 && step % 10 == 5 && random.nextFloat() < 0.92f) {
                 placeTunnelLavaRun(level, pieceBox, chunkBox, center, angle, random);
             }
             last = center;
@@ -714,7 +899,7 @@ public final class PortalStructureHelper {
                     double normalized = (dx * dx + dz * dz) / 9.0 + (dy * dy) / 5.0;
                     BlockPos pos = center.offset(dx, dy, dz);
                     if (normalized <= 0.72) {
-                        set(level, pieceBox, chunkBox, pos, Blocks.AIR.defaultBlockState());
+                        carveNetherAir(level, pieceBox, chunkBox, pos);
                     } else if (normalized <= 1.15) {
                         set(level, pieceBox, chunkBox, pos, pickTunnelWall(pos, random));
                     }
@@ -731,7 +916,7 @@ public final class PortalStructureHelper {
         double angle,
         RandomSource random
     ) {
-        int length = 6 + random.nextInt(7);
+        int length = 8 + random.nextInt(9);
         for (int step = 0; step < length; step++) {
             int x = start.getX() + (int) Math.round(Math.cos(angle) * step);
             int z = start.getZ() + (int) Math.round(Math.sin(angle) * step);
@@ -868,6 +1053,112 @@ public final class PortalStructureHelper {
         return Blocks.NETHERRACK.defaultBlockState();
     }
 
+    private static BlockState pickPitRimBlock(BlockPos pos) {
+        double roll = coordinateNoise(0x49F2E6C3A881D27CL, pos.getX(), pos.getZ());
+        if (roll < 0.36) {
+            return Blocks.BLACKSTONE.defaultBlockState();
+        }
+        if (roll < 0.64) {
+            return Blocks.BASALT.defaultBlockState();
+        }
+        if (roll < 0.82) {
+            return Blocks.NETHERRACK.defaultBlockState();
+        }
+        return Blocks.SOUL_SOIL.defaultBlockState();
+    }
+
+    private static void carveNetherAir(
+        WorldGenLevel level,
+        BoundingBox pieceBox,
+        BoundingBox chunkBox,
+        BlockPos pos
+    ) {
+        set(level, pieceBox, chunkBox, pos, Blocks.AIR.defaultBlockState());
+        netherizeNeighbors(level, pieceBox, chunkBox, pos);
+    }
+
+    private static void netherizeNeighbors(
+        WorldGenLevel level,
+        BoundingBox pieceBox,
+        BoundingBox chunkBox,
+        BlockPos pos
+    ) {
+        for (Direction direction : Direction.values()) {
+            BlockPos neighbor = pos.relative(direction);
+            if (!pieceBox.isInside(neighbor) || !chunkBox.isInside(neighbor)) {
+                continue;
+            }
+            BlockState state = level.getBlockState(neighbor);
+            if (isOverworldGeology(state)) {
+                set(level, pieceBox, chunkBox, neighbor, pickUndergroundReplacement(neighbor));
+            }
+        }
+    }
+
+    private static BlockState pickUndergroundReplacement(BlockPos pos) {
+        double roll = coordinateNoise(((long) pos.getY() * 3129871L) ^ 0x2A75C913EF52A41BL, pos.getX(), pos.getZ());
+        if (pos.getY() < 16) {
+            if (roll < 0.48) {
+                return Blocks.BLACKSTONE.defaultBlockState();
+            }
+            if (roll < 0.82) {
+                return Blocks.BASALT.defaultBlockState();
+            }
+            if (roll < 0.93) {
+                return Blocks.MAGMA_BLOCK.defaultBlockState();
+            }
+            return Blocks.NETHERRACK.defaultBlockState();
+        }
+        if (pos.getY() < 32) {
+            if (roll < 0.34) {
+                return Blocks.BLACKSTONE.defaultBlockState();
+            }
+            if (roll < 0.64) {
+                return Blocks.BASALT.defaultBlockState();
+            }
+            if (roll < 0.78) {
+                return Blocks.SOUL_SOIL.defaultBlockState();
+            }
+        }
+        return roll < 0.82 ? Blocks.NETHERRACK.defaultBlockState() : Blocks.BLACKSTONE.defaultBlockState();
+    }
+
+    private static boolean isOverworldGeology(BlockState state) {
+        return state.is(Blocks.STONE)
+            || state.is(Blocks.DEEPSLATE)
+            || state.is(Blocks.DIRT)
+            || state.is(Blocks.GRASS_BLOCK)
+            || state.is(Blocks.COARSE_DIRT)
+            || state.is(Blocks.ROOTED_DIRT)
+            || state.is(Blocks.MUD)
+            || state.is(Blocks.CLAY)
+            || state.is(Blocks.GRAVEL)
+            || state.is(Blocks.SAND)
+            || state.is(Blocks.RED_SAND)
+            || state.is(Blocks.GRANITE)
+            || state.is(Blocks.DIORITE)
+            || state.is(Blocks.ANDESITE)
+            || state.is(Blocks.CALCITE)
+            || state.is(Blocks.TUFF)
+            || state.is(Blocks.DRIPSTONE_BLOCK)
+            || state.is(Blocks.COAL_ORE)
+            || state.is(Blocks.DEEPSLATE_COAL_ORE)
+            || state.is(Blocks.IRON_ORE)
+            || state.is(Blocks.DEEPSLATE_IRON_ORE)
+            || state.is(Blocks.COPPER_ORE)
+            || state.is(Blocks.DEEPSLATE_COPPER_ORE)
+            || state.is(Blocks.GOLD_ORE)
+            || state.is(Blocks.DEEPSLATE_GOLD_ORE)
+            || state.is(Blocks.REDSTONE_ORE)
+            || state.is(Blocks.DEEPSLATE_REDSTONE_ORE)
+            || state.is(Blocks.LAPIS_ORE)
+            || state.is(Blocks.DEEPSLATE_LAPIS_ORE)
+            || state.is(Blocks.DIAMOND_ORE)
+            || state.is(Blocks.DEEPSLATE_DIAMOND_ORE)
+            || state.is(Blocks.EMERALD_ORE)
+            || state.is(Blocks.DEEPSLATE_EMERALD_ORE);
+    }
+
     private static BlockPos placeConfiguredSpawner(
         WorldGenLevel level,
         BoundingBox pieceBox,
@@ -925,9 +1216,25 @@ public final class PortalStructureHelper {
         int depth
     ) {
         set(level, pieceBox, chunkBox, top, surface);
+        BlockState subsurface = underSurfaceBlock(surface);
         for (int i = 1; i < depth; i++) {
-            set(level, pieceBox, chunkBox, top.below(i), Blocks.NETHERRACK.defaultBlockState());
+            set(level, pieceBox, chunkBox, top.below(i), subsurface);
         }
+    }
+
+    private static BlockState underSurfaceBlock(BlockState surface) {
+        if (surface.is(Blocks.BLACKSTONE)
+            || surface.is(Blocks.POLISHED_BLACKSTONE_BRICKS)
+            || surface.is(Blocks.CRACKED_POLISHED_BLACKSTONE_BRICKS)) {
+            return Blocks.BLACKSTONE.defaultBlockState();
+        }
+        if (surface.is(Blocks.BASALT) || surface.is(Blocks.SMOOTH_BASALT)) {
+            return Blocks.BASALT.defaultBlockState();
+        }
+        if (surface.is(Blocks.SOUL_SAND) || surface.is(Blocks.SOUL_SOIL)) {
+            return Blocks.SOUL_SOIL.defaultBlockState();
+        }
+        return Blocks.NETHERRACK.defaultBlockState();
     }
 
     private static boolean convertLocalWaterToLava(
