@@ -40,8 +40,13 @@ public final class PortalStructureHelper {
         PortalFrameSpec frame,
         RandomSource random
     ) {
-        for (int x = origin.getX() - INNER_RADIUS; x <= origin.getX() + INNER_RADIUS; x++) {
-            for (int z = origin.getZ() - INNER_RADIUS; z <= origin.getZ() + INNER_RADIUS; z++) {
+        int minX = Math.max(origin.getX() - INNER_RADIUS, Math.max(pieceBox.minX(), chunkBox.minX()));
+        int maxX = Math.min(origin.getX() + INNER_RADIUS, Math.min(pieceBox.maxX(), chunkBox.maxX()));
+        int minZ = Math.max(origin.getZ() - INNER_RADIUS, Math.max(pieceBox.minZ(), chunkBox.minZ()));
+        int maxZ = Math.min(origin.getZ() + INNER_RADIUS, Math.min(pieceBox.maxZ(), chunkBox.maxZ()));
+
+        for (int x = minX; x <= maxX; x++) {
+            for (int z = minZ; z <= maxZ; z++) {
                 int dx = x - origin.getX();
                 int dz = z - origin.getZ();
                 double distance = Math.sqrt(dx * dx + dz * dz);
@@ -70,8 +75,13 @@ public final class PortalStructureHelper {
         BlockPos origin,
         RandomSource random
     ) {
-        for (int x = origin.getX() - MIDDLE_RADIUS; x <= origin.getX() + MIDDLE_RADIUS; x++) {
-            for (int z = origin.getZ() - MIDDLE_RADIUS; z <= origin.getZ() + MIDDLE_RADIUS; z++) {
+        int minX = Math.max(origin.getX() - MIDDLE_RADIUS, Math.max(pieceBox.minX(), chunkBox.minX()));
+        int maxX = Math.min(origin.getX() + MIDDLE_RADIUS, Math.min(pieceBox.maxX(), chunkBox.maxX()));
+        int minZ = Math.max(origin.getZ() - MIDDLE_RADIUS, Math.max(pieceBox.minZ(), chunkBox.minZ()));
+        int maxZ = Math.min(origin.getZ() + MIDDLE_RADIUS, Math.min(pieceBox.maxZ(), chunkBox.maxZ()));
+
+        for (int x = minX; x <= maxX; x++) {
+            for (int z = minZ; z <= maxZ; z++) {
                 int dx = x - origin.getX();
                 int dz = z - origin.getZ();
                 double distance = Math.sqrt(dx * dx + dz * dz);
@@ -104,13 +114,19 @@ public final class PortalStructureHelper {
 
         int basaltColumns = 4 + random.nextInt(5);
         for (int i = 0; i < basaltColumns; i++) {
-            placeBasaltColumn(level, pieceBox, chunkBox, terrainTop(level, randomRingPos(origin, random, INNER_RADIUS + 2, MIDDLE_RADIUS - 2)), 2 + random.nextInt(4));
+            BlockPos column = randomRingPos(origin, random, INNER_RADIUS + 2, MIDDLE_RADIUS - 2);
+            BlockPos top = terrainTopIfColumnInside(level, chunkBox, column);
+            if (top != null) {
+                placeBasaltColumn(level, pieceBox, chunkBox, top, 2 + random.nextInt(4));
+            }
         }
 
         int shroomlights = 1 + random.nextInt(2);
         for (int i = 0; i < shroomlights; i++) {
-            BlockPos top = terrainTop(level, randomRingPos(origin, random, INNER_RADIUS + 6, MIDDLE_RADIUS - 5));
-            set(level, pieceBox, chunkBox, top, Blocks.SHROOMLIGHT.defaultBlockState());
+            BlockPos top = terrainTopIfColumnInside(level, chunkBox, randomRingPos(origin, random, INNER_RADIUS + 6, MIDDLE_RADIUS - 5));
+            if (top != null) {
+                set(level, pieceBox, chunkBox, top, Blocks.SHROOMLIGHT.defaultBlockState());
+            }
         }
     }
 
@@ -202,8 +218,10 @@ public final class PortalStructureHelper {
         UndergroundLayout layout
     ) {
         List<BlockPos> spawners = new ArrayList<>();
-        spawners.add(placeConfiguredSpawner(level, pieceBox, chunkBox, terrainTop(level, origin.offset(24, 0, -14)).above(), EntityType.ZOMBIFIED_PIGLIN, 2, 6, 200, 400, 24, 6, false));
-        spawners.add(placeConfiguredSpawner(level, pieceBox, chunkBox, terrainTop(level, origin.offset(-22, 0, 18)).above(), EntityType.ZOMBIFIED_PIGLIN, 2, 6, 200, 400, 24, 6, false));
+        BlockPos firstSurfaceSpawner = terrainTopIfColumnInside(level, chunkBox, origin.offset(24, 0, -14));
+        BlockPos secondSurfaceSpawner = terrainTopIfColumnInside(level, chunkBox, origin.offset(-22, 0, 18));
+        spawners.add(firstSurfaceSpawner == null ? null : placeConfiguredSpawner(level, pieceBox, chunkBox, firstSurfaceSpawner.above(), EntityType.ZOMBIFIED_PIGLIN, 2, 6, 200, 400, 24, 6, false));
+        spawners.add(secondSurfaceSpawner == null ? null : placeConfiguredSpawner(level, pieceBox, chunkBox, secondSurfaceSpawner.above(), EntityType.ZOMBIFIED_PIGLIN, 2, 6, 200, 400, 24, 6, false));
         spawners.add(placeConfiguredSpawner(level, pieceBox, chunkBox, layout.chamberCenter().offset(6, -5, 0), EntityType.MAGMA_CUBE, 3, 8, 150, 300, 16, 8, true));
         spawners.add(placeConfiguredSpawner(level, pieceBox, chunkBox, layout.tunnelSpawner().above(), EntityType.WITHER_SKELETON, 1, 10, 400, 800, 20, 10, false));
         spawners.removeIf(pos -> pos == null);
@@ -212,6 +230,17 @@ public final class PortalStructureHelper {
 
     public static BlockPos terrainTop(WorldGenLevel level, BlockPos pos) {
         return terrainTop(level, pos.getX(), pos.getZ());
+    }
+
+    public static BlockPos terrainTopIfColumnInside(WorldGenLevel level, BoundingBox chunkBox, BlockPos pos) {
+        return isColumnInside(chunkBox, pos) ? terrainTop(level, pos) : null;
+    }
+
+    public static boolean isColumnInside(BoundingBox box, BlockPos pos) {
+        return pos.getX() >= box.minX()
+            && pos.getX() <= box.maxX()
+            && pos.getZ() >= box.minZ()
+            && pos.getZ() <= box.maxZ();
     }
 
     public static BlockPos terrainTop(WorldGenLevel level, int x, int z) {
@@ -327,7 +356,10 @@ public final class PortalStructureHelper {
                 if (random.nextFloat() < 0.18f) {
                     continue;
                 }
-                BlockPos top = terrainTop(level, center.offset(dx, 0, dz));
+                BlockPos top = terrainTopIfColumnInside(level, chunkBox, center.offset(dx, 0, dz));
+                if (top == null) {
+                    continue;
+                }
                 set(level, pieceBox, chunkBox, top, Blocks.SOUL_SAND.defaultBlockState());
                 set(level, pieceBox, chunkBox, top.above(), Blocks.NETHER_WART.defaultBlockState());
             }
@@ -342,12 +374,18 @@ public final class PortalStructureHelper {
         int radius,
         RandomSource random
     ) {
-        BlockPos topCenter = terrainTop(level, center);
+        BlockPos topCenter = terrainTopIfColumnInside(level, chunkBox, center);
+        if (topCenter == null) {
+            return;
+        }
         int lavaY = topCenter.getY();
         for (int dx = -radius - 1; dx <= radius + 1; dx++) {
             for (int dz = -radius - 1; dz <= radius + 1; dz++) {
                 double distance = Math.sqrt(dx * dx + dz * dz) + random.nextDouble() * 0.35;
-                BlockPos columnTop = terrainTop(level, topCenter.offset(dx, 0, dz));
+                BlockPos columnTop = terrainTopIfColumnInside(level, chunkBox, topCenter.offset(dx, 0, dz));
+                if (columnTop == null) {
+                    continue;
+                }
                 BlockPos pos = new BlockPos(columnTop.getX(), lavaY, columnTop.getZ());
                 if (distance <= radius) {
                     set(level, pieceBox, chunkBox, pos.below(), Blocks.NETHERRACK.defaultBlockState());
@@ -368,7 +406,10 @@ public final class PortalStructureHelper {
         BlockPos center,
         RandomSource random
     ) {
-        BlockPos top = terrainTop(level, center);
+        BlockPos top = terrainTopIfColumnInside(level, chunkBox, center);
+        if (top == null) {
+            return;
+        }
         int blocks = 3 + random.nextInt(4);
         for (int i = 0; i < blocks; i++) {
             set(level, pieceBox, chunkBox, top.offset(random.nextInt(3) - 1, random.nextInt(2), random.nextInt(3) - 1), Blocks.GLOWSTONE.defaultBlockState());
@@ -401,7 +442,10 @@ public final class PortalStructureHelper {
                 if (dx * dx + dz * dz > radius * radius + random.nextInt(2)) {
                     continue;
                 }
-                BlockPos top = terrainTop(level, center.offset(dx, 0, dz));
+                BlockPos top = terrainTopIfColumnInside(level, chunkBox, center.offset(dx, 0, dz));
+                if (top == null) {
+                    continue;
+                }
                 float roll = random.nextFloat();
                 if (roll < 0.70f) {
                     set(level, pieceBox, chunkBox, top, Blocks.NETHERRACK.defaultBlockState());

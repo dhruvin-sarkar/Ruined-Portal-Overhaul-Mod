@@ -101,6 +101,9 @@ public class PortalDungeonPiece extends StructurePiece {
         chests.add(origin.offset(-10, 0, 7));
 
         for (BlockPos target : chests) {
+            if (!PortalStructureHelper.isColumnInside(chunkBox, target)) {
+                continue;
+            }
             BlockPos top = PortalStructureHelper.terrainTop(level, target);
             BlockPos chestPos = top.above();
             this.setBlockIfInside(level, chunkBox, top, Blocks.NETHERRACK.defaultBlockState());
