@@ -31,9 +31,9 @@ public class PiglinRavagerEntity extends Ravager {
 
     public static AttributeSupplier.Builder createAttributes() {
         return Ravager.createAttributes()
-            .add(Attributes.MAX_HEALTH, 120.0)
+            .add(Attributes.MAX_HEALTH, 145.0)
             .add(Attributes.MOVEMENT_SPEED, 0.3)
-            .add(Attributes.ATTACK_DAMAGE, 15.0);
+            .add(Attributes.ATTACK_DAMAGE, 18.0);
     }
 
     @Override

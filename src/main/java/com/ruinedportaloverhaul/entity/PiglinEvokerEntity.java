@@ -2,10 +2,12 @@ package com.ruinedportaloverhaul.entity;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.LivingEntity;
@@ -34,7 +36,7 @@ public class PiglinEvokerEntity extends Evoker {
 
     public static AttributeSupplier.Builder createAttributes() {
         return Evoker.createAttributes()
-            .add(Attributes.MAX_HEALTH, 45.0)
+            .add(Attributes.MAX_HEALTH, 54.0)
             .add(Attributes.MOVEMENT_SPEED, 0.25);
     }
 
@@ -127,5 +129,20 @@ public class PiglinEvokerEntity extends Evoker {
                 serverLevel.playSound(null, spawnPos, SoundEvents.VEX_CHARGE, SoundSource.HOSTILE, 0.8f, 1.2f);
             }
         }
+    }
+
+    @Override
+    protected SoundEvent getAmbientSound() {
+        return SoundEvents.PIGLIN_AMBIENT;
+    }
+
+    @Override
+    protected SoundEvent getHurtSound(DamageSource damageSource) {
+        return SoundEvents.PIGLIN_HURT;
+    }
+
+    @Override
+    protected SoundEvent getDeathSound() {
+        return SoundEvents.PIGLIN_DEATH;
     }
 }

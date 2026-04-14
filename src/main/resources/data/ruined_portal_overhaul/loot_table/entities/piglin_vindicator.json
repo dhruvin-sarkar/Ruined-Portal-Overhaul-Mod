@@ -12,8 +12,8 @@
               "function": "minecraft:set_count",
               "count": {
                 "type": "minecraft:uniform",
-                "min": 2.0,
-                "max": 5.0
+                "min": 3.0,
+                "max": 7.0
               }
             }
           ]
@@ -25,7 +25,7 @@
       "conditions": [
         {
           "condition": "minecraft:random_chance",
-          "chance": 0.25
+          "chance": 0.35
         }
       ],
       "entries": [
@@ -40,7 +40,7 @@
       "conditions": [
         {
           "condition": "minecraft:random_chance",
-          "chance": 0.10
+          "chance": 0.16
         }
       ],
       "entries": [

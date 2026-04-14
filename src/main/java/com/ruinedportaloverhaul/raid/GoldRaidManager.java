@@ -65,10 +65,10 @@ public final class GoldRaidManager {
     private static final int PRE_RAID_SPAWNER_SCAN_RADIUS = Math.max(80, PortalStructureHelper.MIDDLE_RADIUS + 28);
     private static final int RAID_SCAN_INTERVAL_TICKS = 10;
     private static final int AMBIENT_PARTICLE_INTERVAL_TICKS = 40;
-    private static final int AMBIENT_SPAWN_INTERVAL_TICKS = 80;
-    private static final int AMBIENT_MOB_CAP = 8;
-    private static final int ANCHORED_GHAST_CAP = 2;
-    private static final int GHAST_SPAWN_INTERVAL_TICKS = 240;
+    private static final int AMBIENT_SPAWN_INTERVAL_TICKS = 60;
+    private static final int AMBIENT_MOB_CAP = 14;
+    private static final int ANCHORED_GHAST_CAP = 3;
+    private static final int GHAST_SPAWN_INTERVAL_TICKS = 180;
     private static final int GHAST_ANCHOR_RADIUS = PortalStructureHelper.OUTER_RADIUS + 32;
     private static final int GHAST_ANCHOR_TICKS = 20 * 180;
     private static final int INTER_WAVE_PULSE_INTERVAL_TICKS = 60;
@@ -364,30 +364,30 @@ public final class GoldRaidManager {
         state.activeMobs.clear();
         state.waveSize = 0;
         switch (state.waveIndex) {
-            case 0 -> spawnWave(state, new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 6));
+            case 0 -> spawnWave(state, new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 8));
             case 1 -> spawnWave(
                 state,
-                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 6),
-                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 3)
+                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 8),
+                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 4)
             );
             case 2 -> spawnWave(
                 state,
-                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 4),
-                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 3),
-                new SpawnEntry(ModEntities.PIGLIN_BRUTE_PILLAGER, 2)
+                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 6),
+                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 4),
+                new SpawnEntry(ModEntities.PIGLIN_BRUTE_PILLAGER, 3)
             );
             case 3 -> spawnWave(
                 state,
-                new SpawnEntry(ModEntities.PIGLIN_BRUTE_PILLAGER, 3),
-                new SpawnEntry(ModEntities.PIGLIN_ILLUSIONER, 2),
+                new SpawnEntry(ModEntities.PIGLIN_BRUTE_PILLAGER, 4),
+                new SpawnEntry(ModEntities.PIGLIN_ILLUSIONER, 3),
                 new SpawnEntry(ModEntities.PIGLIN_RAVAGER, 1)
             );
             case 4 -> spawnWave(
                 state,
-                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 4),
-                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 2),
+                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 6),
+                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 3),
                 new SpawnEntry(ModEntities.PIGLIN_RAVAGER, 1),
-                new SpawnEntry(ModEntities.PIGLIN_EVOKER, 1)
+                new SpawnEntry(ModEntities.PIGLIN_EVOKER, 2)
             );
             default -> {
             }
@@ -626,7 +626,7 @@ public final class GoldRaidManager {
         EntityType<? extends LivingEntity> type = pickAmbientType(level.getRandom(), entries);
         BlockPos spawnPos = findAmbientGroundSpawnPosition(level, player, origin, type, distance);
         if (spawnPos == null) {
-            NEXT_AMBIENT_SPAWN_TICK.put(key, gameTime + 40L);
+            NEXT_AMBIENT_SPAWN_TICK.put(key, gameTime + 30L);
             return;
         }
 
@@ -636,7 +636,7 @@ public final class GoldRaidManager {
         }
         if (entity != null) {
             spawnParticle(level, ParticleTypes.LARGE_SMOKE, spawnPos.getX() + 0.5, spawnPos.getY() + 0.5, spawnPos.getZ() + 0.5, 8, 0.4, 0.4, 0.4, 0.02);
-            NEXT_AMBIENT_SPAWN_TICK.put(key, gameTime + 180L + level.getRandom().nextInt(120));
+            NEXT_AMBIENT_SPAWN_TICK.put(key, gameTime + 100L + level.getRandom().nextInt(80));
         }
     }
 
@@ -660,7 +660,7 @@ public final class GoldRaidManager {
             ANCHORED_GHASTS.put(ghast.getUUID(), new PortalGhastAnchor(origin.immutable(), gameTime + GHAST_ANCHOR_TICKS));
             spawnParticle(level, ParticleTypes.CRIMSON_SPORE, spawnPos.getX() + 0.5, spawnPos.getY() + 2.0, spawnPos.getZ() + 0.5, 30, 3.0, 2.0, 3.0, 0.02);
             level.playSound(null, spawnPos, SoundEvents.GHAST_AMBIENT, SoundSource.HOSTILE, 2.0f, 0.65f);
-            NEXT_GHAST_SPAWN_TICK.put(key, gameTime + GHAST_SPAWN_INTERVAL_TICKS + level.getRandom().nextInt(160));
+            NEXT_GHAST_SPAWN_TICK.put(key, gameTime + GHAST_SPAWN_INTERVAL_TICKS + level.getRandom().nextInt(120));
         }
     }
 
@@ -704,7 +704,7 @@ public final class GoldRaidManager {
             ? PortalStructureHelper.MIDDLE_RADIUS + 8.0
             : PortalStructureHelper.OUTER_RADIUS - 4.0;
 
-        for (int attempt = 0; attempt < 18; attempt++) {
+        for (int attempt = 0; attempt < 28; attempt++) {
             double angle = random.nextDouble() * Math.PI * 2.0;
             double playerRadius = 18.0 + random.nextDouble() * 28.0;
             int x = player.blockPosition().getX() + (int) Math.round(Math.cos(angle) * playerRadius);
@@ -726,7 +726,7 @@ public final class GoldRaidManager {
 
     private static BlockPos findGhastSpawnPosition(ServerLevel level, ServerPlayer player, BlockPos origin) {
         RandomSource random = level.getRandom();
-        for (int attempt = 0; attempt < 18; attempt++) {
+        for (int attempt = 0; attempt < 28; attempt++) {
             double angle = random.nextDouble() * Math.PI * 2.0;
             double radius = 18.0 + random.nextDouble() * (PortalStructureHelper.MIDDLE_RADIUS + 26.0);
             int x = origin.getX() + (int) Math.round(Math.cos(angle) * radius);
@@ -1089,11 +1089,11 @@ public final class GoldRaidManager {
 
     private static int expectedWaveSize(int waveIndex) {
         return switch (waveIndex) {
-            case 0 -> 6;
-            case 1 -> 9;
-            case 2 -> 9;
-            case 3 -> 7;
-            case 4 -> 8;
+            case 0 -> 8;
+            case 1 -> 12;
+            case 2 -> 13;
+            case 3 -> 9;
+            case 4 -> 12;
             default -> 0;
         };
     }

@@ -10,6 +10,7 @@ import net.minecraft.world.level.ServerLevelAccessor;
 
 public final class PiglinDifficultyScaler {
     private static final net.minecraft.resources.Identifier HARD_HEALTH_BONUS_ID = ModEntities.id("hard_health_bonus");
+    private static final net.minecraft.resources.Identifier HARD_ATTACK_BONUS_ID = ModEntities.id("hard_attack_bonus");
 
     private PiglinDifficultyScaler() {
     }
@@ -20,16 +21,23 @@ public final class PiglinDifficultyScaler {
         }
 
         AttributeInstance maxHealth = mob.getAttribute(Attributes.MAX_HEALTH);
-        if (maxHealth == null || maxHealth.hasModifier(HARD_HEALTH_BONUS_ID)) {
-            return spawnData;
+        if (maxHealth != null && !maxHealth.hasModifier(HARD_HEALTH_BONUS_ID)) {
+            maxHealth.addOrReplacePermanentModifier(new AttributeModifier(
+                HARD_HEALTH_BONUS_ID,
+                maxHealth.getBaseValue() * 0.35,
+                AttributeModifier.Operation.ADD_VALUE
+            ));
+            mob.setHealth(mob.getMaxHealth());
         }
 
-        maxHealth.addOrReplacePermanentModifier(new AttributeModifier(
-            HARD_HEALTH_BONUS_ID,
-            maxHealth.getBaseValue() * 0.25,
-            AttributeModifier.Operation.ADD_VALUE
-        ));
-        mob.setHealth(mob.getMaxHealth());
+        AttributeInstance attackDamage = mob.getAttribute(Attributes.ATTACK_DAMAGE);
+        if (attackDamage != null && !attackDamage.hasModifier(HARD_ATTACK_BONUS_ID)) {
+            attackDamage.addOrReplacePermanentModifier(new AttributeModifier(
+                HARD_ATTACK_BONUS_ID,
+                attackDamage.getBaseValue() * 0.15,
+                AttributeModifier.Operation.ADD_VALUE
+            ));
+        }
         return spawnData;
     }
 }

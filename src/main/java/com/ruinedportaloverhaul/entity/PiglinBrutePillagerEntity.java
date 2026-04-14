@@ -3,9 +3,11 @@ package com.ruinedportaloverhaul.entity;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -25,7 +27,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 
 public class PiglinBrutePillagerEntity extends Pillager {
-    private static final float ARROW_DAMAGE = 7.0f;
+    private static final float ARROW_DAMAGE = 8.0f;
 
     public PiglinBrutePillagerEntity(EntityType<? extends PiglinBrutePillagerEntity> entityType, Level level) {
         super(entityType, level);
@@ -33,9 +35,9 @@ public class PiglinBrutePillagerEntity extends Pillager {
 
     public static AttributeSupplier.Builder createAttributes() {
         return Pillager.createAttributes()
-            .add(Attributes.MAX_HEALTH, 55.0)
+            .add(Attributes.MAX_HEALTH, 65.0)
             .add(Attributes.MOVEMENT_SPEED, 0.27)
-            .add(Attributes.ATTACK_DAMAGE, 12.0);
+            .add(Attributes.ATTACK_DAMAGE, 14.0);
     }
 
     @Override
@@ -83,6 +85,21 @@ public class PiglinBrutePillagerEntity extends Pillager {
         arrow.shoot(dx, dy, dz, 1.5f, 1.0f);
         serverLevel.addFreshEntity(arrow);
         this.playSound(SoundEvents.CROSSBOW_SHOOT, 1.0f, 1.0f / (this.getRandom().nextFloat() * 0.4f + 0.8f));
+    }
+
+    @Override
+    protected SoundEvent getAmbientSound() {
+        return SoundEvents.PIGLIN_BRUTE_AMBIENT;
+    }
+
+    @Override
+    protected SoundEvent getHurtSound(DamageSource damageSource) {
+        return SoundEvents.PIGLIN_BRUTE_HURT;
+    }
+
+    @Override
+    protected SoundEvent getDeathSound() {
+        return SoundEvents.PIGLIN_BRUTE_DEATH;
     }
 
     private final class CloseRangeMeleeGoal extends MeleeAttackGoal {

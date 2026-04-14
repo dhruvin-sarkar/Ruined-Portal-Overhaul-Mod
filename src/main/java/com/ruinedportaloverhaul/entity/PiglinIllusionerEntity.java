@@ -3,8 +3,11 @@ package com.ruinedportaloverhaul.entity;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
@@ -36,7 +39,7 @@ public class PiglinIllusionerEntity extends Illusioner {
 
     public static AttributeSupplier.Builder createAttributes() {
         return Illusioner.createAttributes()
-            .add(Attributes.MAX_HEALTH, 40.0)
+            .add(Attributes.MAX_HEALTH, 48.0)
             .add(Attributes.MOVEMENT_SPEED, 0.3);
     }
 
@@ -88,5 +91,20 @@ public class PiglinIllusionerEntity extends Illusioner {
         arrow.igniteForSeconds(4.0f);
         arrow.shoot(dx, dy, dz, 1.6f, 0.9f);
         serverLevel.addFreshEntity(arrow);
+    }
+
+    @Override
+    protected SoundEvent getAmbientSound() {
+        return SoundEvents.PIGLIN_AMBIENT;
+    }
+
+    @Override
+    protected SoundEvent getHurtSound(DamageSource damageSource) {
+        return SoundEvents.PIGLIN_HURT;
+    }
+
+    @Override
+    protected SoundEvent getDeathSound() {
+        return SoundEvents.PIGLIN_DEATH;
     }
 }

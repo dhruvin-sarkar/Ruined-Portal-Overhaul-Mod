@@ -3,9 +3,11 @@ package com.ruinedportaloverhaul.entity;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -24,7 +26,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 
 public class PiglinPillagerEntity extends Pillager {
-    private static final float ARROW_DAMAGE = 5.0f;
+    private static final float ARROW_DAMAGE = 6.0f;
 
     public PiglinPillagerEntity(EntityType<? extends PiglinPillagerEntity> entityType, Level level) {
         super(entityType, level);
@@ -32,7 +34,7 @@ public class PiglinPillagerEntity extends Pillager {
 
     public static AttributeSupplier.Builder createAttributes() {
         return Pillager.createAttributes()
-            .add(Attributes.MAX_HEALTH, 30.0)
+            .add(Attributes.MAX_HEALTH, 34.0)
             .add(Attributes.MOVEMENT_SPEED, 0.32);
     }
 
@@ -71,5 +73,20 @@ public class PiglinPillagerEntity extends Pillager {
         arrow.shoot(dx, dy, dz, 1.6f, 0.9f);
         serverLevel.addFreshEntity(arrow);
         this.playSound(SoundEvents.CROSSBOW_SHOOT, 1.0f, 1.0f / (this.getRandom().nextFloat() * 0.4f + 0.8f));
+    }
+
+    @Override
+    protected SoundEvent getAmbientSound() {
+        return SoundEvents.PIGLIN_AMBIENT;
+    }
+
+    @Override
+    protected SoundEvent getHurtSound(DamageSource damageSource) {
+        return SoundEvents.PIGLIN_HURT;
+    }
+
+    @Override
+    protected SoundEvent getDeathSound() {
+        return SoundEvents.PIGLIN_DEATH;
     }
 }
