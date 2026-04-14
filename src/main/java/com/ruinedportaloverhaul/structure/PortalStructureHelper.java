@@ -493,7 +493,7 @@ public final class PortalStructureHelper {
                     if (distance <= radius) {
                         set(level, pieceBox, chunkBox, pos, Blocks.AIR.defaultBlockState());
                     } else if (distance <= radius + 1.4) {
-                        set(level, pieceBox, chunkBox, pos, corruptedWallBlock(level, pos));
+                        set(level, pieceBox, chunkBox, pos, corruptedWallBlock(pos));
                     }
                 }
             }
@@ -821,7 +821,7 @@ public final class PortalStructureHelper {
         if (roll < 0.22f) {
             return Blocks.BASALT.defaultBlockState();
         }
-        return corruptedWallBlock(level, pos);
+        return corruptedWallBlock(pos);
     }
 
     private static BlockState pickChamberFloor(RandomSource random) {
@@ -835,9 +835,8 @@ public final class PortalStructureHelper {
         return Blocks.BASALT.defaultBlockState();
     }
 
-    private static BlockState corruptedWallBlock(WorldGenLevel level, BlockPos pos) {
-        BlockState current = level.getBlockState(pos);
-        if (current.is(Blocks.DEEPSLATE) || pos.getY() < 0) {
+    private static BlockState corruptedWallBlock(BlockPos pos) {
+        if (pos.getY() < 0) {
             return Blocks.BLACKSTONE.defaultBlockState();
         }
         return Blocks.NETHERRACK.defaultBlockState();
