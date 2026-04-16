@@ -22,6 +22,12 @@
 			"com.ruinedportaloverhaul.client.RuinedPortalOverhaulClient"
 		]
 	},
+	"mixins": [
+		{
+			"config": "ruined_portal_overhaul.client.mixins.json",
+			"environment": "client"
+		}
+	],
 	"depends": {
 		"fabricloader": ">=0.18.6",
 		"minecraft": "~1.21.11",

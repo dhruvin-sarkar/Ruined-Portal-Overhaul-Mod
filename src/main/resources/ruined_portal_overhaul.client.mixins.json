@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "package": "com.ruinedportaloverhaul.client.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "ClientLevelStormMixin",
+    "WeatherEffectRendererMixin",
+    "SkyRendererMixin",
+    "FogRendererMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
