@@ -23,8 +23,8 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 
 public class PiglinEvokerEntity extends Evoker {
-    private static final int FANG_COOLDOWN_TICKS = 240;
-    private static final int VEX_COOLDOWN_TICKS = 300;
+    private static final int FANG_COOLDOWN_TICKS = 160;
+    private static final int VEX_COOLDOWN_TICKS = 220;
 
     private int fangCooldown;
     private int vexCooldown;
@@ -36,8 +36,8 @@ public class PiglinEvokerEntity extends Evoker {
 
     public static AttributeSupplier.Builder createAttributes() {
         return Evoker.createAttributes()
-            .add(Attributes.MAX_HEALTH, 54.0)
-            .add(Attributes.MOVEMENT_SPEED, 0.25);
+            .add(Attributes.MAX_HEALTH, 70.0)
+            .add(Attributes.MOVEMENT_SPEED, 0.27);
     }
 
     @Override
@@ -62,7 +62,7 @@ public class PiglinEvokerEntity extends Evoker {
         }
 
         if (!this.summonedDesperationVex && this.getHealth() <= this.getMaxHealth() * 0.5f) {
-            summonPiglinVexes(serverLevel, 1);
+            summonPiglinVexes(serverLevel, 2);
             this.summonedDesperationVex = true;
         }
 
@@ -74,7 +74,7 @@ public class PiglinEvokerEntity extends Evoker {
         }
 
         if (distance <= 256.0 && this.vexCooldown <= 0) {
-            summonPiglinVexes(serverLevel, 3);
+            summonPiglinVexes(serverLevel, 4);
             this.vexCooldown = VEX_COOLDOWN_TICKS;
         }
     }
@@ -92,9 +92,9 @@ public class PiglinEvokerEntity extends Evoker {
     }
 
     private void castMagmaEruption(ServerLevel serverLevel, Vec3 center) {
-        float radius = 2.5f;
-        for (int i = 0; i < 8; i++) {
-            double angle = Math.toRadians((360.0 / 8.0) * i);
+        float radius = 3.0f;
+        for (int i = 0; i < 10; i++) {
+            double angle = Math.toRadians((360.0 / 10.0) * i);
             double x = center.x + Math.cos(angle) * radius;
             double z = center.z + Math.sin(angle) * radius;
             EvokerFangs fangs = new EvokerFangs(serverLevel, x, center.y, z, (float) angle, 0, this);
@@ -126,7 +126,7 @@ public class PiglinEvokerEntity extends Evoker {
                 false
             );
             if (spawnedVex != null) {
-                serverLevel.playSound(null, spawnPos, SoundEvents.VEX_CHARGE, SoundSource.HOSTILE, 0.8f, 1.2f);
+                serverLevel.playSound(null, spawnPos, SoundEvents.PIGLIN_ANGRY, SoundSource.HOSTILE, 0.85f, 0.95f);
             }
         }
     }

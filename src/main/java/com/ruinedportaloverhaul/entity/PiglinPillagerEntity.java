@@ -26,7 +26,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 
 public class PiglinPillagerEntity extends Pillager {
-    private static final float ARROW_DAMAGE = 6.0f;
+    private static final float ARROW_DAMAGE = 9.5f;
 
     public PiglinPillagerEntity(EntityType<? extends PiglinPillagerEntity> entityType, Level level) {
         super(entityType, level);
@@ -34,8 +34,8 @@ public class PiglinPillagerEntity extends Pillager {
 
     public static AttributeSupplier.Builder createAttributes() {
         return Pillager.createAttributes()
-            .add(Attributes.MAX_HEALTH, 34.0)
-            .add(Attributes.MOVEMENT_SPEED, 0.32);
+            .add(Attributes.MAX_HEALTH, 44.0)
+            .add(Attributes.MOVEMENT_SPEED, 0.34);
     }
 
     @Override
@@ -47,12 +47,24 @@ public class PiglinPillagerEntity extends Pillager {
     @Override
     protected void populateDefaultEquipmentSlots(RandomSource randomSource, DifficultyInstance difficultyInstance) {
         ItemStack crossbow = new ItemStack(Items.CROSSBOW);
-        if (randomSource.nextFloat() < 0.25f) {
-            Holder.Reference<Enchantment> enchantment = this.level()
+        float roll = randomSource.nextFloat();
+        Holder.Reference<Enchantment> quickCharge = this.level()
+            .registryAccess()
+            .lookupOrThrow(Registries.ENCHANTMENT)
+            .getOrThrow(Enchantments.QUICK_CHARGE);
+        crossbow.enchant(quickCharge, 3);
+        if (roll < 0.35f) {
+            Holder.Reference<Enchantment> piercing = this.level()
                 .registryAccess()
                 .lookupOrThrow(Registries.ENCHANTMENT)
-                .getOrThrow(Enchantments.QUICK_CHARGE);
-            crossbow.enchant(enchantment, 2);
+                .getOrThrow(Enchantments.PIERCING);
+            crossbow.enchant(piercing, 2);
+        } else if (roll < 0.55f) {
+            Holder.Reference<Enchantment> multishot = this.level()
+                .registryAccess()
+                .lookupOrThrow(Registries.ENCHANTMENT)
+                .getOrThrow(Enchantments.MULTISHOT);
+            crossbow.enchant(multishot, 1);
         }
         this.setItemSlot(EquipmentSlot.MAINHAND, crossbow);
     }

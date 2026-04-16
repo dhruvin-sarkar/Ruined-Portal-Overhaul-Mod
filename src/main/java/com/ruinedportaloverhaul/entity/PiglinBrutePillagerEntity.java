@@ -27,7 +27,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 
 public class PiglinBrutePillagerEntity extends Pillager {
-    private static final float ARROW_DAMAGE = 8.0f;
+    private static final float ARROW_DAMAGE = 11.0f;
 
     public PiglinBrutePillagerEntity(EntityType<? extends PiglinBrutePillagerEntity> entityType, Level level) {
         super(entityType, level);
@@ -35,9 +35,9 @@ public class PiglinBrutePillagerEntity extends Pillager {
 
     public static AttributeSupplier.Builder createAttributes() {
         return Pillager.createAttributes()
-            .add(Attributes.MAX_HEALTH, 65.0)
-            .add(Attributes.MOVEMENT_SPEED, 0.27)
-            .add(Attributes.ATTACK_DAMAGE, 14.0);
+            .add(Attributes.MAX_HEALTH, 88.0)
+            .add(Attributes.MOVEMENT_SPEED, 0.29)
+            .add(Attributes.ATTACK_DAMAGE, 20.0);
     }
 
     @Override
@@ -60,12 +60,25 @@ public class PiglinBrutePillagerEntity extends Pillager {
     @Override
     protected void populateDefaultEquipmentSlots(RandomSource randomSource, DifficultyInstance difficultyInstance) {
         ItemStack crossbow = new ItemStack(Items.CROSSBOW);
-        Holder.Reference<Enchantment> enchantment = this.level()
+        Holder.Reference<Enchantment> multishot = this.level()
             .registryAccess()
             .lookupOrThrow(Registries.ENCHANTMENT)
             .getOrThrow(Enchantments.MULTISHOT);
-        crossbow.enchant(enchantment, 1);
+        crossbow.enchant(multishot, 1);
+        Holder.Reference<Enchantment> quickCharge = this.level()
+            .registryAccess()
+            .lookupOrThrow(Registries.ENCHANTMENT)
+            .getOrThrow(Enchantments.QUICK_CHARGE);
+        crossbow.enchant(quickCharge, 2);
+        if (randomSource.nextBoolean()) {
+            Holder.Reference<Enchantment> piercing = this.level()
+                .registryAccess()
+                .lookupOrThrow(Registries.ENCHANTMENT)
+                .getOrThrow(Enchantments.PIERCING);
+            crossbow.enchant(piercing, 1);
+        }
         this.setItemSlot(EquipmentSlot.MAINHAND, crossbow);
+        this.setItemSlot(EquipmentSlot.OFFHAND, new ItemStack(randomSource.nextBoolean() ? Items.GOLDEN_AXE : Items.GOLDEN_SWORD));
         this.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.GOLDEN_CHESTPLATE));
     }
 

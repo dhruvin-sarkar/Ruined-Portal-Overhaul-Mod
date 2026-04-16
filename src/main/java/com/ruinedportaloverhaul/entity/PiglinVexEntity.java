@@ -17,13 +17,13 @@ import net.minecraft.world.level.ServerLevelAccessor;
 public class PiglinVexEntity extends Vex {
     public PiglinVexEntity(EntityType<? extends PiglinVexEntity> entityType, Level level) {
         super(entityType, level);
-        this.setLimitedLife(60 * 20);
+        this.setLimitedLife(70 * 20);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
         return Vex.createAttributes()
-            .add(Attributes.MAX_HEALTH, 22.0)
-            .add(Attributes.ATTACK_DAMAGE, 7.0);
+            .add(Attributes.MAX_HEALTH, 28.0)
+            .add(Attributes.ATTACK_DAMAGE, 10.0);
     }
 
     @Override

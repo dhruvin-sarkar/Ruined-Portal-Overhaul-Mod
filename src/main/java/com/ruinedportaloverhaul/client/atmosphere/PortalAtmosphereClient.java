@@ -12,6 +12,9 @@ import net.minecraft.resources.Identifier;
 public final class PortalAtmosphereClient {
     private static final Identifier OVERLAY_ID = Identifier.fromNamespaceAndPath(RuinedPortalOverhaul.MOD_ID, "portal_atmosphere_overlay");
     private static final long PACKET_FADE_NANOS = 1_600_000_000L;
+    private static final double PULSE_PERIOD_NANOS = 4_200_000_000.0;
+    private static final float PULSE_FLOOR = 0.72f;
+    private static final float PULSE_RANGE = 0.28f;
     private static float targetIntensity;
     private static float targetDescent;
     private static float displayIntensity;
@@ -49,8 +52,9 @@ public final class PortalAtmosphereClient {
 
         int width = graphics.guiWidth();
         int height = graphics.guiHeight();
-        int fullAlpha = Math.min(70, Math.round(displayIntensity * (28.0f + displayDescent * 44.0f)));
-        int lowerAlpha = Math.min(96, Math.round(displayIntensity * (34.0f + displayDescent * 62.0f)));
+        float pulsedIntensity = displayIntensity * breathingPulse(now);
+        int fullAlpha = Math.min(82, Math.round(pulsedIntensity * (30.0f + displayDescent * 52.0f)));
+        int lowerAlpha = Math.min(112, Math.round(pulsedIntensity * (38.0f + displayDescent * 74.0f)));
         int fullColor = argb(fullAlpha, 214, 64, 18);
         int lowerColor = argb(lowerAlpha, 255, 86, 20);
         graphics.fill(0, 0, width, height, fullColor);
@@ -62,6 +66,12 @@ public final class PortalAtmosphereClient {
             | ((red & 0xFF) << 16)
             | ((green & 0xFF) << 8)
             | (blue & 0xFF);
+    }
+
+    private static float breathingPulse(long now) {
+        double cycle = (now % (long) PULSE_PERIOD_NANOS) / PULSE_PERIOD_NANOS;
+        double wave = (Math.sin(cycle * Math.PI * 2.0 - Math.PI / 2.0) + 1.0) * 0.5;
+        return PULSE_FLOOR + (float) wave * PULSE_RANGE;
     }
 
     private static float clamp01(float value) {

@@ -24,7 +24,7 @@ public final class PiglinDifficultyScaler {
         if (maxHealth != null && !maxHealth.hasModifier(HARD_HEALTH_BONUS_ID)) {
             maxHealth.addOrReplacePermanentModifier(new AttributeModifier(
                 HARD_HEALTH_BONUS_ID,
-                maxHealth.getBaseValue() * 0.35,
+                maxHealth.getBaseValue() * 0.50,
                 AttributeModifier.Operation.ADD_VALUE
             ));
             mob.setHealth(mob.getMaxHealth());
@@ -34,7 +34,7 @@ public final class PiglinDifficultyScaler {
         if (attackDamage != null && !attackDamage.hasModifier(HARD_ATTACK_BONUS_ID)) {
             attackDamage.addOrReplacePermanentModifier(new AttributeModifier(
                 HARD_ATTACK_BONUS_ID,
-                attackDamage.getBaseValue() * 0.15,
+                attackDamage.getBaseValue() * 0.60,
                 AttributeModifier.Operation.ADD_VALUE
             ));
         }

@@ -68,13 +68,14 @@ public final class GoldRaidManager {
     private static final int RAID_SCAN_INTERVAL_TICKS = 10;
     private static final int AMBIENT_PARTICLE_INTERVAL_TICKS = 40;
     private static final int AMBIENT_SPAWN_INTERVAL_TICKS = 40;
-    private static final int AMBIENT_MOB_CAP = 22;
-    private static final int ANCHORED_GHAST_CAP = 4;
-    private static final int GHAST_SPAWN_INTERVAL_TICKS = 140;
+    private static final int AMBIENT_MOB_CAP = 34;
+    private static final int ANCHORED_GHAST_CAP = 5;
+    private static final int GHAST_SPAWN_INTERVAL_TICKS = 105;
     private static final int GHAST_ANCHOR_RADIUS = PortalStructureHelper.OUTER_RADIUS + 32;
     private static final int GHAST_ANCHOR_TICKS = 20 * 180;
     private static final int INTER_WAVE_PULSE_INTERVAL_TICKS = 60;
-    private static final int WAVE_DELAY_TICKS = 300;
+    private static final int WAVE_DELAY_TICKS = 180;
+    private static final float MIN_PORTAL_ATMOSPHERE_INTENSITY = 0.22f;
     private static final double BOSS_BAR_PLAYER_RANGE_SQUARED = BOSS_BAR_PLAYER_RANGE * BOSS_BAR_PLAYER_RANGE;
     private static final String PORTAL_GHAST_TAG = "rpo_portal_ghast";
     private static final String PORTAL_GHAST_ORIGIN_TAG_PREFIX = "rpo_origin_";
@@ -98,23 +99,24 @@ public final class GoldRaidManager {
     private static final Map<UUID, PortalGhastAnchor> ANCHORED_GHASTS = new HashMap<>();
 
     private static final List<AmbientSpawnEntry> OUTER_AMBIENT_SPAWNS = List.of(
-        new AmbientSpawnEntry(EntityType.ZOMBIFIED_PIGLIN, 8),
-        new AmbientSpawnEntry(EntityType.MAGMA_CUBE, 2)
+        new AmbientSpawnEntry(EntityType.ZOMBIFIED_PIGLIN, 9),
+        new AmbientSpawnEntry(EntityType.MAGMA_CUBE, 3)
     );
     private static final List<AmbientSpawnEntry> MIDDLE_AMBIENT_SPAWNS = List.of(
         new AmbientSpawnEntry(EntityType.ZOMBIFIED_PIGLIN, 6),
-        new AmbientSpawnEntry(EntityType.MAGMA_CUBE, 3),
-        new AmbientSpawnEntry(EntityType.BLAZE, 2)
+        new AmbientSpawnEntry(EntityType.MAGMA_CUBE, 4),
+        new AmbientSpawnEntry(EntityType.BLAZE, 4),
+        new AmbientSpawnEntry(EntityType.WITHER_SKELETON, 2)
     );
     private static final List<AmbientSpawnEntry> INNER_AMBIENT_SPAWNS = List.of(
-        new AmbientSpawnEntry(EntityType.BLAZE, 5),
-        new AmbientSpawnEntry(EntityType.WITHER_SKELETON, 3),
-        new AmbientSpawnEntry(EntityType.MAGMA_CUBE, 2)
+        new AmbientSpawnEntry(EntityType.BLAZE, 6),
+        new AmbientSpawnEntry(EntityType.WITHER_SKELETON, 5),
+        new AmbientSpawnEntry(EntityType.MAGMA_CUBE, 3)
     );
     private static final List<AmbientSpawnEntry> DEEP_AMBIENT_SPAWNS = List.of(
-        new AmbientSpawnEntry(EntityType.WITHER_SKELETON, 5),
-        new AmbientSpawnEntry(EntityType.BLAZE, 5),
-        new AmbientSpawnEntry(EntityType.MAGMA_CUBE, 4),
+        new AmbientSpawnEntry(EntityType.WITHER_SKELETON, 7),
+        new AmbientSpawnEntry(EntityType.BLAZE, 7),
+        new AmbientSpawnEntry(EntityType.MAGMA_CUBE, 5),
         new AmbientSpawnEntry(EntityType.ZOMBIFIED_PIGLIN, 2)
     );
 
@@ -372,30 +374,40 @@ public final class GoldRaidManager {
         state.activeMobs.clear();
         state.waveSize = 0;
         switch (state.waveIndex) {
-            case 0 -> spawnWave(state, new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 8));
+            case 0 -> spawnWave(
+                state,
+                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 10),
+                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 3)
+            );
             case 1 -> spawnWave(
                 state,
-                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 8),
-                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 4)
+                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 9),
+                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 5),
+                new SpawnEntry(ModEntities.PIGLIN_BRUTE_PILLAGER, 2)
             );
             case 2 -> spawnWave(
                 state,
-                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 6),
-                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 4),
-                new SpawnEntry(ModEntities.PIGLIN_BRUTE_PILLAGER, 3)
+                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 7),
+                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 5),
+                new SpawnEntry(ModEntities.PIGLIN_BRUTE_PILLAGER, 4),
+                new SpawnEntry(ModEntities.PIGLIN_ILLUSIONER, 2)
             );
             case 3 -> spawnWave(
                 state,
-                new SpawnEntry(ModEntities.PIGLIN_BRUTE_PILLAGER, 4),
-                new SpawnEntry(ModEntities.PIGLIN_ILLUSIONER, 3),
-                new SpawnEntry(ModEntities.PIGLIN_RAVAGER, 1)
+                new SpawnEntry(ModEntities.PIGLIN_BRUTE_PILLAGER, 5),
+                new SpawnEntry(ModEntities.PIGLIN_ILLUSIONER, 4),
+                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 4),
+                new SpawnEntry(ModEntities.PIGLIN_RAVAGER, 1),
+                new SpawnEntry(ModEntities.PIGLIN_EVOKER, 1)
             );
             case 4 -> spawnWave(
                 state,
                 new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 6),
-                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 3),
-                new SpawnEntry(ModEntities.PIGLIN_RAVAGER, 1),
-                new SpawnEntry(ModEntities.PIGLIN_EVOKER, 2)
+                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 5),
+                new SpawnEntry(ModEntities.PIGLIN_BRUTE_PILLAGER, 5),
+                new SpawnEntry(ModEntities.PIGLIN_ILLUSIONER, 3),
+                new SpawnEntry(ModEntities.PIGLIN_RAVAGER, 2),
+                new SpawnEntry(ModEntities.PIGLIN_EVOKER, 3)
             );
             default -> {
             }
@@ -459,10 +471,10 @@ public final class GoldRaidManager {
     }
 
     private static BlockPos findWaveSpawnPosition(RaidState state, EntityType<? extends LivingEntity> type, int offsetIndex, int totalMobs) {
-        for (int attempt = 0; attempt < 12; attempt++) {
+        double radius = 14.0 + Math.min(10.0, totalMobs * 0.45);
+        for (int attempt = 0; attempt < 18; attempt++) {
             int slot = offsetIndex + attempt;
             double angle = (Math.PI * 2.0) * (slot / (double) Math.max(1, totalMobs));
-            double radius = 12.0;
             BlockPos horizontal = state.origin.offset(
                 (int) Math.round(Math.cos(angle) * radius),
                 0,
@@ -496,7 +508,6 @@ public final class GoldRaidManager {
             || state.is(Blocks.SOUL_SAND)
             || state.is(Blocks.SOUL_SOIL)
             || state.is(Blocks.MAGMA_BLOCK)
-            || state.is(Blocks.CRIMSON_NYLIUM)
             || state.is(Blocks.POLISHED_BLACKSTONE)
             || state.is(Blocks.POLISHED_BLACKSTONE_BRICKS)
             || state.is(Blocks.CRACKED_POLISHED_BLACKSTONE_BRICKS);
@@ -586,7 +597,8 @@ public final class GoldRaidManager {
             return;
         }
         double distance = horizontalDistance(player.blockPosition(), origin);
-        float intensity = (float) clamp01(1.0 - distance / PortalStructureHelper.OUTER_RADIUS);
+        float baseIntensity = (float) clamp01(1.0 - distance / PortalStructureHelper.OUTER_RADIUS);
+        float intensity = MIN_PORTAL_ATMOSPHERE_INTENSITY + (1.0f - MIN_PORTAL_ATMOSPHERE_INTENSITY) * baseIntensity;
         float descent = (float) clamp01((origin.getY() - player.getY()) / PortalStructureHelper.PIT_DEPTH);
         ServerPlayNetworking.send(player, new PortalAtmospherePayload(intensity, descent));
     }
@@ -677,7 +689,7 @@ public final class GoldRaidManager {
         }
         if (entity != null) {
             spawnParticle(level, ParticleTypes.LARGE_SMOKE, spawnPos.getX() + 0.5, spawnPos.getY() + 0.5, spawnPos.getZ() + 0.5, 8, 0.4, 0.4, 0.4, 0.02);
-            NEXT_AMBIENT_SPAWN_TICK.put(key, gameTime + 60L + level.getRandom().nextInt(60));
+            NEXT_AMBIENT_SPAWN_TICK.put(key, gameTime + 35L + level.getRandom().nextInt(45));
         }
     }
 
@@ -701,7 +713,7 @@ public final class GoldRaidManager {
             ANCHORED_GHASTS.put(ghast.getUUID(), new PortalGhastAnchor(origin.immutable(), gameTime + GHAST_ANCHOR_TICKS));
             spawnParticle(level, ParticleTypes.CRIMSON_SPORE, spawnPos.getX() + 0.5, spawnPos.getY() + 2.0, spawnPos.getZ() + 0.5, 30, 3.0, 2.0, 3.0, 0.02);
             level.playSound(null, spawnPos, SoundEvents.GHAST_AMBIENT, SoundSource.HOSTILE, 2.0f, 0.65f);
-            NEXT_GHAST_SPAWN_TICK.put(key, gameTime + GHAST_SPAWN_INTERVAL_TICKS + level.getRandom().nextInt(80));
+            NEXT_GHAST_SPAWN_TICK.put(key, gameTime + GHAST_SPAWN_INTERVAL_TICKS + level.getRandom().nextInt(70));
         }
     }
 
@@ -947,9 +959,9 @@ public final class GoldRaidManager {
 
     private static void playHighThreatSpawnSound(ServerLevel level, EntityType<? extends LivingEntity> type, BlockPos spawnPos) {
         if (type == ModEntities.PIGLIN_RAVAGER) {
-            level.playSound(null, spawnPos, SoundEvents.RAVAGER_ROAR, SoundSource.HOSTILE, 1.5f, 0.8f);
+            level.playSound(null, spawnPos, SoundEvents.HOGLIN_ANGRY, SoundSource.HOSTILE, 1.5f, 0.7f);
         } else if (type == ModEntities.PIGLIN_EVOKER) {
-            level.playSound(null, spawnPos, SoundEvents.EVOKER_PREPARE_SUMMON, SoundSource.HOSTILE, 1.0f, 1.0f);
+            level.playSound(null, spawnPos, SoundEvents.PIGLIN_BRUTE_ANGRY, SoundSource.HOSTILE, 1.1f, 0.85f);
         }
     }
 
@@ -1178,11 +1190,11 @@ public final class GoldRaidManager {
 
     private static int expectedWaveSize(int waveIndex) {
         return switch (waveIndex) {
-            case 0 -> 8;
-            case 1 -> 12;
-            case 2 -> 13;
-            case 3 -> 9;
-            case 4 -> 12;
+            case 0 -> 13;
+            case 1 -> 16;
+            case 2 -> 18;
+            case 3 -> 16;
+            case 4 -> 24;
             default -> 0;
         };
     }

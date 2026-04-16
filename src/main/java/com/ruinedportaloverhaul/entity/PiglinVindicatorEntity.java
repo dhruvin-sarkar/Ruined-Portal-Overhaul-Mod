@@ -28,9 +28,9 @@ public class PiglinVindicatorEntity extends Vindicator {
 
     public static AttributeSupplier.Builder createAttributes() {
         return Vindicator.createAttributes()
-            .add(Attributes.MAX_HEALTH, 42.0)
-            .add(Attributes.MOVEMENT_SPEED, 0.35)
-            .add(Attributes.ATTACK_DAMAGE, 12.0);
+            .add(Attributes.MAX_HEALTH, 58.0)
+            .add(Attributes.MOVEMENT_SPEED, 0.37)
+            .add(Attributes.ATTACK_DAMAGE, 16.5);
     }
 
     @Override
@@ -41,15 +41,15 @@ public class PiglinVindicatorEntity extends Vindicator {
 
     @Override
     protected void populateDefaultEquipmentSlots(RandomSource randomSource, DifficultyInstance difficultyInstance) {
-        ItemStack axe = new ItemStack(Items.GOLDEN_AXE);
-        if (randomSource.nextFloat() < 0.20f) {
+        ItemStack weapon = new ItemStack(randomSource.nextFloat() < 0.74f ? Items.GOLDEN_AXE : Items.GOLDEN_SWORD);
+        if (randomSource.nextFloat() < 0.65f) {
             Holder.Reference<Enchantment> enchantment = this.level()
                 .registryAccess()
                 .lookupOrThrow(Registries.ENCHANTMENT)
                 .getOrThrow(Enchantments.SHARPNESS);
-            axe.enchant(enchantment, 2);
+            weapon.enchant(enchantment, 3);
         }
-        this.setItemSlot(EquipmentSlot.MAINHAND, axe);
+        this.setItemSlot(EquipmentSlot.MAINHAND, weapon);
     }
 
     @Override

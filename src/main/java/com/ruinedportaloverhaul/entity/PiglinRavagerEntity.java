@@ -3,11 +3,13 @@ package com.ruinedportaloverhaul.entity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.DifficultyInstance;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
@@ -31,9 +33,9 @@ public class PiglinRavagerEntity extends Ravager {
 
     public static AttributeSupplier.Builder createAttributes() {
         return Ravager.createAttributes()
-            .add(Attributes.MAX_HEALTH, 145.0)
-            .add(Attributes.MOVEMENT_SPEED, 0.3)
-            .add(Attributes.ATTACK_DAMAGE, 18.0);
+            .add(Attributes.MAX_HEALTH, 210.0)
+            .add(Attributes.MOVEMENT_SPEED, 0.32)
+            .add(Attributes.ATTACK_DAMAGE, 24.0);
     }
 
     @Override
@@ -43,7 +45,7 @@ public class PiglinRavagerEntity extends Ravager {
     }
 
     @Override
-    public boolean hurtServer(ServerLevel serverLevel, net.minecraft.world.damagesource.DamageSource damageSource, float damageAmount) {
+    public boolean hurtServer(ServerLevel serverLevel, DamageSource damageSource, float damageAmount) {
         if (damageSource.is(DamageTypeTags.IS_PROJECTILE)) {
             damageAmount *= 0.5f;
         }
@@ -67,7 +69,7 @@ public class PiglinRavagerEntity extends Ravager {
             this.hardWallRoarCooldown--;
         } else if (serverLevel.getDifficulty() == Difficulty.HARD && this.hasHardWallImpact(serverLevel)) {
             this.hardWallRoarCooldown = 80;
-            serverLevel.playSound(null, this.blockPosition(), SoundEvents.RAVAGER_ROAR, SoundSource.HOSTILE, 1.4f, 0.75f);
+            serverLevel.playSound(null, this.blockPosition(), SoundEvents.HOGLIN_ANGRY, SoundSource.HOSTILE, 1.4f, 0.75f);
             for (Player target : serverLevel.getEntitiesOfClass(Player.class, this.getBoundingBox().inflate(7.0))) {
                 target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 60, 1), this);
             }
@@ -78,7 +80,7 @@ public class PiglinRavagerEntity extends Ravager {
             for (Direction direction : Direction.Plane.HORIZONTAL) {
                 BlockPos pos = origin.relative(direction);
                 BlockState state = serverLevel.getBlockState(pos);
-                if (state.is(Blocks.NETHERRACK) || state.is(Blocks.GRASS_BLOCK) || state.is(Blocks.DIRT)) {
+                if (state.is(Blocks.NETHERRACK) || state.is(Blocks.BASALT) || state.is(Blocks.BLACKSTONE)) {
                     serverLevel.setBlock(pos, Blocks.AIR.defaultBlockState(), 2);
                 }
             }
@@ -101,5 +103,20 @@ public class PiglinRavagerEntity extends Ravager {
             }
         }
         return false;
+    }
+
+    @Override
+    protected SoundEvent getAmbientSound() {
+        return SoundEvents.HOGLIN_AMBIENT;
+    }
+
+    @Override
+    protected SoundEvent getHurtSound(DamageSource damageSource) {
+        return SoundEvents.HOGLIN_HURT;
+    }
+
+    @Override
+    protected SoundEvent getDeathSound() {
+        return SoundEvents.HOGLIN_DEATH;
     }
 }

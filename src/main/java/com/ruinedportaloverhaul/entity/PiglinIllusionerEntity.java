@@ -28,8 +28,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 
 public class PiglinIllusionerEntity extends Illusioner {
-    private static final int BLINDNESS_COOLDOWN_TICKS = 240;
-    private static final float ARROW_DAMAGE = 5.0f;
+    private static final int BLINDNESS_COOLDOWN_TICKS = 180;
+    private static final float ARROW_DAMAGE = 8.0f;
 
     private int blindnessCooldown;
 
@@ -39,8 +39,8 @@ public class PiglinIllusionerEntity extends Illusioner {
 
     public static AttributeSupplier.Builder createAttributes() {
         return Illusioner.createAttributes()
-            .add(Attributes.MAX_HEALTH, 48.0)
-            .add(Attributes.MOVEMENT_SPEED, 0.3);
+            .add(Attributes.MAX_HEALTH, 54.0)
+            .add(Attributes.MOVEMENT_SPEED, 0.31);
     }
 
     @Override
@@ -52,11 +52,23 @@ public class PiglinIllusionerEntity extends Illusioner {
     @Override
     protected void populateDefaultEquipmentSlots(RandomSource randomSource, DifficultyInstance difficultyInstance) {
         ItemStack bow = new ItemStack(Items.BOW);
-        Holder.Reference<Enchantment> enchantment = this.level()
+        Holder.Reference<Enchantment> flame = this.level()
             .registryAccess()
             .lookupOrThrow(Registries.ENCHANTMENT)
             .getOrThrow(Enchantments.FLAME);
-        bow.enchant(enchantment, 1);
+        bow.enchant(flame, 1);
+        Holder.Reference<Enchantment> power = this.level()
+            .registryAccess()
+            .lookupOrThrow(Registries.ENCHANTMENT)
+            .getOrThrow(Enchantments.POWER);
+        bow.enchant(power, 3);
+        if (randomSource.nextBoolean()) {
+            Holder.Reference<Enchantment> punch = this.level()
+                .registryAccess()
+                .lookupOrThrow(Registries.ENCHANTMENT)
+                .getOrThrow(Enchantments.PUNCH);
+            bow.enchant(punch, 1);
+        }
         this.setItemSlot(EquipmentSlot.MAINHAND, bow);
     }
 
@@ -70,7 +82,7 @@ public class PiglinIllusionerEntity extends Illusioner {
 
         LivingEntity target = this.getTarget();
         if (target != null && this.hasLineOfSight(target) && this.distanceToSqr(target) < 144.0) {
-            target.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 240, 0), this);
+            target.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 180, 0), this);
             this.blindnessCooldown = BLINDNESS_COOLDOWN_TICKS;
         }
     }
