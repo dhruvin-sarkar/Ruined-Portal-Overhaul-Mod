@@ -6,7 +6,6 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -27,10 +26,10 @@ public final class ModBlocks {
             .noOcclusion())
     );
 
-    public static final BlockItem NETHER_CONDUIT_ITEM = Registry.register(
+    public static final NetherConduitBlockItem NETHER_CONDUIT_ITEM = Registry.register(
         BuiltInRegistries.ITEM,
         NETHER_CONDUIT_ID,
-        new BlockItem(
+        new NetherConduitBlockItem(
             NETHER_CONDUIT,
             new Item.Properties()
                 .setId(ResourceKey.create(Registries.ITEM, NETHER_CONDUIT_ID))

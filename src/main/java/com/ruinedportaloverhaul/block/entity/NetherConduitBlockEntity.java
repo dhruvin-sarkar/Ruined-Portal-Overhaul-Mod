@@ -2,10 +2,13 @@ package com.ruinedportaloverhaul.block.entity;
 
 import com.ruinedportaloverhaul.damage.ModDamageTypes;
 import com.ruinedportaloverhaul.entity.ModEntities;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
@@ -14,19 +17,23 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 
 public class NetherConduitBlockEntity extends BlockEntity {
+    private static final String CONDUIT_LEVEL_TAG = "conduit_level";
     private static final int ACTIVATION_SCAN_INTERVAL_TICKS = 20;
     private static final int ATTACK_INTERVAL_TICKS = 30;
     private static final int ACTIVATION_REQUIRED_FRAME_BLOCKS = 12;
     private static final int EFFECT_RADIUS = 16;
+    private static final int STATUS_RADIUS = 8;
     private static final int EFFECT_DURATION_TICKS = 40;
-    private static final int ATTACK_RADIUS = 16;
-    private static final float ATTACK_DAMAGE = 4.0f;
+    private static final int MAX_CONDUIT_LEVEL = 2;
 
     private boolean active;
     private int frameBlockCount;
+    private int conduitLevel;
 
     public NetherConduitBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.NETHER_CONDUIT, pos, state);
@@ -45,21 +52,57 @@ public class NetherConduitBlockEntity extends BlockEntity {
             }
 
             if (blockEntity.active && level instanceof ServerLevel serverLevel) {
-                applyActiveEffects(serverLevel, pos);
+                blockEntity.applyActiveEffects(serverLevel, pos);
+                blockEntity.displayStatus(serverLevel, pos);
             }
         }
 
         if (blockEntity.active && gameTime % ATTACK_INTERVAL_TICKS == 0 && level instanceof ServerLevel serverLevel) {
-            attackNearbyMobs(serverLevel, pos);
+            blockEntity.attackNearbyMobs(serverLevel, pos);
         }
+    }
+
+    @Override
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        this.conduitLevel = Mth.clamp(input.getIntOr(CONDUIT_LEVEL_TAG, 0), 0, MAX_CONDUIT_LEVEL);
+    }
+
+    @Override
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        output.putInt(CONDUIT_LEVEL_TAG, this.conduitLevel);
     }
 
     public boolean isActive() {
         return this.active;
     }
 
+    public int conduitLevel() {
+        return this.conduitLevel;
+    }
+
     public int frameBlockCount() {
         return this.frameBlockCount;
+    }
+
+    public int nextUpgradeCost() {
+        return switch (this.conduitLevel) {
+            case 0 -> 1;
+            case 1 -> 2;
+            default -> 0;
+        };
+    }
+
+    public void upgrade() {
+        if (this.conduitLevel >= MAX_CONDUIT_LEVEL) {
+            return;
+        }
+        this.conduitLevel++;
+        this.setChanged();
+        if (this.level != null) {
+            this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
+        }
     }
 
     private static int countFrameBlocks(Level level, BlockPos pos) {
@@ -83,14 +126,14 @@ public class NetherConduitBlockEntity extends BlockEntity {
         return count;
     }
 
-    private static void applyActiveEffects(ServerLevel level, BlockPos pos) {
+    private void applyActiveEffects(ServerLevel level, BlockPos pos) {
         AABB range = new AABB(pos).inflate(EFFECT_RADIUS);
         double radiusSqr = EFFECT_RADIUS * EFFECT_RADIUS;
         for (ServerPlayer player : level.getPlayers(player -> range.contains(player.position()) && player.distanceToSqr(pos.getCenter()) <= radiusSqr)) {
-            NetherConduitPowerTracker.grant(player, level.getGameTime(), 0);
-            player.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, EFFECT_DURATION_TICKS, 0, true, false, true));
-            player.addEffect(new MobEffectInstance(MobEffects.HASTE, EFFECT_DURATION_TICKS, 0, true, false, true));
-            player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, EFFECT_DURATION_TICKS, 0, true, false, true));
+            NetherConduitPowerTracker.grant(player, level.getGameTime(), this.conduitLevel);
+            player.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, EFFECT_DURATION_TICKS, fireResistanceAmplifier(this.conduitLevel), true, false, true));
+            player.addEffect(new MobEffectInstance(MobEffects.HASTE, EFFECT_DURATION_TICKS, hasteAmplifier(this.conduitLevel), true, false, true));
+            player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, EFFECT_DURATION_TICKS, regenerationAmplifier(this.conduitLevel), true, false, true));
         }
     }
 
@@ -118,11 +161,12 @@ public class NetherConduitBlockEntity extends BlockEntity {
         return false;
     }
 
-    private static void attackNearbyMobs(ServerLevel level, BlockPos pos) {
-        AABB range = new AABB(pos).inflate(ATTACK_RADIUS);
-        double radiusSqr = ATTACK_RADIUS * ATTACK_RADIUS;
+    private void attackNearbyMobs(ServerLevel level, BlockPos pos) {
+        int attackRadius = attackRadius(this.conduitLevel);
+        AABB range = new AABB(pos).inflate(attackRadius);
+        double radiusSqr = attackRadius * attackRadius;
         for (Mob mob : level.getEntitiesOfClass(Mob.class, range, mob -> isTargetMob(mob) && mob.distanceToSqr(pos.getCenter()) <= radiusSqr)) {
-            if (mob.hurtServer(level, level.damageSources().source(ModDamageTypes.NETHER_CONDUIT), ATTACK_DAMAGE)) {
+            if (mob.hurtServer(level, level.damageSources().source(ModDamageTypes.NETHER_CONDUIT), attackDamage(this.conduitLevel))) {
                 level.sendParticles(
                     ParticleTypes.ELECTRIC_SPARK,
                     mob.getX(),
@@ -136,6 +180,52 @@ public class NetherConduitBlockEntity extends BlockEntity {
                 );
             }
         }
+    }
+
+    private void displayStatus(ServerLevel level, BlockPos pos) {
+        AABB range = new AABB(pos).inflate(STATUS_RADIUS);
+        double radiusSqr = STATUS_RADIUS * STATUS_RADIUS;
+        Component message = Component.literal("Nether Conduit L" + this.conduitLevel + ": " + effectsDescription(this.conduitLevel))
+            .withStyle(this.conduitLevel >= MAX_CONDUIT_LEVEL ? ChatFormatting.GOLD : ChatFormatting.RED);
+        for (ServerPlayer player : level.getPlayers(player -> range.contains(player.position()) && player.distanceToSqr(pos.getCenter()) <= radiusSqr)) {
+            player.displayClientMessage(message, true);
+        }
+    }
+
+    private static int fireResistanceAmplifier(int conduitLevel) {
+        return conduitLevel >= 1 ? 1 : 0;
+    }
+
+    private static int hasteAmplifier(int conduitLevel) {
+        return conduitLevel >= 2 ? 1 : 0;
+    }
+
+    private static int regenerationAmplifier(int conduitLevel) {
+        return conduitLevel >= 2 ? 1 : 0;
+    }
+
+    private static int attackRadius(int conduitLevel) {
+        return switch (conduitLevel) {
+            case 1 -> 20;
+            case 2 -> 24;
+            default -> 16;
+        };
+    }
+
+    private static float attackDamage(int conduitLevel) {
+        return switch (conduitLevel) {
+            case 1 -> 6.0f;
+            case 2 -> 8.0f;
+            default -> 4.0f;
+        };
+    }
+
+    private static String effectsDescription(int conduitLevel) {
+        return switch (conduitLevel) {
+            case 1 -> "Fire Resistance II, Haste, Regeneration, 20-block strike";
+            case 2 -> "Fire Resistance II, Haste II, Regeneration II, near-zero lava drag";
+            default -> "Fire Resistance, Haste, Regeneration";
+        };
     }
 
     private static boolean isTargetMob(Mob mob) {
