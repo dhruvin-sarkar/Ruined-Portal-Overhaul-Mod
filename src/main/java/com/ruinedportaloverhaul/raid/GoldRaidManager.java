@@ -3,6 +3,7 @@ package com.ruinedportaloverhaul.raid;
 import com.ruinedportaloverhaul.entity.ModEntities;
 import com.ruinedportaloverhaul.entity.ExiledPiglinTraderEntity;
 import com.ruinedportaloverhaul.advancement.ModAdvancementTriggers;
+import com.ruinedportaloverhaul.block.NetherConduitChestPlacement;
 import com.ruinedportaloverhaul.network.PortalAtmospherePayload;
 import com.ruinedportaloverhaul.structure.PortalDungeonPiece;
 import com.ruinedportaloverhaul.structure.PortalStructureHelper;
@@ -617,6 +618,9 @@ public final class GoldRaidManager {
         if (level.getBlockEntity(chestPos) instanceof RandomizableContainerBlockEntity chest) {
             chest.setLootTable(BOSS_REWARD_LOOT);
             chest.setLootTableSeed(level.getRandom().nextLong());
+            if (NetherConduitChestPlacement.useBossChest(origin)) {
+                NetherConduitChestPlacement.addNetherConduit(chest);
+            }
         }
     }
 
