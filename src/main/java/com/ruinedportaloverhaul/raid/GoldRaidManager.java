@@ -2,6 +2,7 @@ package com.ruinedportaloverhaul.raid;
 
 import com.ruinedportaloverhaul.entity.ModEntities;
 import com.ruinedportaloverhaul.entity.ExiledPiglinTraderEntity;
+import com.ruinedportaloverhaul.advancement.ModAdvancementTriggers;
 import com.ruinedportaloverhaul.network.PortalAtmospherePayload;
 import com.ruinedportaloverhaul.structure.PortalDungeonPiece;
 import com.ruinedportaloverhaul.structure.PortalStructureHelper;
@@ -194,7 +195,7 @@ public final class GoldRaidManager {
                 if (!portalRaidState.isRaidActive(portal)
                     && !ACTIVE_RAIDS.containsKey(key)
                     && horizontalDistanceSqr(player.blockPosition(), portal) <= RAID_TRIGGER_RANGE * RAID_TRIGGER_RANGE) {
-                    startRaid(level, portal, key, portalRaidState);
+                    startRaid(level, portal, key, portalRaidState, player);
                 }
             }
         }
@@ -255,6 +256,7 @@ public final class GoldRaidManager {
     }
 
     private static void playApproachActivation(ServerLevel level, ServerPlayer player, BlockPos origin) {
+        ModAdvancementTriggers.trigger(ModAdvancementTriggers.PORTAL_APPROACH, player);
         player.displayClientMessage(Component.literal("...something stirs.").withStyle(ChatFormatting.DARK_PURPLE), true);
         level.playSound(null, origin, SoundEvents.PORTAL_AMBIENT, SoundSource.HOSTILE, 0.4f, 0.6f);
     }
@@ -371,10 +373,11 @@ public final class GoldRaidManager {
         });
     }
 
-    private static void startRaid(ServerLevel level, BlockPos origin, long key, PortalRaidState portalRaidState) {
+    private static void startRaid(ServerLevel level, BlockPos origin, long key, PortalRaidState portalRaidState, ServerPlayer triggeringPlayer) {
         if (!portalRaidState.beginRaid(origin)) {
             return;
         }
+        ModAdvancementTriggers.trigger(ModAdvancementTriggers.RAID_STARTED, triggeringPlayer);
         ServerBossEvent bossBar = new ServerBossEvent(
             Component.literal(WAVE_LABELS[0]),
             BossEvent.BossBarColor.YELLOW,
@@ -545,6 +548,10 @@ public final class GoldRaidManager {
     }
 
     private static void finishRaid(RaidState state) {
+        List<ServerPlayer> nearbyPlayers = state.level.getPlayers(player -> horizontalDistanceSqr(player.blockPosition(), state.origin) < 1600.0);
+        for (ServerPlayer player : nearbyPlayers) {
+            ModAdvancementTriggers.trigger(ModAdvancementTriggers.RAID_COMPLETED, player);
+        }
         state.bossBar.removeAllPlayers();
         state.trackedPlayers.clear();
         state.bossBar.setVisible(false);
@@ -555,7 +562,7 @@ public final class GoldRaidManager {
         state.portalRaidState.markCompleted(state.origin);
 
         Component message = Component.literal("The portal falls silent.");
-        for (ServerPlayer player : state.level.getPlayers(player -> horizontalDistanceSqr(player.blockPosition(), state.origin) < 1600.0)) {
+        for (ServerPlayer player : nearbyPlayers) {
             player.displayClientMessage(message, true);
         }
     }
@@ -632,6 +639,13 @@ public final class GoldRaidManager {
         float baseIntensity = (float) clamp01(1.0 - distance / PortalStructureHelper.OUTER_RADIUS);
         float intensity = MIN_PORTAL_ATMOSPHERE_INTENSITY + (1.0f - MIN_PORTAL_ATMOSPHERE_INTENSITY) * baseIntensity;
         float descent = (float) clamp01((origin.getY() - player.getY()) / PortalStructureHelper.PIT_DEPTH);
+        double belowPortal = origin.getY() - player.getY();
+        if (distance <= PortalStructureHelper.INNER_RADIUS + 10 && belowPortal >= 8.0) {
+            ModAdvancementTriggers.trigger(ModAdvancementTriggers.PIT_DESCENT, player);
+        }
+        if (distance <= PortalStructureHelper.INNER_RADIUS + 10 && belowPortal >= 24.0) {
+            ModAdvancementTriggers.trigger(ModAdvancementTriggers.DEEP_STORM, player);
+        }
         ServerPlayNetworking.send(player, new PortalAtmospherePayload(intensity, descent));
     }
 

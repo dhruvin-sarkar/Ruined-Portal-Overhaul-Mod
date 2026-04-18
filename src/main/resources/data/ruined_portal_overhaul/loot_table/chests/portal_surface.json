@@ -1,12 +1,12 @@
 {
-  "_comment": "Surface loot is meant to tempt players into the structure with useful Nether supplies, a small chance at progression materials, and survival tools, but not enough value to replace the raid or deep chests.",
+  "_comment": "Surface loot is meant to tempt players into the structure with useful raid prep: strong potions, food, mid-tier enchanted gear, and a small chance at progression materials.",
   "type": "minecraft:chest",
   "pools": [
     {
       "rolls": {
         "type": "minecraft:uniform",
-        "min": 5.0,
-        "max": 7.0
+        "min": 6.0,
+        "max": 8.0
       },
       "entries": [
         {
@@ -144,6 +144,32 @@
         },
         {
           "type": "minecraft:item",
+          "name": "minecraft:potion",
+          "weight": 8,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:potion_contents": "minecraft:strong_strength"
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:potion",
+          "weight": 8,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:potion_contents": "minecraft:strong_regeneration"
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
           "name": "minecraft:splash_potion",
           "weight": 4,
           "functions": [
@@ -159,6 +185,21 @@
           "type": "minecraft:item",
           "name": "minecraft:golden_apple",
           "weight": 8
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:golden_carrot",
+          "weight": 9,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 4.0,
+                "max": 10.0
+              }
+            }
+          ]
         },
         {
           "type": "minecraft:item",

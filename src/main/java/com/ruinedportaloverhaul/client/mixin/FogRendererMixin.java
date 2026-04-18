@@ -59,7 +59,7 @@ public abstract class FogRendererMixin {
         if (storm <= 0.02f) {
             return renderDistanceEnd;
         }
-        return Math.min(renderDistanceEnd, 38.0f + 50.0f * (1.0f - storm));
+        return Math.min(renderDistanceEnd, 32.0f + 44.0f * (1.0f - storm));
     }
 
     @ModifyArg(
@@ -72,7 +72,7 @@ public abstract class FogRendererMixin {
         if (storm <= 0.02f) {
             return skyEnd;
         }
-        return Math.min(skyEnd, 50.0f + 48.0f * (1.0f - storm));
+        return Math.min(skyEnd, 44.0f + 42.0f * (1.0f - storm));
     }
 
     @SuppressWarnings("unused")

@@ -1,0 +1,69 @@
+{
+  "parent": "ruined_portal_overhaul:no_tribute_required",
+  "display": {
+    "icon": {
+      "id": "minecraft:crossbow"
+    },
+    "title": {
+      "text": "Hostile Acquisition"
+    },
+    "description": {
+      "text": "Kill one of the Nether's new accountants."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "pillager": {
+      "trigger": "minecraft:player_killed_entity",
+      "conditions": {
+        "entity": [
+          {
+            "condition": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "type": "ruined_portal_overhaul:piglin_pillager"
+            }
+          }
+        ]
+      }
+    },
+    "vindicator": {
+      "trigger": "minecraft:player_killed_entity",
+      "conditions": {
+        "entity": [
+          {
+            "condition": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "type": "ruined_portal_overhaul:piglin_vindicator"
+            }
+          }
+        ]
+      }
+    },
+    "brute": {
+      "trigger": "minecraft:player_killed_entity",
+      "conditions": {
+        "entity": [
+          {
+            "condition": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "type": "ruined_portal_overhaul:piglin_brute_pillager"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "pillager",
+      "vindicator",
+      "brute"
+    ]
+  ]
+}

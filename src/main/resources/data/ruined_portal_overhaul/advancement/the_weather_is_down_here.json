@@ -1,0 +1,23 @@
+{
+  "parent": "ruined_portal_overhaul:down_the_red_throat",
+  "display": {
+    "icon": {
+      "id": "minecraft:lava_bucket"
+    },
+    "title": {
+      "text": "The Weather Is Down Here"
+    },
+    "description": {
+      "text": "Stand underground inside the portal storm."
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": true
+  },
+  "criteria": {
+    "descent": {
+      "trigger": "ruined_portal_overhaul:deep_storm"
+    }
+  }
+}

@@ -1,12 +1,12 @@
 {
-  "_comment": "Deep loot rewards the underground risk with survival power for the raid: strong potions, diamond gear, high-tier books, and meaningful but bounded netherite progression.",
+  "_comment": "Deep loot rewards the underground risk with high-value crafting materials, rare survival items, strong potions, diamond gear, and the specific high-tier books players go looking for.",
   "type": "minecraft:chest",
   "pools": [
     {
       "rolls": {
         "type": "minecraft:uniform",
-        "min": 5.0,
-        "max": 7.0
+        "min": 7.0,
+        "max": 9.0
       },
       "entries": [
         {
@@ -172,6 +172,58 @@
               "function": "minecraft:set_enchantments",
               "enchantments": {
                 "minecraft:looting": 3
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:enchanted_book",
+          "weight": 7,
+          "functions": [
+            {
+              "function": "minecraft:set_enchantments",
+              "enchantments": {
+                "minecraft:efficiency": 5
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:enchanted_book",
+          "weight": 7,
+          "functions": [
+            {
+              "function": "minecraft:set_enchantments",
+              "enchantments": {
+                "minecraft:sharpness": 5
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:enchanted_book",
+          "weight": 7,
+          "functions": [
+            {
+              "function": "minecraft:set_enchantments",
+              "enchantments": {
+                "minecraft:protection": 4
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:enchanted_book",
+          "weight": 5,
+          "functions": [
+            {
+              "function": "minecraft:set_enchantments",
+              "enchantments": {
+                "minecraft:thorns": 3
               }
             }
           ]

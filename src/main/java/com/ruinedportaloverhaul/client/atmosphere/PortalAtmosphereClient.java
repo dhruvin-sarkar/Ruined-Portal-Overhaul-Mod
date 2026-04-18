@@ -20,8 +20,9 @@ public final class PortalAtmosphereClient {
     private static final Music RED_STORM_MUSIC = new Music(SoundEvents.MUSIC_BIOME_BASALT_DELTAS, 0, 0, true);
     private static final long PACKET_FADE_NANOS = 1_600_000_000L;
     private static final long STORM_UPDATE_MIN_NANOS = 1_000_000L;
-    private static final long FLASH_MIN_DELAY_NANOS = 450_000_000L;
-    private static final long FLASH_RANDOM_DELAY_NANOS = 1_400_000_000L;
+    private static final long FLASH_MIN_DELAY_NANOS = 225_000_000L;
+    private static final long FLASH_RANDOM_DELAY_NANOS = 700_000_000L;
+    private static final long FLASH_TICK_NANOS = 50_000_000L;
     private static final double PULSE_PERIOD_NANOS = 4_200_000_000.0;
     private static final float PULSE_FLOOR = 0.72f;
     private static final float PULSE_RANGE = 0.28f;
@@ -35,6 +36,7 @@ public final class PortalAtmosphereClient {
     private static long lastPacketNanos;
     private static long lastStormUpdateNanos;
     private static long nextFlashNanos;
+    private static long redFlashEndNanos;
     private static boolean musicPlaying;
 
     private PortalAtmosphereClient() {
@@ -64,12 +66,17 @@ public final class PortalAtmosphereClient {
         int width = graphics.guiWidth();
         int height = graphics.guiHeight();
         float pulsedIntensity = stormIntensity * stormPulse;
-        int fullAlpha = Math.min(38, Math.round(pulsedIntensity * (14.0f + displayDescent * 24.0f)));
-        int lowerAlpha = Math.min(62, Math.round(pulsedIntensity * (20.0f + displayDescent * 42.0f)));
+        int fullAlpha = Math.min(45, Math.round(pulsedIntensity * (16.5f + displayDescent * 28.0f)));
+        int lowerAlpha = Math.min(74, Math.round(pulsedIntensity * (24.0f + displayDescent * 50.0f)));
         int fullColor = argb(fullAlpha, 142, 12, 18);
         int lowerColor = argb(lowerAlpha, 210, 18, 24);
         graphics.fill(0, 0, width, height, fullColor);
         graphics.fillGradient(0, height - Math.max(48, height / 3), width, height, argb(0, 210, 18, 24), lowerColor);
+        if (now < redFlashEndNanos) {
+            float flashProgress = (redFlashEndNanos - now) / (float) (3L * FLASH_TICK_NANOS);
+            int flashAlpha = Math.min(84, Math.max(0, Math.round(84.0f * flashProgress)));
+            graphics.fill(0, 0, width, height, argb(flashAlpha, 138, 0, 0));
+        }
     }
 
     public static boolean isStormActive() {
@@ -89,7 +96,7 @@ public final class PortalAtmosphereClient {
 
     public static float stormFogIntensity() {
         updateStormState(System.nanoTime());
-        return clamp01(stormIntensity * (0.78f + displayDescent * 0.30f));
+        return clamp01(stormIntensity * (0.90f + displayDescent * 0.36f));
     }
 
     private static void updateStormState(long now) {
@@ -105,7 +112,7 @@ public final class PortalAtmosphereClient {
         displayIntensity += (targetIntensity - displayIntensity) * 0.10f;
         displayDescent += (targetDescent - displayDescent) * 0.08f;
         stormPulse = breathingPulse(now);
-        stormIntensity = clamp01(displayIntensity * (0.82f + displayDescent * 0.22f));
+        stormIntensity = clamp01(displayIntensity * (0.94f + displayDescent * 0.26f));
         updateStormMusic();
     }
 
@@ -122,8 +129,8 @@ public final class PortalAtmosphereClient {
             nextFlashNanos = now + FLASH_MIN_DELAY_NANOS + randomNanos(FLASH_RANDOM_DELAY_NANOS);
         }
         if (now >= nextFlashNanos) {
-            int flashTicks = 2 + STORM_RANDOM.nextInt(4);
-            client.level.setSkyFlashTime(flashTicks);
+            int flashTicks = 2 + STORM_RANDOM.nextInt(2);
+            redFlashEndNanos = now + flashTicks * FLASH_TICK_NANOS;
             playRedThunder(client);
             nextFlashNanos = now
                 + FLASH_MIN_DELAY_NANOS

@@ -1,0 +1,46 @@
+{
+  "parent": "ruined_portal_overhaul:down_the_red_throat",
+  "display": {
+    "icon": {
+      "id": "minecraft:ancient_debris"
+    },
+    "title": {
+      "text": "The Good Chest Was Lower"
+    },
+    "description": {
+      "text": "Find a deep-cache reward."
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "ancient_debris": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:ancient_debris"
+          }
+        ]
+      }
+    },
+    "totem": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:totem_of_undying"
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "ancient_debris",
+      "totem"
+    ]
+  ]
+}

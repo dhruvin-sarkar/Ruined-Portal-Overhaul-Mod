@@ -9,8 +9,6 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -29,10 +27,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 
 public class PiglinIllusionerEntity extends Illusioner {
-    private static final int BLINDNESS_COOLDOWN_TICKS = 180;
     private static final float ARROW_DAMAGE = 8.0f;
-
-    private int blindnessCooldown;
 
     public PiglinIllusionerEntity(EntityType<? extends PiglinIllusionerEntity> entityType, Level level) {
         super(entityType, level);
@@ -71,23 +66,6 @@ public class PiglinIllusionerEntity extends Illusioner {
             bow.enchant(punch, 1);
         }
         this.setItemSlot(EquipmentSlot.MAINHAND, bow);
-    }
-
-    @Override
-    protected void customServerAiStep(ServerLevel serverLevel) {
-        super.customServerAiStep(serverLevel);
-        if (this.blindnessCooldown > 0) {
-            this.blindnessCooldown--;
-            return;
-        }
-
-        LivingEntity target = this.getTarget();
-        if (target != null && this.hasLineOfSight(target) && this.distanceToSqr(target) < 144.0) {
-            target.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 180, 0), this);
-            serverLevel.playSound(null, this.blockPosition(), SoundEvents.PORTAL_TRIGGER, SoundSource.HOSTILE, 0.65f, 0.58f);
-            serverLevel.playSound(null, target.blockPosition(), SoundEvents.PIGLIN_ANGRY, SoundSource.HOSTILE, 0.55f, 0.85f);
-            this.blindnessCooldown = BLINDNESS_COOLDOWN_TICKS;
-        }
     }
 
     @Override

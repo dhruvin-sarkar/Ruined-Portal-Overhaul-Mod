@@ -1,9 +1,11 @@
 package com.ruinedportaloverhaul.entity;
 
+import com.ruinedportaloverhaul.advancement.ModAdvancementTriggers;
 import java.util.List;
 import java.util.Optional;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.RandomSource;
@@ -87,6 +89,14 @@ public class ExiledPiglinTraderEntity extends WanderingTrader {
             player.displayClientMessage(TRADE_MESSAGES.get(random.nextInt(TRADE_MESSAGES.size())), true);
         }
         return result;
+    }
+
+    @Override
+    public void notifyTrade(MerchantOffer merchantOffer) {
+        super.notifyTrade(merchantOffer);
+        if (this.getTradingPlayer() instanceof ServerPlayer serverPlayer) {
+            ModAdvancementTriggers.trigger(ModAdvancementTriggers.EXILED_TRADE, serverPlayer);
+        }
     }
 
     @Override

@@ -1,0 +1,27 @@
+{
+  "parent": "ruined_portal_overhaul:no_tribute_required",
+  "display": {
+    "icon": {
+      "id": "minecraft:totem_of_undying"
+    },
+    "title": {
+      "text": "The Last Wave",
+      "color": "gold"
+    },
+    "description": {
+      "text": "Survive all five waves."
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "rewards": {
+    "experience": 250
+  },
+  "criteria": {
+    "raid_completed": {
+      "trigger": "ruined_portal_overhaul:raid_completed"
+    }
+  }
+}

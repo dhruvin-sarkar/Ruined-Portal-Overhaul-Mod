@@ -1,0 +1,23 @@
+{
+  "parent": "ruined_portal_overhaul:root",
+  "display": {
+    "icon": {
+      "id": "minecraft:netherrack"
+    },
+    "title": {
+      "text": "Its like Australia down here"
+    },
+    "description": {
+      "text": "Descend beneath the portal while the storm follows."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "descent": {
+      "trigger": "ruined_portal_overhaul:pit_descent"
+    }
+  }
+}

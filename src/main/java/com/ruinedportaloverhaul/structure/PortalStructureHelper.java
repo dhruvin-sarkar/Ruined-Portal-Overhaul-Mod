@@ -441,34 +441,64 @@ public final class PortalStructureHelper {
         double dx = end.getX() - start.getX();
         double dy = end.getY() - start.getY();
         double dz = end.getZ() - start.getZ();
-        double horizontal = Math.max(1.0, Math.sqrt(dx * dx + dz * dz));
-        double sideX = -dz / horizontal;
-        double sideZ = dx / horizontal;
-        double phase = random.nextDouble() * Math.PI * 2.0;
-        double swayAmplitude = 3.0 + random.nextDouble() * 5.0;
-        int steps = Math.max(12, (int) Math.ceil(Math.sqrt(dx * dx + dy * dy + dz * dz) * 1.18));
+        double distance = Math.max(1.0, Math.sqrt(dx * dx + dy * dy + dz * dz));
+        int steps = Math.max(14, (int) Math.ceil(distance * 1.22));
+        long pathSeed = start.asLong() ^ Long.rotateLeft(end.asLong(), 17) ^ random.nextLong();
+        double x = start.getX();
+        double y = start.getY();
+        double z = start.getZ();
+        double dirX = dx / distance;
+        double dirY = dy / distance;
+        double dirZ = dz / distance;
         BlockPos last = start;
         double angle = Math.atan2(dz, dx);
         for (int step = 0; step <= steps; step++) {
             double t = step / (double) steps;
-            double sway = Math.sin(t * Math.PI * 2.0 + phase) * swayAmplitude
-                + Math.sin(t * Math.PI * 5.0 + phase * 0.5) * 1.85;
-            int x = start.getX() + (int) Math.round(dx * t + sideX * sway);
-            int y = start.getY() + (int) Math.round(
-                dy * t
-                    + Math.sin(t * Math.PI) * (random.nextBoolean() ? 2.4 : -1.4)
-                    + Math.sin(t * Math.PI * 3.0 + phase) * 1.3
-            );
-            int z = start.getZ() + (int) Math.round(dz * t + sideZ * sway);
-            double radiusNoise = coordinateNoise(start.asLong() ^ end.asLong() ^ (long) step * 137L, x, z);
-            int radius = clamp(3 + (int) Math.round(Math.sin(t * Math.PI) * 2.5 + radiusNoise * 2.2), 3, 7);
-            if (step % 17 == 6) {
+            double goalX = end.getX() - x;
+            double goalY = end.getY() - y;
+            double goalZ = end.getZ() - z;
+            double goalDistance = Math.max(1.0, Math.sqrt(goalX * goalX + goalY * goalY + goalZ * goalZ));
+            double noiseTime = step * 0.16;
+            double noiseX = smoothNoise(pathSeed ^ 0x4D2C1A77B9E33F0AL, noiseTime, 0.0) * 2.0 - 1.0;
+            double noiseY = (smoothNoise(pathSeed ^ 0x6A5F41C93B2D19E7L, noiseTime, 4.0) - 0.5) * 0.52;
+            double noiseZ = smoothNoise(pathSeed ^ 0x19D36EF4A7B25C81L, noiseTime, 8.0) * 2.0 - 1.0;
+            double finishPull = t > 0.75 ? (t - 0.75) / 0.25 : 0.0;
+            double goalWeight = Math.min(0.96, 0.28 + t * 0.48 + finishPull * 0.32);
+            double targetX = goalX / goalDistance * goalWeight + noiseX * (1.0 - goalWeight);
+            double targetY = goalY / goalDistance * goalWeight + noiseY * (1.0 - goalWeight);
+            double targetZ = goalZ / goalDistance * goalWeight + noiseZ * (1.0 - goalWeight);
+            double targetLength = Math.max(0.001, Math.sqrt(targetX * targetX + targetY * targetY + targetZ * targetZ));
+            targetX /= targetLength;
+            targetY /= targetLength;
+            targetZ /= targetLength;
+
+            dirX = dirX * 0.82 + targetX * 0.18;
+            dirY = dirY * 0.88 + targetY * 0.12;
+            dirZ = dirZ * 0.82 + targetZ * 0.18;
+            double dirLength = Math.max(0.001, Math.sqrt(dirX * dirX + dirY * dirY + dirZ * dirZ));
+            dirX /= dirLength;
+            dirY /= dirLength;
+            dirZ /= dirLength;
+
+            if (step > 0) {
+                x += dirX * 1.15;
+                y += dirY * 0.95;
+                z += dirZ * 1.15;
+            }
+
+            double radiusNoise = smoothNoise(pathSeed ^ 0x52C7B3D9A1164E2FL, step * 0.13, 12.0);
+            int radius = clamp((int) Math.round(2.0 + Math.sin(t * Math.PI) * 1.7 + radiusNoise * 3.0), 2, 6);
+            if (step % 19 == 7 && radius < 6) {
                 radius++;
             }
-            BlockPos center = new BlockPos(x, y, z);
-            int verticalRadius = Math.min(5, 2 + radius / 2 + (radiusNoise > 0.72 ? 1 : 0));
-            carveTunnelSegment(level, pieceBox, chunkBox, center, radius, verticalRadius, random);
+            BlockPos center = new BlockPos((int) Math.round(x), (int) Math.round(y), (int) Math.round(z));
+            int shallowReferenceY = Math.max(start.getY(), end.getY());
+            int depthBand = center.getY() <= shallowReferenceY - 18 || shallowReferenceY < 24 ? 2 : 1;
+            int verticalRadius = clamp(1 + radius / 2 + (radiusNoise > 0.72 ? 1 : 0), 2, 5);
+            carveTunnelSegment(level, pieceBox, chunkBox, center, radius, verticalRadius, depthBand, random);
             if (step > 6 && step % 16 == 8 && random.nextFloat() < 0.58f) {
+                double sideX = -dirZ;
+                double sideZ = dirX;
                 BlockPos pocketCenter = center.offset(
                     (int) Math.round(sideX * (radius + 1.0)),
                     random.nextInt(3) - 1,
@@ -485,15 +515,22 @@ public final class PortalStructureHelper {
             if (step % 9 == 4) {
                 set(level, pieceBox, chunkBox, center.offset(2, -1, 0), Blocks.SOUL_TORCH.defaultBlockState());
             }
-            if (step > 5 && step % 11 == 6 && random.nextFloat() < 0.62f) {
+            angle = Math.atan2(dirZ, dirX);
+            if (step > 5 && step % 11 == 6 && random.nextFloat() < (depthBand == 2 ? 0.82f : 0.56f)) {
                 placeTunnelLavaRun(level, pieceBox, chunkBox, center, angle, random);
             }
-            if (step > 8 && step % 13 == 7 && random.nextFloat() < 0.48f) {
+            if (step > 8 && step % 13 == 7 && random.nextFloat() < (depthBand == 2 ? 0.68f : 0.42f)) {
                 placeTunnelCeilingLavaDrip(level, pieceBox, chunkBox, center, random);
             }
             last = center;
         }
-        return new TunnelPath(start, last);
+        if (last.distSqr(end) > 16.0) {
+            carveConnectorTunnel(level, pieceBox, chunkBox, last, end, random);
+        } else {
+            int endBand = end.getY() <= Math.max(start.getY(), end.getY()) - 18 || Math.max(start.getY(), end.getY()) < 24 ? 2 : 1;
+            carveTunnelSegment(level, pieceBox, chunkBox, end, 3, 2, endBand, random);
+        }
+        return new TunnelPath(start, end);
     }
 
     private static BlockState pickCaveWall(BlockPos pos, int band, RandomSource random) {
@@ -742,17 +779,17 @@ public final class PortalStructureHelper {
     }
 
     private static int surfaceHeightOffset(long seed, int x, int z) {
-        double closeNoise = coordinateNoise(seed ^ 0x3D9A27F14C8B55E1L, Math.floorDiv(x, 4), Math.floorDiv(z, 4)) - 0.5;
-        double ledgeNoise = coordinateNoise(seed ^ 0xA5170E47C19D9E33L, Math.floorDiv(x + 3, 7), Math.floorDiv(z - 2, 7)) - 0.5;
-        double grainNoise = coordinateNoise(seed ^ 0x71D42B6F9E3518C2L, x, z) - 0.5;
-        int offset = (int) Math.round(closeNoise * 7.0 + ledgeNoise * 5.0 + grainNoise * 2.0);
-        double cliffRoll = coordinateNoise(seed ^ 0x1F7E2D963AF4B105L, Math.floorDiv(x, 5), Math.floorDiv(z, 5));
-        if (cliffRoll < 0.10) {
-            offset -= 2;
-        } else if (cliffRoll > 0.90) {
-            offset += 2;
+        double macroNoise = smoothNoise(seed ^ 0x3D9A27F14C8B55E1L, x / 18.0, z / 18.0) - 0.5;
+        double localNoise = smoothNoise(seed ^ 0xA5170E47C19D9E33L, (x + 5) / 9.0, (z - 7) / 9.0) - 0.5;
+        double microNoise = coordinateNoise(seed ^ 0x71D42B6F9E3518C2L, Math.floorDiv(x, 3), Math.floorDiv(z, 3)) - 0.5;
+        int offset = (int) Math.round(macroNoise * 3.0 + localNoise * 2.0 + microNoise);
+        double ledgeRoll = coordinateNoise(seed ^ 0x1F7E2D963AF4B105L, Math.floorDiv(x, 12), Math.floorDiv(z, 12));
+        if (ledgeRoll < 0.055) {
+            offset -= 1;
+        } else if (ledgeRoll > 0.955) {
+            offset += 1;
         }
-        return clamp(offset, -4, 5);
+        return clamp(offset, -3, 3);
     }
 
     private static void placeRitualPlatform(
@@ -1002,7 +1039,7 @@ public final class PortalStructureHelper {
                 } else if (distance <= raggedRadius + 3.7) {
                     double rubble = coordinateNoise(origin.asLong() ^ 0x3C27A21E158B572FL, pos.getX(), pos.getZ());
                     if (rubble < 0.62) {
-                        setColumn(level, pieceBox, chunkBox, pos, Blocks.NETHERRACK.defaultBlockState(), rubble < 0.32 ? 3 : 2);
+                        setColumn(level, pieceBox, chunkBox, pos, pickPitRimBlock(pos), rubble < 0.32 ? 3 : 2);
                     }
                     if (rubble > 0.86 && distance <= raggedRadius + 1.6) {
                         carveNetherAir(level, pieceBox, chunkBox, pos.below());
@@ -1021,7 +1058,7 @@ public final class PortalStructureHelper {
         RandomSource random
     ) {
         int verticalRange = Math.max(1, origin.getY() - bottomY - 7);
-        for (int i = 0; i < 22; i++) {
+        for (int i = 0; i < 12; i++) {
             double angle = random.nextDouble() * Math.PI * 2.0;
             int y = origin.getY() - 8 - random.nextInt(verticalRange);
             double depth = (origin.getY() - y) / (double) Math.max(1, origin.getY() - bottomY);
@@ -1261,6 +1298,19 @@ public final class PortalStructureHelper {
         int verticalRadius,
         RandomSource random
     ) {
+        carveTunnelSegment(level, pieceBox, chunkBox, center, radius, verticalRadius, 1, random);
+    }
+
+    private static void carveTunnelSegment(
+        WorldGenLevel level,
+        BoundingBox pieceBox,
+        BoundingBox chunkBox,
+        BlockPos center,
+        int radius,
+        int verticalRadius,
+        int materialBand,
+        RandomSource random
+    ) {
         for (int dx = -radius; dx <= radius; dx++) {
             for (int dy = -verticalRadius; dy <= verticalRadius; dy++) {
                 for (int dz = -radius; dz <= radius; dz++) {
@@ -1270,10 +1320,10 @@ public final class PortalStructureHelper {
                     if (normalized <= 0.72) {
                         carveNetherAir(level, pieceBox, chunkBox, pos);
                     } else if (normalized <= 1.15) {
-                        set(level, pieceBox, chunkBox, pos, pickTunnelWall(pos, random));
+                        set(level, pieceBox, chunkBox, pos, pickTunnelWall(pos, materialBand, random));
                     }
                     if (dy == -verticalRadius && normalized <= 0.95) {
-                        set(level, pieceBox, chunkBox, pos, pickCaveFloor(pos.getY() < center.getY() - 1 ? 2 : 1, random));
+                        set(level, pieceBox, chunkBox, pos, pickCaveFloor(materialBand, random));
                     }
                 }
             }
@@ -1367,6 +1417,10 @@ public final class PortalStructureHelper {
     }
 
     private static BlockState pickTunnelWall(BlockPos pos, RandomSource random) {
+        return pickTunnelWall(pos, 1, random);
+    }
+
+    private static BlockState pickTunnelWall(BlockPos pos, int materialBand, RandomSource random) {
         float roll = random.nextFloat();
         if (roll < 0.015f) {
             return Blocks.ANCIENT_DEBRIS.defaultBlockState();
@@ -1377,7 +1431,17 @@ public final class PortalStructureHelper {
         if (roll < 0.19f) {
             return Blocks.NETHER_QUARTZ_ORE.defaultBlockState();
         }
-        if (roll < 0.28f) {
+        if (materialBand >= 2) {
+            if (roll < 0.44f) {
+                return Blocks.BLACKSTONE.defaultBlockState();
+            }
+            if (roll < 0.72f) {
+                return Blocks.BASALT.defaultBlockState();
+            }
+            if (roll < 0.82f) {
+                return Blocks.MAGMA_BLOCK.defaultBlockState();
+            }
+        } else if (roll < 0.28f) {
             return Blocks.BLACKSTONE.defaultBlockState();
         }
         if (pos.getY() < 24 && roll < 0.55f) {
@@ -1439,6 +1503,20 @@ public final class PortalStructureHelper {
             return Blocks.BLACKSTONE.defaultBlockState();
         }
         return Blocks.NETHERRACK.defaultBlockState();
+    }
+
+    private static BlockState pickPitRimBlock(BlockPos pos) {
+        double roll = coordinateNoise(0x49F2E6C3A881D27CL, pos.getX(), pos.getZ());
+        if (roll < 0.36) {
+            return Blocks.BLACKSTONE.defaultBlockState();
+        }
+        if (roll < 0.64) {
+            return Blocks.BASALT.defaultBlockState();
+        }
+        if (roll < 0.82) {
+            return Blocks.NETHERRACK.defaultBlockState();
+        }
+        return Blocks.SOUL_SOIL.defaultBlockState();
     }
 
     private static void carveNetherAir(
@@ -1664,6 +1742,26 @@ public final class PortalStructureHelper {
         hash *= 0xc4ceb9fe1a85ec53L;
         hash ^= hash >>> 33;
         return (hash & 0x1FFFFFL) / (double) 0x1FFFFFL;
+    }
+
+    private static double smoothNoise(long seed, double x, double z) {
+        int x0 = (int) Math.floor(x);
+        int z0 = (int) Math.floor(z);
+        int x1 = x0 + 1;
+        int z1 = z0 + 1;
+        double sx = smoothStep(x - x0);
+        double sz = smoothStep(z - z0);
+        double north = lerp(coordinateNoise(seed, x0, z0), coordinateNoise(seed, x1, z0), sx);
+        double south = lerp(coordinateNoise(seed, x0, z1), coordinateNoise(seed, x1, z1), sx);
+        return lerp(north, south, sz);
+    }
+
+    private static double smoothStep(double value) {
+        return value * value * (3.0 - 2.0 * value);
+    }
+
+    private static double lerp(double start, double end, double delta) {
+        return start + (end - start) * delta;
     }
 
     private static long hashColumn(int x, int z) {

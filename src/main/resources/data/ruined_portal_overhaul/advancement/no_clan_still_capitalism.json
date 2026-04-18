@@ -1,0 +1,23 @@
+{
+  "parent": "ruined_portal_overhaul:the_last_wave_broke",
+  "display": {
+    "icon": {
+      "id": "minecraft:gold_ingot"
+    },
+    "title": {
+      "text": "20$ is 20$"
+    },
+    "description": {
+      "text": "Complete a trade with the Exiled Piglin."
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "trade": {
+      "trigger": "ruined_portal_overhaul:exiled_trade"
+    }
+  }
+}
