@@ -1,14 +1,21 @@
 package com.ruinedportaloverhaul.block.entity;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 
 public class NetherConduitBlockEntity extends BlockEntity {
     private static final int ACTIVATION_SCAN_INTERVAL_TICKS = 20;
     private static final int ACTIVATION_REQUIRED_FRAME_BLOCKS = 12;
+    private static final int EFFECT_RADIUS = 16;
+    private static final int EFFECT_DURATION_TICKS = 40;
 
     private boolean active;
     private int frameBlockCount;
@@ -28,6 +35,10 @@ public class NetherConduitBlockEntity extends BlockEntity {
             blockEntity.active = active;
             blockEntity.frameBlockCount = frameBlocks;
             blockEntity.setChanged();
+        }
+
+        if (blockEntity.active && level instanceof ServerLevel serverLevel) {
+            applyActiveEffects(serverLevel, pos);
         }
     }
 
@@ -58,6 +69,16 @@ public class NetherConduitBlockEntity extends BlockEntity {
         }
 
         return count;
+    }
+
+    private static void applyActiveEffects(ServerLevel level, BlockPos pos) {
+        AABB range = new AABB(pos).inflate(EFFECT_RADIUS);
+        double radiusSqr = EFFECT_RADIUS * EFFECT_RADIUS;
+        for (ServerPlayer player : level.getPlayers(player -> range.contains(player.position()) && player.distanceToSqr(pos.getCenter()) <= radiusSqr)) {
+            player.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, EFFECT_DURATION_TICKS, 0, true, false, true));
+            player.addEffect(new MobEffectInstance(MobEffects.HASTE, EFFECT_DURATION_TICKS, 0, true, false, true));
+            player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, EFFECT_DURATION_TICKS, 0, true, false, true));
+        }
     }
 
     private static boolean isFrameEdge(int dx, int dy, int dz) {
