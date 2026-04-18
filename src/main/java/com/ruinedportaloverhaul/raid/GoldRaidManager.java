@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.core.BlockPos;
@@ -155,6 +156,28 @@ public final class GoldRaidManager {
 
     public static void initialize() {
         ServerTickEvents.END_SERVER_TICK.register(GoldRaidManager::tick);
+        ServerEntityEvents.ENTITY_LOAD.register(GoldRaidManager::suppressCompletedPortalMobLoad);
+    }
+
+    private static void suppressCompletedPortalMobLoad(Entity entity, ServerLevel level) {
+        if (!(entity instanceof Mob mob) || entity.getType() == ModEntities.EXILED_PIGLIN || mob.isPersistenceRequired()) {
+            return;
+        }
+
+        PortalRaidState portalRaidState = PortalRaidState.get(level.getServer());
+        BlockPos entityPos = entity.blockPosition();
+        for (BlockPos portalOrigin : portalRaidState.completedPortalOrigins()) {
+            if (isInsideCompletedPortalMobSuppressionArea(entityPos, portalOrigin)) {
+                entity.discard();
+                return;
+            }
+        }
+    }
+
+    private static boolean isInsideCompletedPortalMobSuppressionArea(BlockPos entityPos, BlockPos portalOrigin) {
+        int verticalRange = PortalStructureHelper.PIT_DEPTH + 80;
+        return Math.abs(entityPos.getY() - portalOrigin.getY()) <= verticalRange
+            && horizontalDistanceSqr(entityPos, portalOrigin) <= PortalStructureHelper.OUTER_RADIUS * PortalStructureHelper.OUTER_RADIUS;
     }
 
     private static void tick(MinecraftServer server) {
@@ -565,6 +588,7 @@ public final class GoldRaidManager {
         ignitePortal(state.level, state.origin);
         spawnBossChest(state.level, state.origin);
         spawnExiledTrader(state.level, state.origin);
+        disablePreRaidSpawners(state.level, state.portalRaidState, state.origin);
         state.portalRaidState.markCompleted(state.origin);
 
         Component message = Component.literal("The portal falls silent.");

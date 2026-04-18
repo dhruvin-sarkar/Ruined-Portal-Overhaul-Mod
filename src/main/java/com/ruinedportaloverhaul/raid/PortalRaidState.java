@@ -84,6 +84,10 @@ public final class PortalRaidState extends SavedData {
         return this.completedPortals.contains(portalOrigin.immutable());
     }
 
+    public Set<BlockPos> completedPortalOrigins() {
+        return Set.copyOf(this.completedPortals);
+    }
+
     public boolean isRaidActive(BlockPos portalOrigin) {
         return this.activeRaidLocations.contains(portalOrigin.immutable());
     }
