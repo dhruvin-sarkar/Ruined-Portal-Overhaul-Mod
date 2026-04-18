@@ -75,10 +75,35 @@ public class NetherConduitBlockEntity extends BlockEntity {
         AABB range = new AABB(pos).inflate(EFFECT_RADIUS);
         double radiusSqr = EFFECT_RADIUS * EFFECT_RADIUS;
         for (ServerPlayer player : level.getPlayers(player -> range.contains(player.position()) && player.distanceToSqr(pos.getCenter()) <= radiusSqr)) {
+            NetherConduitPowerTracker.grant(player, level.getGameTime(), 0);
             player.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, EFFECT_DURATION_TICKS, 0, true, false, true));
             player.addEffect(new MobEffectInstance(MobEffects.HASTE, EFFECT_DURATION_TICKS, 0, true, false, true));
             player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, EFFECT_DURATION_TICKS, 0, true, false, true));
         }
+    }
+
+    public static boolean hasActiveConduitNear(Level level, BlockPos center, int radius) {
+        int radiusSqr = radius * radius;
+        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
+
+        for (int dx = -radius; dx <= radius; dx++) {
+            for (int dy = -radius; dy <= radius; dy++) {
+                for (int dz = -radius; dz <= radius; dz++) {
+                    if (dx * dx + dy * dy + dz * dz > radiusSqr) {
+                        continue;
+                    }
+
+                    cursor.set(center.getX() + dx, center.getY() + dy, center.getZ() + dz);
+                    if (level.isLoaded(cursor)
+                        && level.getBlockEntity(cursor) instanceof NetherConduitBlockEntity conduit
+                        && conduit.isActive()) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     private static boolean isFrameEdge(int dx, int dy, int dz) {

@@ -1,0 +1,11 @@
+{
+  "required": true,
+  "package": "com.ruinedportaloverhaul.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "LivingEntityLavaMovementMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

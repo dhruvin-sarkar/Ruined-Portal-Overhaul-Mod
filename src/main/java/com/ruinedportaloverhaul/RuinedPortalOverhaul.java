@@ -1,6 +1,7 @@
 package com.ruinedportaloverhaul;
 
 import com.ruinedportaloverhaul.block.ModBlocks;
+import com.ruinedportaloverhaul.block.NetherConduitEvents;
 import com.ruinedportaloverhaul.block.entity.ModBlockEntities;
 import com.ruinedportaloverhaul.entity.ModEntities;
 import com.ruinedportaloverhaul.advancement.ModAdvancementTriggers;
@@ -21,6 +22,7 @@ public class RuinedPortalOverhaul implements ModInitializer {
         LOGGER.info("Initializing {}", MOD_ID);
         ModBlocks.initialize();
         ModBlockEntities.initialize();
+        NetherConduitEvents.initialize();
         ModEntities.initialize();
         ModAdvancementTriggers.initialize();
         ModStructures.initialize();

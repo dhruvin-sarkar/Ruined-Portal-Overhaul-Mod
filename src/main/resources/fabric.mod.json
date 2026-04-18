@@ -24,6 +24,10 @@
 	},
 	"mixins": [
 		{
+			"config": "ruined_portal_overhaul.mixins.json",
+			"environment": "*"
+		},
+		{
 			"config": "ruined_portal_overhaul.client.mixins.json",
 			"environment": "client"
 		}
