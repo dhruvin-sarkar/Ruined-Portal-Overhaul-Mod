@@ -1,0 +1,34 @@
+{
+  "parent": "ruined_portal_overhaul:hostile_acquisition",
+  "display": {
+    "icon": {
+      "id": "minecraft:totem_of_undying"
+    },
+    "title": {
+      "text": "Contract Voided"
+    },
+    "description": {
+      "text": "Kill a Piglin Evoker before the paperwork summons teeth."
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "evoker": {
+      "trigger": "minecraft:player_killed_entity",
+      "conditions": {
+        "entity": [
+          {
+            "condition": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "type": "ruined_portal_overhaul:piglin_evoker"
+            }
+          }
+        ]
+      }
+    }
+  }
+}

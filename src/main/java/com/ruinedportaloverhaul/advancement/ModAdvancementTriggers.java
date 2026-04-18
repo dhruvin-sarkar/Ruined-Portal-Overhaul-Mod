@@ -8,6 +8,8 @@ public final class ModAdvancementTriggers {
     public static final PortalEventTrigger PORTAL_APPROACH = register("portal_approach");
     public static final PortalEventTrigger PIT_DESCENT = register("pit_descent");
     public static final PortalEventTrigger DEEP_STORM = register("deep_storm");
+    public static final PortalEventTrigger AETHER_BOON = register("aether_boon");
+    public static final PortalEventTrigger TERRITORY_TOTEM = register("territory_totem");
     public static final PortalEventTrigger RAID_STARTED = register("raid_started");
     public static final PortalEventTrigger RAID_COMPLETED = register("raid_completed");
     public static final PortalEventTrigger EXILED_TRADE = register("exiled_trade");

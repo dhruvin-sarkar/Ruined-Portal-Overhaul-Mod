@@ -1,0 +1,34 @@
+{
+  "parent": "ruined_portal_overhaul:no_tribute_required",
+  "display": {
+    "icon": {
+      "id": "minecraft:saddle"
+    },
+    "title": {
+      "text": "Large Print"
+    },
+    "description": {
+      "text": "Kill a Piglin Ravager. The contract was mostly hoofnotes."
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "ravager": {
+      "trigger": "minecraft:player_killed_entity",
+      "conditions": {
+        "entity": [
+          {
+            "condition": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "type": "ruined_portal_overhaul:piglin_ravager"
+            }
+          }
+        ]
+      }
+    }
+  }
+}

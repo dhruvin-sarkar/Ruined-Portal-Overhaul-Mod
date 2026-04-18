@@ -99,6 +99,10 @@ public class PortalDungeonPiece extends StructurePiece {
         List<BlockPos> chests = new ArrayList<>();
         chests.add(origin.offset(9, 0, -6));
         chests.add(origin.offset(-10, 0, 7));
+        chests.add(origin.offset(22, 0, 12));
+        chests.add(origin.offset(-24, 0, -14));
+        chests.add(origin.offset(36, 0, -7));
+        chests.add(origin.offset(-38, 0, 18));
 
         for (BlockPos target : chests) {
             if (!PortalStructureHelper.isColumnInside(chunkBox, target)) {

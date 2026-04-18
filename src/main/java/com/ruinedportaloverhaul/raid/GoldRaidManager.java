@@ -38,12 +38,16 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.BossEvent;
 import net.minecraft.world.Difficulty;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.monster.Ghast;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.NetherPortalBlock;
@@ -75,12 +79,14 @@ public final class GoldRaidManager {
     private static final int GHAST_ANCHOR_TICKS = 20 * 180;
     private static final int INTER_WAVE_PULSE_INTERVAL_TICKS = 60;
     private static final int WAVE_DELAY_TICKS = 180;
+    private static final int TERRITORY_BOON_DURATION_TICKS = 260;
     private static final float MIN_PORTAL_ATMOSPHERE_INTENSITY = 0.22f;
     private static final double BOSS_BAR_PLAYER_RANGE_SQUARED = BOSS_BAR_PLAYER_RANGE * BOSS_BAR_PLAYER_RANGE;
     private static final String PORTAL_AMBIENT_TAG = "rpo_portal_ambient";
     private static final String PORTAL_AMBIENT_ORIGIN_TAG_PREFIX = "rpo_ambient_origin_";
     private static final String PORTAL_GHAST_TAG = "rpo_portal_ghast";
     private static final String PORTAL_GHAST_ORIGIN_TAG_PREFIX = "rpo_origin_";
+    private static final String PORTAL_TOTEM_TAG_PREFIX = "rpo_totem_granted_";
 
     private static final ResourceKey<LootTable> BOSS_REWARD_LOOT = ResourceKey.create(
         Registries.LOOT_TABLE,
@@ -628,7 +634,32 @@ public final class GoldRaidManager {
                 continue;
             }
             sendPortalAtmosphere(player, portal);
+            applyPortalTerritoryBoon(player, portal);
         }
+    }
+
+    private static void applyPortalTerritoryBoon(ServerPlayer player, BlockPos origin) {
+        player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, TERRITORY_BOON_DURATION_TICKS, 1, true, false, true));
+        player.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, TERRITORY_BOON_DURATION_TICKS, 0, true, false, true));
+        player.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, TERRITORY_BOON_DURATION_TICKS, 0, true, false, true));
+        player.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, TERRITORY_BOON_DURATION_TICKS, 3, true, false, true));
+        ModAdvancementTriggers.trigger(ModAdvancementTriggers.AETHER_BOON, player);
+        grantTerritoryTotem(player, origin);
+    }
+
+    private static void grantTerritoryTotem(ServerPlayer player, BlockPos origin) {
+        String tag = PORTAL_TOTEM_TAG_PREFIX + origin.asLong();
+        if (player.getTags().contains(tag)) {
+            return;
+        }
+
+        player.addTag(tag);
+        ItemStack totem = new ItemStack(Items.TOTEM_OF_UNDYING);
+        if (!player.addItem(totem)) {
+            player.drop(totem, false);
+        }
+        ModAdvancementTriggers.trigger(ModAdvancementTriggers.TERRITORY_TOTEM, player);
+        player.displayClientMessage(Component.literal("The red air presses a totem into your hand.").withStyle(ChatFormatting.GOLD), true);
     }
 
     private static void sendPortalAtmosphere(ServerPlayer player, BlockPos origin) {
