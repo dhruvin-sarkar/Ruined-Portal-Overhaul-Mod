@@ -6,5 +6,6 @@
   "entity.ruined_portal_overhaul.piglin_evoker": "Piglin Evoker",
   "entity.ruined_portal_overhaul.piglin_ravager": "Piglin Ravager",
   "entity.ruined_portal_overhaul.piglin_vex": "Piglin Vex",
-  "entity.ruined_portal_overhaul.exiled_piglin": "Exiled Piglin"
+  "entity.ruined_portal_overhaul.exiled_piglin": "Exiled Piglin",
+  "block.ruined_portal_overhaul.nether_conduit": "Nether Conduit"
 }

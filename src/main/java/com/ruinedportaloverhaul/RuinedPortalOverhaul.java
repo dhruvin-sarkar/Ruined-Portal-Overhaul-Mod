@@ -1,5 +1,7 @@
 package com.ruinedportaloverhaul;
 
+import com.ruinedportaloverhaul.block.ModBlocks;
+import com.ruinedportaloverhaul.block.entity.ModBlockEntities;
 import com.ruinedportaloverhaul.entity.ModEntities;
 import com.ruinedportaloverhaul.advancement.ModAdvancementTriggers;
 import com.ruinedportaloverhaul.network.ModNetworking;
@@ -17,6 +19,8 @@ public class RuinedPortalOverhaul implements ModInitializer {
     @Override
     public void onInitialize() {
         LOGGER.info("Initializing {}", MOD_ID);
+        ModBlocks.initialize();
+        ModBlockEntities.initialize();
         ModEntities.initialize();
         ModAdvancementTriggers.initialize();
         ModStructures.initialize();

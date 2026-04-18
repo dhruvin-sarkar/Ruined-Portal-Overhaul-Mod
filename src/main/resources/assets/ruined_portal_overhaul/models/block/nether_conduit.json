@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/conduit",
+  "textures": {
+    "particle": "minecraft:block/netherrack",
+    "base": "minecraft:block/netherrack",
+    "secondary": "minecraft:block/obsidian"
+  }
+}
