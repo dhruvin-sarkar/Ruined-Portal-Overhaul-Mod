@@ -425,21 +425,21 @@ public final class GoldRaidManager {
             );
             case 3 -> spawnWave(
                 state,
-                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 8),
-                new SpawnEntry(ModEntities.PIGLIN_BRUTE_PILLAGER, 10),
-                new SpawnEntry(ModEntities.PIGLIN_ILLUSIONER, 8),
-                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 10),
+                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 6),
+                new SpawnEntry(ModEntities.PIGLIN_BRUTE_PILLAGER, 8),
+                new SpawnEntry(ModEntities.PIGLIN_ILLUSIONER, 6),
+                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 8),
                 new SpawnEntry(ModEntities.PIGLIN_RAVAGER, 1),
-                new SpawnEntry(ModEntities.PIGLIN_EVOKER, 2)
+                new SpawnEntry(ModEntities.PIGLIN_EVOKER, 1)
             );
             case 4 -> spawnWave(
                 state,
-                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 14),
-                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 12),
-                new SpawnEntry(ModEntities.PIGLIN_BRUTE_PILLAGER, 10),
-                new SpawnEntry(ModEntities.PIGLIN_ILLUSIONER, 7),
-                new SpawnEntry(ModEntities.PIGLIN_RAVAGER, 3),
-                new SpawnEntry(ModEntities.PIGLIN_EVOKER, 4)
+                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 10),
+                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 9),
+                new SpawnEntry(ModEntities.PIGLIN_BRUTE_PILLAGER, 8),
+                new SpawnEntry(ModEntities.PIGLIN_ILLUSIONER, 5),
+                new SpawnEntry(ModEntities.PIGLIN_RAVAGER, 2),
+                new SpawnEntry(ModEntities.PIGLIN_EVOKER, 3)
             );
             default -> {
             }
@@ -1301,8 +1301,8 @@ public final class GoldRaidManager {
             case 0 -> 20;
             case 1 -> 27;
             case 2 -> 34;
-            case 3 -> 40;
-            case 4 -> 50;
+            case 3 -> 30;
+            case 4 -> 37;
             default -> 0;
         };
     }
