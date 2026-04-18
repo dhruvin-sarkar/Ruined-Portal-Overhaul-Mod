@@ -42,12 +42,24 @@ public class PiglinVindicatorEntity extends Vindicator {
     @Override
     protected void populateDefaultEquipmentSlots(RandomSource randomSource, DifficultyInstance difficultyInstance) {
         ItemStack weapon = new ItemStack(randomSource.nextFloat() < 0.74f ? Items.GOLDEN_AXE : Items.GOLDEN_SWORD);
-        if (randomSource.nextFloat() < 0.65f) {
-            Holder.Reference<Enchantment> enchantment = this.level()
+        Holder.Reference<Enchantment> sharpness = this.level()
+            .registryAccess()
+            .lookupOrThrow(Registries.ENCHANTMENT)
+            .getOrThrow(Enchantments.SHARPNESS);
+        weapon.enchant(sharpness, 3 + randomSource.nextInt(3));
+        if (randomSource.nextFloat() < 0.34f) {
+            Holder.Reference<Enchantment> fireAspect = this.level()
                 .registryAccess()
                 .lookupOrThrow(Registries.ENCHANTMENT)
-                .getOrThrow(Enchantments.SHARPNESS);
-            weapon.enchant(enchantment, 3);
+                .getOrThrow(Enchantments.FIRE_ASPECT);
+            weapon.enchant(fireAspect, 1);
+        }
+        if (randomSource.nextFloat() < 0.22f) {
+            Holder.Reference<Enchantment> knockback = this.level()
+                .registryAccess()
+                .lookupOrThrow(Registries.ENCHANTMENT)
+                .getOrThrow(Enchantments.KNOCKBACK);
+            weapon.enchant(knockback, 1);
         }
         this.setItemSlot(EquipmentSlot.MAINHAND, weapon);
     }

@@ -2,6 +2,7 @@ package com.ruinedportaloverhaul.entity;
 
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -59,27 +60,39 @@ public class PiglinBrutePillagerEntity extends Pillager {
 
     @Override
     protected void populateDefaultEquipmentSlots(RandomSource randomSource, DifficultyInstance difficultyInstance) {
-        ItemStack crossbow = new ItemStack(Items.CROSSBOW);
-        Holder.Reference<Enchantment> multishot = this.level()
-            .registryAccess()
-            .lookupOrThrow(Registries.ENCHANTMENT)
-            .getOrThrow(Enchantments.MULTISHOT);
-        crossbow.enchant(multishot, 1);
-        Holder.Reference<Enchantment> quickCharge = this.level()
-            .registryAccess()
-            .lookupOrThrow(Registries.ENCHANTMENT)
-            .getOrThrow(Enchantments.QUICK_CHARGE);
-        crossbow.enchant(quickCharge, 2);
-        if (randomSource.nextBoolean()) {
-            Holder.Reference<Enchantment> piercing = this.level()
-                .registryAccess()
-                .lookupOrThrow(Registries.ENCHANTMENT)
-                .getOrThrow(Enchantments.PIERCING);
-            crossbow.enchant(piercing, 1);
+        float roll = randomSource.nextFloat();
+        if (roll < 0.70f) {
+            this.setItemSlot(EquipmentSlot.MAINHAND, createMeleeWeapon(randomSource, Items.GOLDEN_AXE));
+        } else if (roll < 0.88f) {
+            this.setItemSlot(EquipmentSlot.MAINHAND, createMeleeWeapon(randomSource, Items.GOLDEN_SWORD));
+        } else {
+            this.setItemSlot(EquipmentSlot.MAINHAND, createCrossbow(randomSource));
+            this.setItemSlot(EquipmentSlot.OFFHAND, createMeleeWeapon(randomSource, randomSource.nextBoolean() ? Items.GOLDEN_AXE : Items.GOLDEN_SWORD));
         }
-        this.setItemSlot(EquipmentSlot.MAINHAND, crossbow);
-        this.setItemSlot(EquipmentSlot.OFFHAND, new ItemStack(randomSource.nextBoolean() ? Items.GOLDEN_AXE : Items.GOLDEN_SWORD));
         this.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.GOLDEN_CHESTPLATE));
+    }
+
+    private ItemStack createCrossbow(RandomSource randomSource) {
+        ItemStack crossbow = new ItemStack(Items.CROSSBOW);
+        crossbow.enchant(enchantment(Enchantments.MULTISHOT), 1);
+        crossbow.enchant(enchantment(Enchantments.QUICK_CHARGE), 2);
+        if (randomSource.nextBoolean()) {
+            crossbow.enchant(enchantment(Enchantments.PIERCING), 1);
+        }
+        return crossbow;
+    }
+
+    private ItemStack createMeleeWeapon(RandomSource randomSource, net.minecraft.world.item.Item item) {
+        ItemStack weapon = new ItemStack(item);
+        weapon.enchant(enchantment(Enchantments.SHARPNESS), 4 + randomSource.nextInt(2));
+        if (randomSource.nextFloat() < 0.34f) {
+            weapon.enchant(enchantment(Enchantments.KNOCKBACK), 1);
+        }
+        return weapon;
+    }
+
+    private Holder.Reference<Enchantment> enchantment(ResourceKey<Enchantment> key) {
+        return this.level().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(key);
     }
 
     @Override
@@ -89,6 +102,9 @@ public class PiglinBrutePillagerEntity extends Pillager {
         }
 
         ItemStack weapon = this.getMainHandItem();
+        if (!weapon.is(Items.CROSSBOW)) {
+            return;
+        }
         ItemStack ammo = new ItemStack(Items.ARROW);
         AbstractArrow arrow = ProjectileUtil.getMobArrow(this, ammo, distanceFactor, weapon);
         double dx = target.getX() - this.getX();
@@ -98,6 +114,7 @@ public class PiglinBrutePillagerEntity extends Pillager {
         arrow.shoot(dx, dy, dz, 1.5f, 1.0f);
         serverLevel.addFreshEntity(arrow);
         this.playSound(SoundEvents.CROSSBOW_SHOOT, 1.0f, 1.0f / (this.getRandom().nextFloat() * 0.4f + 0.8f));
+        this.playSound(SoundEvents.PIGLIN_BRUTE_ANGRY, 0.75f, 0.75f + this.getRandom().nextFloat() * 0.25f);
     }
 
     @Override
@@ -122,12 +139,16 @@ public class PiglinBrutePillagerEntity extends Pillager {
 
         @Override
         public boolean canUse() {
-            return PiglinBrutePillagerEntity.this.isTargetWithinMeleeFallbackRange() && super.canUse();
+            return (!PiglinBrutePillagerEntity.this.getMainHandItem().is(Items.CROSSBOW)
+                || PiglinBrutePillagerEntity.this.isTargetWithinMeleeFallbackRange())
+                && super.canUse();
         }
 
         @Override
         public boolean canContinueToUse() {
-            return PiglinBrutePillagerEntity.this.isTargetWithinMeleeFallbackRange() && super.canContinueToUse();
+            return (!PiglinBrutePillagerEntity.this.getMainHandItem().is(Items.CROSSBOW)
+                || PiglinBrutePillagerEntity.this.isTargetWithinMeleeFallbackRange())
+                && super.canContinueToUse();
         }
     }
 }

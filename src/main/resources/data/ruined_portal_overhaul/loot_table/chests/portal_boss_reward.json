@@ -1,21 +1,37 @@
 {
+  "_comment": "Boss loot is the five-wave payoff: a high-value windfall with netherite materials, rare books, and unique named artifacts, balanced by weighted rolls rather than guaranteed full upgrades.",
   "type": "minecraft:chest",
   "pools": [
     {
       "rolls": {
         "type": "minecraft:uniform",
-        "min": 6.0,
-        "max": 8.0
+        "min": 8.0,
+        "max": 10.0
       },
       "entries": [
         {
           "type": "minecraft:item",
           "name": "minecraft:netherite_ingot",
-          "weight": 4
+          "weight": 5
         },
         {
           "type": "minecraft:item",
           "name": "minecraft:netherite_scrap",
+          "weight": 11,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 4.0,
+                "max": 7.0
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:ancient_debris",
           "weight": 8,
           "functions": [
             {
@@ -30,49 +46,40 @@
         },
         {
           "type": "minecraft:item",
+          "name": "minecraft:netherite_upgrade_smithing_template",
+          "weight": 6,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1.0,
+                "max": 2.0
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
           "name": "minecraft:enchanted_golden_apple",
-          "weight": 5
+          "weight": 6
         },
         {
           "type": "minecraft:item",
           "name": "minecraft:totem_of_undying",
-          "weight": 4
+          "weight": 6
         },
         {
           "type": "minecraft:item",
-          "name": "minecraft:enchanted_book",
-          "weight": 5,
+          "name": "minecraft:diamond",
+          "weight": 8,
           "functions": [
             {
-              "function": "minecraft:set_enchantments",
-              "enchantments": {
-                "minecraft:mending": 1
-              }
-            }
-          ]
-        },
-        {
-          "type": "minecraft:item",
-          "name": "minecraft:enchanted_book",
-          "weight": 5,
-          "functions": [
-            {
-              "function": "minecraft:set_enchantments",
-              "enchantments": {
-                "minecraft:fortune": 3
-              }
-            }
-          ]
-        },
-        {
-          "type": "minecraft:item",
-          "name": "minecraft:enchanted_book",
-          "weight": 5,
-          "functions": [
-            {
-              "function": "minecraft:set_enchantments",
-              "enchantments": {
-                "minecraft:looting": 3
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 6.0,
+                "max": 12.0
               }
             }
           ]
@@ -86,43 +93,114 @@
               "function": "minecraft:set_count",
               "count": {
                 "type": "minecraft:uniform",
-                "min": 2.0,
-                "max": 4.0
+                "min": 3.0,
+                "max": 7.0
               }
             }
           ]
         },
         {
           "type": "minecraft:item",
-          "name": "minecraft:diamond",
+          "name": "minecraft:enchanted_book",
           "weight": 7,
           "functions": [
             {
-              "function": "minecraft:set_count",
-              "count": {
-                "type": "minecraft:uniform",
-                "min": 4.0,
-                "max": 8.0
+              "function": "minecraft:set_enchantments",
+              "enchantments": {
+                "minecraft:mending": 1
               }
             }
           ]
         },
         {
           "type": "minecraft:item",
-          "name": "minecraft:netherite_upgrade_smithing_template",
-          "weight": 4
+          "name": "minecraft:enchanted_book",
+          "weight": 7,
+          "functions": [
+            {
+              "function": "minecraft:set_enchantments",
+              "enchantments": {
+                "minecraft:unbreaking": 3
+              }
+            }
+          ]
         },
         {
           "type": "minecraft:item",
-          "name": "minecraft:ancient_debris",
+          "name": "minecraft:enchanted_book",
+          "weight": 7,
+          "functions": [
+            {
+              "function": "minecraft:set_enchantments",
+              "enchantments": {
+                "minecraft:fortune": 3
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:enchanted_book",
+          "weight": 7,
+          "functions": [
+            {
+              "function": "minecraft:set_enchantments",
+              "enchantments": {
+                "minecraft:looting": 3
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:enchanted_book",
+          "weight": 6,
+          "functions": [
+            {
+              "function": "minecraft:set_enchantments",
+              "enchantments": {
+                "minecraft:protection": 4
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:enchanted_book",
+          "weight": 6,
+          "functions": [
+            {
+              "function": "minecraft:set_enchantments",
+              "enchantments": {
+                "minecraft:fire_protection": 4
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:diamond_chestplate",
           "weight": 4,
           "functions": [
             {
-              "function": "minecraft:set_count",
-              "count": {
-                "type": "minecraft:uniform",
-                "min": 2.0,
-                "max": 3.0
+              "function": "minecraft:set_enchantments",
+              "enchantments": {
+                "minecraft:protection": 4,
+                "minecraft:unbreaking": 3
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:diamond_sword",
+          "weight": 4,
+          "functions": [
+            {
+              "function": "minecraft:set_enchantments",
+              "enchantments": {
+                "minecraft:sharpness": 5,
+                "minecraft:fire_aspect": 2
               }
             }
           ]
@@ -130,14 +208,15 @@
         {
           "type": "minecraft:item",
           "name": "minecraft:tripwire_hook",
-          "weight": 2,
+          "weight": 4,
           "functions": [
             {
               "function": "minecraft:set_components",
               "components": {
-                "minecraft:custom_name": "{\"text\":\"Corrupted Portal Key\",\"italic\":false}",
+                "minecraft:custom_name": "{\"text\":\"Corrupted Portal Key\",\"italic\":false,\"color\":\"red\"}",
                 "minecraft:lore": [
-                  "{\"text\":\"It hums. You don't know why yet.\",\"italic\":false,\"color\":\"gray\"}"
+                  "{\"text\":\"It hums. You don't know why yet.\",\"italic\":false,\"color\":\"gray\"}",
+                  "{\"text\":\"The storm recognizes this shape.\",\"italic\":false,\"color\":\"dark_red\"}"
                 ]
               }
             }
@@ -155,9 +234,10 @@
             {
               "function": "minecraft:set_components",
               "components": {
-                "minecraft:custom_name": "{\"text\":\"Shard of the Nether\",\"italic\":false}",
+                "minecraft:custom_name": "{\"text\":\"Shard of the Nether\",\"italic\":false,\"color\":\"gold\"}",
                 "minecraft:lore": [
-                  "{\"text\":\"A fragment of nether energy, still warm to the touch.\",\"italic\":false,\"color\":\"gray\"}"
+                  "{\"text\":\"A fragment of nether energy, still warm to the touch.\",\"italic\":false,\"color\":\"gray\"}",
+                  "{\"text\":\"It rang when the final wave fell.\",\"italic\":false,\"color\":\"dark_red\"}"
                 ]
               }
             }

@@ -93,6 +93,8 @@ public class PiglinEvokerEntity extends Evoker {
 
     private void castMagmaEruption(ServerLevel serverLevel, Vec3 center) {
         float radius = 3.0f;
+        serverLevel.playSound(null, this.blockPosition(), SoundEvents.BLAZE_SHOOT, SoundSource.HOSTILE, 1.1f, 0.55f);
+        serverLevel.playSound(null, this.blockPosition(), SoundEvents.LAVA_POP, SoundSource.HOSTILE, 0.8f, 0.70f);
         for (int i = 0; i < 10; i++) {
             double angle = Math.toRadians((360.0 / 10.0) * i);
             double x = center.x + Math.cos(angle) * radius;

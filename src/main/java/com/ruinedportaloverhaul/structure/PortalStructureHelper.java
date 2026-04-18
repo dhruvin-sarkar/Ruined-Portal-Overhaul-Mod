@@ -89,7 +89,16 @@ public final class PortalStructureHelper {
                     continue;
                 }
 
-                BlockPos top = terrainTop(level, x, z);
+                BlockPos top = sculptedTerrainTop(
+                    level,
+                    pieceBox,
+                    chunkBox,
+                    origin,
+                    x,
+                    z,
+                    distance,
+                    origin.asLong() ^ 0x6E0F4D2A51B97C3DL
+                );
                 setColumn(level, pieceBox, chunkBox, top, Blocks.NETHERRACK.defaultBlockState(), distance < MIDDLE_RADIUS * 0.65 ? 3 : 2);
                 convertLocalWaterToLava(level, pieceBox, chunkBox, top);
                 if (random.nextFloat() < 0.08f) {
@@ -137,7 +146,7 @@ public final class PortalStructureHelper {
                 }
 
                 RandomSource localRandom = RandomSource.create(seed ^ hashColumn(x, z));
-                BlockPos center = terrainTop(level, x, z);
+                BlockPos center = sculptedTerrainTop(level, pieceBox, chunkBox, origin, x, z, distance, seed);
                 placeOuterPatch(level, pieceBox, chunkBox, origin, center, localRandom, gradient);
             }
         }
@@ -220,8 +229,8 @@ public final class PortalStructureHelper {
         BlockPos chamberCenter,
         RandomSource random
     ) {
-        int nodeCount = 10 + random.nextInt(5);
-        List<CaveNode> nodes = new ArrayList<>(nodeCount + 2);
+        int nodeCount = 10 + random.nextInt(4);
+        List<CaveNode> nodes = new ArrayList<>(nodeCount + 4);
         for (int i = 0; i < nodeCount; i++) {
             int band = i % 3;
             int y = switch (band) {
@@ -244,17 +253,19 @@ public final class PortalStructureHelper {
             int caveRadius = switch (band) {
                 case 0 -> 5 + random.nextInt(4);
                 case 1 -> 7 + random.nextInt(5);
-                default -> 8 + random.nextInt(5);
+                default -> 11 + random.nextInt(7);
             };
             int caveHeight = switch (band) {
                 case 0 -> 3 + random.nextInt(3);
                 case 1 -> 4 + random.nextInt(4);
-                default -> 5 + random.nextInt(4);
+                default -> 7 + random.nextInt(6);
             };
             nodes.add(new CaveNode(center, caveRadius, caveHeight, band));
         }
         nodes.add(new CaveNode(chamberCenter.offset(0, -10, 18), 9, 6, 1));
-        nodes.add(new CaveNode(chamberCenter.offset(-15, -18, -12), 10, 7, 2));
+        nodes.add(new CaveNode(chamberCenter.offset(-15, -18, -12), 14, 10, 2));
+        nodes.add(new CaveNode(chamberCenter.offset(23, -20, -16), 16, 11, 2));
+        nodes.add(new CaveNode(chamberCenter.offset(4, -25, 28), 18, 12, 2));
         return nodes;
     }
 
@@ -434,23 +445,43 @@ public final class PortalStructureHelper {
         double sideX = -dz / horizontal;
         double sideZ = dx / horizontal;
         double phase = random.nextDouble() * Math.PI * 2.0;
-        double swayAmplitude = 2.0 + random.nextDouble() * 3.5;
-        int steps = Math.max(10, (int) Math.ceil(Math.sqrt(dx * dx + dy * dy + dz * dz) * 1.06));
+        double swayAmplitude = 3.0 + random.nextDouble() * 5.0;
+        int steps = Math.max(12, (int) Math.ceil(Math.sqrt(dx * dx + dy * dy + dz * dz) * 1.18));
         BlockPos last = start;
         double angle = Math.atan2(dz, dx);
         for (int step = 0; step <= steps; step++) {
             double t = step / (double) steps;
             double sway = Math.sin(t * Math.PI * 2.0 + phase) * swayAmplitude
-                + Math.sin(t * Math.PI * 5.0 + phase * 0.5) * 1.15;
+                + Math.sin(t * Math.PI * 5.0 + phase * 0.5) * 1.85;
             int x = start.getX() + (int) Math.round(dx * t + sideX * sway);
-            int y = start.getY() + (int) Math.round(dy * t + Math.sin(t * Math.PI) * (random.nextBoolean() ? 2.0 : -1.0));
+            int y = start.getY() + (int) Math.round(
+                dy * t
+                    + Math.sin(t * Math.PI) * (random.nextBoolean() ? 2.4 : -1.4)
+                    + Math.sin(t * Math.PI * 3.0 + phase) * 1.3
+            );
             int z = start.getZ() + (int) Math.round(dz * t + sideZ * sway);
-            int radius = 3 + (int) Math.round(Math.sin(t * Math.PI) * 1.8);
+            double radiusNoise = coordinateNoise(start.asLong() ^ end.asLong() ^ (long) step * 137L, x, z);
+            int radius = clamp(3 + (int) Math.round(Math.sin(t * Math.PI) * 2.5 + radiusNoise * 2.2), 3, 7);
             if (step % 17 == 6) {
                 radius++;
             }
             BlockPos center = new BlockPos(x, y, z);
-            carveTunnelSegment(level, pieceBox, chunkBox, center, radius, 2 + random.nextInt(2), random);
+            int verticalRadius = Math.min(5, 2 + radius / 2 + (radiusNoise > 0.72 ? 1 : 0));
+            carveTunnelSegment(level, pieceBox, chunkBox, center, radius, verticalRadius, random);
+            if (step > 6 && step % 16 == 8 && random.nextFloat() < 0.58f) {
+                BlockPos pocketCenter = center.offset(
+                    (int) Math.round(sideX * (radius + 1.0)),
+                    random.nextInt(3) - 1,
+                    (int) Math.round(sideZ * (radius + 1.0))
+                );
+                carveCaveNode(
+                    level,
+                    pieceBox,
+                    chunkBox,
+                    new CaveNode(pocketCenter, 4 + random.nextInt(4), 3 + random.nextInt(3), pocketCenter.getY() <= start.getY() - 12 ? 2 : 1),
+                    random
+                );
+            }
             if (step % 9 == 4) {
                 set(level, pieceBox, chunkBox, center.offset(2, -1, 0), Blocks.SOUL_TORCH.defaultBlockState());
             }
@@ -585,25 +616,69 @@ public final class PortalStructureHelper {
             if (placedTunnelSpawners >= 28) {
                 break;
             }
-            EntityType<?> type = switch (placedTunnelSpawners % 7) {
-                case 0 -> EntityType.WITHER_SKELETON;
-                case 1 -> EntityType.BLAZE;
-                case 2 -> EntityType.MAGMA_CUBE;
-                case 3 -> ModEntities.PIGLIN_BRUTE_PILLAGER;
-                case 4 -> ModEntities.PIGLIN_PILLAGER;
-                case 5 -> ModEntities.PIGLIN_ILLUSIONER;
-                default -> ModEntities.PIGLIN_VINDICATOR;
-            };
-            int spawnCount = type == EntityType.MAGMA_CUBE ? 8 : type == EntityType.BLAZE ? 4 : 5;
-            int spawnRange = type == EntityType.MAGMA_CUBE ? 12 : 14;
-            int maxNearby = type == EntityType.MAGMA_CUBE ? 36 : type == EntityType.BLAZE ? 28 : 32;
-            int minDelay = type == EntityType.BLAZE ? 28 : type == EntityType.MAGMA_CUBE ? 24 : 30;
-            int maxDelay = type == EntityType.BLAZE ? 72 : type == EntityType.MAGMA_CUBE ? 64 : 78;
-            spawners.add(placeConfiguredSpawner(level, pieceBox, chunkBox, tunnelSpawner.above(), type, spawnCount, spawnRange, minDelay, maxDelay, 34, maxNearby, type == EntityType.MAGMA_CUBE));
+            boolean lowerCave = tunnelSpawner.getY() <= origin.getY() - 30;
+            boolean deepCave = tunnelSpawner.getY() <= origin.getY() - 42;
+            EntityType<?> type = deepCave
+                ? switch (placedTunnelSpawners % 9) {
+                    case 0 -> EntityType.GHAST;
+                    case 1 -> ModEntities.PIGLIN_BRUTE_PILLAGER;
+                    case 2 -> EntityType.BLAZE;
+                    case 3 -> EntityType.WITHER_SKELETON;
+                    case 4 -> EntityType.MAGMA_CUBE;
+                    case 5 -> ModEntities.PIGLIN_ILLUSIONER;
+                    case 6 -> ModEntities.PIGLIN_BRUTE_PILLAGER;
+                    case 7 -> ModEntities.PIGLIN_EVOKER;
+                    default -> EntityType.BLAZE;
+                }
+                : lowerCave
+                    ? switch (placedTunnelSpawners % 7) {
+                        case 0 -> EntityType.BLAZE;
+                        case 1 -> EntityType.WITHER_SKELETON;
+                        case 2 -> EntityType.MAGMA_CUBE;
+                        case 3 -> ModEntities.PIGLIN_BRUTE_PILLAGER;
+                        case 4 -> ModEntities.PIGLIN_ILLUSIONER;
+                        case 5 -> ModEntities.PIGLIN_VINDICATOR;
+                        default -> EntityType.BLAZE;
+                    }
+                    : switch (placedTunnelSpawners % 6) {
+                        case 0 -> EntityType.MAGMA_CUBE;
+                        case 1 -> ModEntities.PIGLIN_PILLAGER;
+                        case 2 -> ModEntities.PIGLIN_VINDICATOR;
+                        case 3 -> EntityType.BLAZE;
+                        case 4 -> EntityType.WITHER_SKELETON;
+                        default -> EntityType.MAGMA_CUBE;
+                    };
+            int spawnCount = tunnelSpawnCount(type, deepCave);
+            int spawnRange = type == EntityType.GHAST ? 18 : type == EntityType.MAGMA_CUBE ? 12 : deepCave ? 16 : 14;
+            int maxNearby = type == EntityType.GHAST ? 8 : type == EntityType.MAGMA_CUBE ? 38 : type == EntityType.BLAZE ? 30 : deepCave ? 36 : 32;
+            int minDelay = type == EntityType.GHAST ? 45 : type == EntityType.BLAZE ? 26 : type == EntityType.MAGMA_CUBE ? 22 : deepCave ? 28 : 30;
+            int maxDelay = type == EntityType.GHAST ? 105 : type == EntityType.BLAZE ? 68 : type == EntityType.MAGMA_CUBE ? 62 : deepCave ? 74 : 78;
+            int requiredPlayerRange = type == EntityType.GHAST ? 38 : deepCave ? 36 : lowerCave ? 35 : 34;
+            BlockPos spawnerPos = type == EntityType.GHAST ? tunnelSpawner.above(2) : tunnelSpawner.above();
+            spawners.add(placeConfiguredSpawner(level, pieceBox, chunkBox, spawnerPos, type, spawnCount, spawnRange, minDelay, maxDelay, requiredPlayerRange, maxNearby, type == EntityType.MAGMA_CUBE));
             placedTunnelSpawners++;
         }
         spawners.removeIf(pos -> pos == null);
         return spawners;
+    }
+
+    private static int tunnelSpawnCount(EntityType<?> type, boolean deepCave) {
+        if (type == EntityType.GHAST) {
+            return 1;
+        }
+        if (type == EntityType.MAGMA_CUBE) {
+            return 8;
+        }
+        if (type == EntityType.BLAZE) {
+            return deepCave ? 5 : 4;
+        }
+        if (type == ModEntities.PIGLIN_EVOKER) {
+            return 2;
+        }
+        if (type == ModEntities.PIGLIN_ILLUSIONER) {
+            return 4;
+        }
+        return deepCave ? 6 : 5;
     }
 
     public static BlockPos terrainTop(WorldGenLevel level, BlockPos pos) {
@@ -629,6 +704,55 @@ public final class PortalStructureHelper {
             return new BlockPos(x, oceanFloor, z);
         }
         return new BlockPos(x, worldSurface, z);
+    }
+
+    private static BlockPos sculptedTerrainTop(
+        WorldGenLevel level,
+        BoundingBox pieceBox,
+        BoundingBox chunkBox,
+        BlockPos origin,
+        int x,
+        int z,
+        double distance,
+        long seed
+    ) {
+        BlockPos naturalTop = terrainTop(level, x, z);
+        if (distance <= INNER_RADIUS + 2.5) {
+            return naturalTop;
+        }
+
+        double blend = Math.min(1.0, Math.max(0.0, (distance - INNER_RADIUS - 2.5) / 12.0));
+        int offset = (int) Math.round(surfaceHeightOffset(seed, x, z) * blend);
+        if (offset == 0) {
+            return naturalTop;
+        }
+
+        int targetY = clamp(naturalTop.getY() + offset, pieceBox.minY() + 2, pieceBox.maxY() - 2);
+        if (targetY > naturalTop.getY()) {
+            for (int y = naturalTop.getY() + 1; y <= targetY; y++) {
+                set(level, pieceBox, chunkBox, new BlockPos(x, y, z), Blocks.NETHERRACK.defaultBlockState());
+            }
+        } else {
+            for (int y = targetY + 1; y <= naturalTop.getY() + 1; y++) {
+                set(level, pieceBox, chunkBox, new BlockPos(x, y, z), Blocks.AIR.defaultBlockState());
+            }
+        }
+
+        return new BlockPos(x, targetY, z);
+    }
+
+    private static int surfaceHeightOffset(long seed, int x, int z) {
+        double closeNoise = coordinateNoise(seed ^ 0x3D9A27F14C8B55E1L, Math.floorDiv(x, 4), Math.floorDiv(z, 4)) - 0.5;
+        double ledgeNoise = coordinateNoise(seed ^ 0xA5170E47C19D9E33L, Math.floorDiv(x + 3, 7), Math.floorDiv(z - 2, 7)) - 0.5;
+        double grainNoise = coordinateNoise(seed ^ 0x71D42B6F9E3518C2L, x, z) - 0.5;
+        int offset = (int) Math.round(closeNoise * 7.0 + ledgeNoise * 5.0 + grainNoise * 2.0);
+        double cliffRoll = coordinateNoise(seed ^ 0x1F7E2D963AF4B105L, Math.floorDiv(x, 5), Math.floorDiv(z, 5));
+        if (cliffRoll < 0.10) {
+            offset -= 2;
+        } else if (cliffRoll > 0.90) {
+            offset += 2;
+        }
+        return clamp(offset, -4, 5);
     }
 
     private static void placeRitualPlatform(
@@ -805,10 +929,23 @@ public final class PortalStructureHelper {
                 if (dx * dx + dz * dz > radius * radius + random.nextInt(2)) {
                     continue;
                 }
-                BlockPos top = terrainTopIfColumnInside(level, chunkBox, center.offset(dx, 0, dz));
-                if (top == null) {
+                BlockPos column = center.offset(dx, 0, dz);
+                if (!isColumnInside(chunkBox, column)) {
                     continue;
                 }
+                int columnDx = column.getX() - origin.getX();
+                int columnDz = column.getZ() - origin.getZ();
+                double distance = Math.sqrt(columnDx * columnDx + columnDz * columnDz);
+                BlockPos top = sculptedTerrainTop(
+                    level,
+                    pieceBox,
+                    chunkBox,
+                    origin,
+                    column.getX(),
+                    column.getZ(),
+                    distance,
+                    origin.asLong() ^ 0x45BF38D6E0A47C91L
+                );
                 if (convertLocalWaterToLava(level, pieceBox, chunkBox, top)) {
                     continue;
                 }
@@ -1442,6 +1579,10 @@ public final class PortalStructureHelper {
         double angle = random.nextDouble() * Math.PI * 2.0;
         double radius = minRadius + random.nextDouble() * (maxRadius - minRadius);
         return origin.offset((int) Math.round(Math.cos(angle) * radius), 0, (int) Math.round(Math.sin(angle) * radius));
+    }
+
+    private static int clamp(int value, int min, int max) {
+        return Math.max(min, Math.min(max, value));
     }
 
     private static void setColumn(

@@ -5,6 +5,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.damagesource.DamageSource;
@@ -83,6 +84,8 @@ public class PiglinIllusionerEntity extends Illusioner {
         LivingEntity target = this.getTarget();
         if (target != null && this.hasLineOfSight(target) && this.distanceToSqr(target) < 144.0) {
             target.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 180, 0), this);
+            serverLevel.playSound(null, this.blockPosition(), SoundEvents.PORTAL_TRIGGER, SoundSource.HOSTILE, 0.65f, 0.58f);
+            serverLevel.playSound(null, target.blockPosition(), SoundEvents.PIGLIN_ANGRY, SoundSource.HOSTILE, 0.55f, 0.85f);
             this.blindnessCooldown = BLINDNESS_COOLDOWN_TICKS;
         }
     }
@@ -103,6 +106,8 @@ public class PiglinIllusionerEntity extends Illusioner {
         arrow.igniteForSeconds(4.0f);
         arrow.shoot(dx, dy, dz, 1.6f, 0.9f);
         serverLevel.addFreshEntity(arrow);
+        serverLevel.playSound(null, this.blockPosition(), SoundEvents.BLAZE_SHOOT, SoundSource.HOSTILE, 0.55f, 1.45f);
+        serverLevel.playSound(null, this.blockPosition(), SoundEvents.PIGLIN_ANGRY, SoundSource.HOSTILE, 0.45f, 1.10f);
     }
 
     @Override

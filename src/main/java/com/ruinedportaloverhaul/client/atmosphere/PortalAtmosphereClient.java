@@ -8,11 +8,16 @@ import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.resources.Identifier;
+import net.minecraft.sounds.Music;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 
 public final class PortalAtmosphereClient {
     private static final Identifier OVERLAY_ID = Identifier.fromNamespaceAndPath(RuinedPortalOverhaul.MOD_ID, "portal_atmosphere_overlay");
+    private static final Music RED_STORM_MUSIC = new Music(SoundEvents.MUSIC_BIOME_BASALT_DELTAS, 0, 0, true);
     private static final long PACKET_FADE_NANOS = 1_600_000_000L;
     private static final long STORM_UPDATE_MIN_NANOS = 1_000_000L;
     private static final long FLASH_MIN_DELAY_NANOS = 450_000_000L;
@@ -30,6 +35,7 @@ public final class PortalAtmosphereClient {
     private static long lastPacketNanos;
     private static long lastStormUpdateNanos;
     private static long nextFlashNanos;
+    private static boolean musicPlaying;
 
     private PortalAtmosphereClient() {
     }
@@ -100,6 +106,7 @@ public final class PortalAtmosphereClient {
         displayDescent += (targetDescent - displayDescent) * 0.08f;
         stormPulse = breathingPulse(now);
         stormIntensity = clamp01(displayIntensity * (0.82f + displayDescent * 0.22f));
+        updateStormMusic();
     }
 
     private static void triggerStormFlashes(long now) {
@@ -112,16 +119,76 @@ public final class PortalAtmosphereClient {
             return;
         }
         if (nextFlashNanos == 0L) {
-            nextFlashNanos = now + FLASH_MIN_DELAY_NANOS + STORM_RANDOM.nextLong(FLASH_RANDOM_DELAY_NANOS);
+            nextFlashNanos = now + FLASH_MIN_DELAY_NANOS + randomNanos(FLASH_RANDOM_DELAY_NANOS);
         }
         if (now >= nextFlashNanos) {
             int flashTicks = 2 + STORM_RANDOM.nextInt(4);
             client.level.setSkyFlashTime(flashTicks);
+            playRedThunder(client);
             nextFlashNanos = now
                 + FLASH_MIN_DELAY_NANOS
-                + STORM_RANDOM.nextLong(FLASH_RANDOM_DELAY_NANOS)
+                + randomNanos(FLASH_RANDOM_DELAY_NANOS)
                 - (long) (stormIntensity * 260_000_000L);
         }
+    }
+
+    private static void updateStormMusic() {
+        Minecraft client = Minecraft.getInstance();
+        if (client.level == null || client.player == null) {
+            musicPlaying = false;
+            return;
+        }
+
+        if (stormIntensity > 0.18f) {
+            if (!musicPlaying || !client.getMusicManager().isPlayingMusic(RED_STORM_MUSIC)) {
+                client.getMusicManager().startPlaying(RED_STORM_MUSIC);
+                musicPlaying = true;
+            }
+            return;
+        }
+
+        if (musicPlaying) {
+            client.getMusicManager().stopPlaying(RED_STORM_MUSIC);
+            musicPlaying = false;
+        }
+    }
+
+    private static void playRedThunder(Minecraft client) {
+        if (client.player == null) {
+            return;
+        }
+
+        float pulse = stormPulse();
+        float thunderVolume = 0.70f + stormIntensity * 0.75f;
+        float thunderPitch = 0.58f + pulse * 0.12f;
+        client.getSoundManager().play(new SimpleSoundInstance(
+            SoundEvents.LIGHTNING_BOLT_THUNDER,
+            SoundSource.WEATHER,
+            thunderVolume,
+            thunderPitch,
+            STORM_RANDOM,
+            client.player.blockPosition()
+        ));
+        client.getSoundManager().play(new SimpleSoundInstance(
+            SoundEvents.WITHER_SPAWN,
+            SoundSource.WEATHER,
+            0.16f + stormIntensity * 0.18f,
+            0.44f + pulse * 0.08f,
+            STORM_RANDOM,
+            client.player.blockPosition()
+        ));
+        client.getSoundManager().play(new SimpleSoundInstance(
+            SoundEvents.PORTAL_TRIGGER,
+            SoundSource.WEATHER,
+            0.26f + stormIntensity * 0.22f,
+            0.50f + pulse * 0.12f,
+            STORM_RANDOM,
+            client.player.blockPosition()
+        ));
+    }
+
+    private static long randomNanos(long maxExclusive) {
+        return (long) (STORM_RANDOM.nextDouble() * maxExclusive);
     }
 
     private static int argb(int alpha, int red, int green, int blue) {

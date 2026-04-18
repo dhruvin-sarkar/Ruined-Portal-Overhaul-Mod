@@ -56,12 +56,13 @@ import net.minecraft.world.phys.AABB;
 
 public final class GoldRaidManager {
     private static final int APPROACH_TRIGGER_RANGE = PortalStructureHelper.OUTER_RADIUS;
-    private static final int RAID_TRIGGER_RANGE = PortalStructureHelper.MIDDLE_RADIUS;
+    private static final int RAID_TRIGGER_RANGE = PortalStructureHelper.INNER_RADIUS + 13;
     private static final int RAID_TITLE_PLAYER_RANGE = 64;
     private static final int AMBIENT_PARTICLE_RANGE = PortalStructureHelper.OUTER_RADIUS;
     private static final int BOSS_BAR_PLAYER_RANGE = 48;
     private static final int PRE_RAID_SPAWNER_SCAN_RADIUS = Math.max(80, PortalStructureHelper.MIDDLE_RADIUS + 28);
     private static final int RAID_SCAN_INTERVAL_TICKS = 10;
+    private static final int ATMOSPHERE_PACKET_INTERVAL_TICKS = 10;
     private static final int AMBIENT_PARTICLE_INTERVAL_TICKS = 40;
     private static final int AMBIENT_SPAWN_INTERVAL_TICKS = 10;
     private static final int AMBIENT_MOB_CAP = 180;
@@ -86,7 +87,7 @@ public final class GoldRaidManager {
     );
 
     private static final String[] WAVE_LABELS = {
-        "The Tribute Begins...",
+        "The Red Storm Breaks",
         "They Grow Bolder",
         "The Brutes Arrive",
         "Chaos Unleashed",
@@ -123,13 +124,22 @@ public final class GoldRaidManager {
         new AmbientSpawnEntry(ModEntities.PIGLIN_ILLUSIONER, 2),
         new AmbientSpawnEntry(ModEntities.PIGLIN_PILLAGER, 3)
     );
+    private static final List<AmbientSpawnEntry> LOWER_AMBIENT_SPAWNS = List.of(
+        new AmbientSpawnEntry(EntityType.BLAZE, 8),
+        new AmbientSpawnEntry(EntityType.WITHER_SKELETON, 7),
+        new AmbientSpawnEntry(EntityType.MAGMA_CUBE, 6),
+        new AmbientSpawnEntry(ModEntities.PIGLIN_BRUTE_PILLAGER, 5),
+        new AmbientSpawnEntry(ModEntities.PIGLIN_ILLUSIONER, 3),
+        new AmbientSpawnEntry(ModEntities.PIGLIN_VINDICATOR, 4),
+        new AmbientSpawnEntry(ModEntities.PIGLIN_PILLAGER, 2)
+    );
     private static final List<AmbientSpawnEntry> DEEP_AMBIENT_SPAWNS = List.of(
         new AmbientSpawnEntry(EntityType.WITHER_SKELETON, 8),
         new AmbientSpawnEntry(EntityType.BLAZE, 8),
-        new AmbientSpawnEntry(EntityType.MAGMA_CUBE, 6),
-        new AmbientSpawnEntry(ModEntities.PIGLIN_BRUTE_PILLAGER, 6),
-        new AmbientSpawnEntry(ModEntities.PIGLIN_ILLUSIONER, 3),
-        new AmbientSpawnEntry(ModEntities.PIGLIN_EVOKER, 1),
+        new AmbientSpawnEntry(EntityType.MAGMA_CUBE, 7),
+        new AmbientSpawnEntry(ModEntities.PIGLIN_BRUTE_PILLAGER, 8),
+        new AmbientSpawnEntry(ModEntities.PIGLIN_ILLUSIONER, 5),
+        new AmbientSpawnEntry(ModEntities.PIGLIN_EVOKER, 2),
         new AmbientSpawnEntry(ModEntities.PIGLIN_VINDICATOR, 4)
     );
 
@@ -155,6 +165,10 @@ public final class GoldRaidManager {
         PortalRaidState portalRaidState = PortalRaidState.get(level.getServer());
         restorePersistedRaids(level, portalRaidState);
 
+        if (gameTime % ATMOSPHERE_PACKET_INTERVAL_TICKS == 0) {
+            tickPortalZoneStormPayloads(level, portalRaidState);
+        }
+
         if (gameTime % AMBIENT_PARTICLE_INTERVAL_TICKS == 0) {
             tickPortalZoneAtmosphere(level, portalRaidState, gameTime);
         }
@@ -179,7 +193,7 @@ public final class GoldRaidManager {
                 long key = raidKey(level, portal);
                 if (!portalRaidState.isRaidActive(portal)
                     && !ACTIVE_RAIDS.containsKey(key)
-                    && player.distanceToSqr(portal.getX() + 0.5, portal.getY() + 1.0, portal.getZ() + 0.5) <= RAID_TRIGGER_RANGE * RAID_TRIGGER_RANGE) {
+                    && horizontalDistanceSqr(player.blockPosition(), portal) <= RAID_TRIGGER_RANGE * RAID_TRIGGER_RANGE) {
                     startRaid(level, portal, key, portalRaidState);
                 }
             }
@@ -337,12 +351,8 @@ public final class GoldRaidManager {
 
     private static void syncBossBarPlayers(RaidState state) {
         Set<UUID> inRange = new HashSet<>();
-        double centerX = state.origin.getX() + 0.5;
-        double centerY = state.origin.getY() + 0.5;
-        double centerZ = state.origin.getZ() + 0.5;
-
         for (ServerPlayer player : state.level.players()) {
-            if (player.distanceToSqr(centerX, centerY, centerZ) <= BOSS_BAR_PLAYER_RANGE_SQUARED) {
+            if (horizontalDistanceSqr(player.blockPosition(), state.origin) <= BOSS_BAR_PLAYER_RANGE_SQUARED) {
                 inRange.add(player.getUUID());
                 state.trackedPlayers.add(player.getUUID());
                 state.bossBar.addPlayer(player);
@@ -544,8 +554,8 @@ public final class GoldRaidManager {
         spawnExiledTrader(state.level, state.origin);
         state.portalRaidState.markCompleted(state.origin);
 
-        Component message = Component.literal("The portal accepts the tribute.");
-        for (ServerPlayer player : state.level.getPlayers(player -> player.distanceToSqr(state.origin.getX() + 0.5, state.origin.getY() + 0.5, state.origin.getZ() + 0.5) < 1600.0)) {
+        Component message = Component.literal("The portal falls silent.");
+        for (ServerPlayer player : state.level.getPlayers(player -> horizontalDistanceSqr(player.blockPosition(), state.origin) < 1600.0)) {
             player.displayClientMessage(message, true);
         }
     }
@@ -597,11 +607,20 @@ public final class GoldRaidManager {
             if (portal == null || portalRaidState.isCompleted(portal)) {
                 continue;
             }
-            sendPortalAtmosphere(player, portal);
             spawnPlayerAtmosphere(level, player, portal, gameTime);
             if (emitted.add(portal.immutable())) {
                 spawnAmbientPortalFrameParticles(level, portal);
             }
+        }
+    }
+
+    private static void tickPortalZoneStormPayloads(ServerLevel level, PortalRaidState portalRaidState) {
+        for (ServerPlayer player : level.players()) {
+            BlockPos portal = findNearbyGeneratedPortal(level, player, PortalStructureHelper.OUTER_RADIUS);
+            if (portal == null || portalRaidState.isCompleted(portal)) {
+                continue;
+            }
+            sendPortalAtmosphere(player, portal);
         }
     }
 
@@ -689,7 +708,8 @@ public final class GoldRaidManager {
 
         double distance = horizontalDistance(player.blockPosition(), origin);
         List<AmbientSpawnEntry> entries = ambientSpawnEntries(player, origin, distance);
-        int burstSize = Math.min(AMBIENT_MOB_CAP - existingMobs, AMBIENT_BURST_MIN + level.getRandom().nextInt(AMBIENT_BURST_RANDOM));
+        int depthBonus = player.getY() <= origin.getY() - 38.0 ? 4 : player.getY() <= origin.getY() - 16.0 ? 2 : 0;
+        int burstSize = Math.min(AMBIENT_MOB_CAP - existingMobs, AMBIENT_BURST_MIN + depthBonus + level.getRandom().nextInt(AMBIENT_BURST_RANDOM));
         int spawned = 0;
         for (int i = 0; i < burstSize; i++) {
             EntityType<? extends LivingEntity> type = pickAmbientType(level.getRandom(), entries);
@@ -746,8 +766,11 @@ public final class GoldRaidManager {
     }
 
     private static List<AmbientSpawnEntry> ambientSpawnEntries(ServerPlayer player, BlockPos origin, double portalDistance) {
-        if (player.getY() <= origin.getY() - 14.0) {
+        if (player.getY() <= origin.getY() - 38.0) {
             return DEEP_AMBIENT_SPAWNS;
+        }
+        if (player.getY() <= origin.getY() - 16.0) {
+            return LOWER_AMBIENT_SPAWNS;
         }
         if (portalDistance <= PortalStructureHelper.INNER_RADIUS + 8) {
             return INNER_AMBIENT_SPAWNS;
@@ -982,9 +1005,9 @@ public final class GoldRaidManager {
 
     private static void broadcastRaidStartTitle(ServerLevel level, BlockPos origin) {
         double rangeSquared = RAID_TITLE_PLAYER_RANGE * RAID_TITLE_PLAYER_RANGE;
-        for (ServerPlayer player : level.getPlayers(player -> player.distanceToSqr(origin.getX() + 0.5, origin.getY() + 1.0, origin.getZ() + 0.5) <= rangeSquared)) {
+        for (ServerPlayer player : level.getPlayers(player -> horizontalDistanceSqr(player.blockPosition(), origin) <= rangeSquared)) {
             player.connection.send(new ClientboundSetTitlesAnimationPacket(10, 40, 20));
-            player.connection.send(new ClientboundSetTitleTextPacket(Component.literal("The Tribute Begins").withStyle(ChatFormatting.DARK_RED)));
+            player.connection.send(new ClientboundSetTitleTextPacket(Component.literal("The Red Storm Breaks").withStyle(ChatFormatting.DARK_RED)));
             player.connection.send(new ClientboundSetSubtitleTextPacket(Component.literal("Survive the waves...").withStyle(ChatFormatting.RED)));
         }
     }
@@ -1142,11 +1165,7 @@ public final class GoldRaidManager {
                 for (int z = origin.getZ() - range; z <= origin.getZ() + range; z++) {
                     BlockPos portalOrigin = findPortalOriginAt(level, x, y, z);
                     if (portalOrigin != null
-                        && player.distanceToSqr(
-                            portalOrigin.getX() + 0.5,
-                            portalOrigin.getY() + 1.0,
-                            portalOrigin.getZ() + 0.5
-                        ) <= rangeSquared) {
+                        && horizontalDistanceSqr(player.blockPosition(), portalOrigin) <= rangeSquared) {
                         return portalOrigin;
                     }
                 }
@@ -1160,25 +1179,43 @@ public final class GoldRaidManager {
         if (portal != null) {
             return portal;
         }
-        return findNearbyPortalFrame(level, player, range);
+        if (range <= PortalStructureHelper.MIDDLE_RADIUS) {
+            return findNearbyPortalFrame(level, player, range);
+        }
+        return null;
     }
 
     private static BlockPos findPortalDungeonOrigin(ServerLevel level, BlockPos pos, int range) {
         double rangeSquared = (double) range * (double) range;
-        for (StructureStart start : level.structureManager().startsForStructure(
-            new ChunkPos(pos),
-            structure -> structure.type() == ModStructures.PORTAL_DUNGEON_TYPE
-        )) {
-            for (StructurePiece piece : start.getPieces()) {
-                if (piece instanceof PortalDungeonPiece dungeonPiece) {
-                    BlockPos origin = dungeonPiece.portalOrigin();
-                    if (horizontalDistanceSqr(pos, origin) <= rangeSquared) {
-                        return origin;
+        int chunkRadius = Math.max(1, (range + 15) / 16 + 1);
+        ChunkPos centerChunk = new ChunkPos(pos);
+        BlockPos nearest = null;
+        double nearestDistance = Double.MAX_VALUE;
+        Set<BlockPos> seenOrigins = new HashSet<>();
+
+        for (int chunkX = centerChunk.x - chunkRadius; chunkX <= centerChunk.x + chunkRadius; chunkX++) {
+            for (int chunkZ = centerChunk.z - chunkRadius; chunkZ <= centerChunk.z + chunkRadius; chunkZ++) {
+                for (StructureStart start : level.structureManager().startsForStructure(
+                    new ChunkPos(chunkX, chunkZ),
+                    structure -> structure.type() == ModStructures.PORTAL_DUNGEON_TYPE
+                )) {
+                    for (StructurePiece piece : start.getPieces()) {
+                        if (piece instanceof PortalDungeonPiece dungeonPiece) {
+                            BlockPos origin = dungeonPiece.portalOrigin().immutable();
+                            if (!seenOrigins.add(origin)) {
+                                continue;
+                            }
+                            double distance = horizontalDistanceSqr(pos, origin);
+                            if (distance <= rangeSquared && distance < nearestDistance) {
+                                nearest = origin;
+                                nearestDistance = distance;
+                            }
+                        }
                     }
                 }
             }
         }
-        return null;
+        return nearest;
     }
 
     private static BlockPos findPortalOriginAt(ServerLevel level, int centerX, int baseY, int centerZ) {
