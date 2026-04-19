@@ -112,7 +112,7 @@
         {
           "type": "minecraft:item",
           "name": "minecraft:enchanted_book",
-          "weight": 7,
+          "weight": 8,
           "functions": [
             {
               "function": "minecraft:set_enchantments",
