@@ -10,6 +10,7 @@ import net.minecraft.world.item.Item;
 
 public final class ModItems {
     public static final Identifier GHAST_TEAR_NECKLACE_ID = id("ghast_tear_necklace");
+    public static final Identifier NETHER_CRYSTAL_ID = id("nether_crystal");
 
     public static final GhastTearNecklaceItem GHAST_TEAR_NECKLACE = Registry.register(
         BuiltInRegistries.ITEM,
@@ -17,6 +18,13 @@ public final class ModItems {
         new GhastTearNecklaceItem(new Item.Properties()
             .setId(ResourceKey.create(Registries.ITEM, GHAST_TEAR_NECKLACE_ID))
             .stacksTo(1)
+            .fireResistant())
+    );
+    public static final NetherCrystalItem NETHER_CRYSTAL = Registry.register(
+        BuiltInRegistries.ITEM,
+        NETHER_CRYSTAL_ID,
+        new NetherCrystalItem(new Item.Properties()
+            .setId(ResourceKey.create(Registries.ITEM, NETHER_CRYSTAL_ID))
             .fireResistant())
     );
 

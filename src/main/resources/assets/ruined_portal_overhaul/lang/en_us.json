@@ -9,6 +9,7 @@
   "entity.ruined_portal_overhaul.exiled_piglin": "Exiled Piglin",
   "entity.ruined_portal_overhaul.nether_crystal": "Nether Crystal",
   "key.ruined_portal_overhaul.use_nether_fireball": "Use Nether Fireball",
+  "item.ruined_portal_overhaul.nether_crystal": "Nether Crystal",
   "item.ruined_portal_overhaul.ghast_tear_necklace": "Ghast Tear Necklace",
   "item.ruined_portal_overhaul.ghast_tear_necklace.tooltip.mobility": "Grants Speed II and Jump Boost II while worn.",
   "item.ruined_portal_overhaul.ghast_tear_necklace.tooltip.fireball": "Press the Nether Fireball key to launch a fireball. Cooldown: %s seconds.",
