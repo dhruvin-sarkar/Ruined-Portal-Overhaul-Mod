@@ -1,5 +1,6 @@
 package com.ruinedportaloverhaul.network;
 
+import com.ruinedportaloverhaul.advancement.ModAdvancementTriggers;
 import com.ruinedportaloverhaul.component.ModDataComponents;
 import com.ruinedportaloverhaul.item.ModItems;
 import io.wispforest.accessories.api.AccessoriesCapability;
@@ -45,6 +46,7 @@ public final class NetherFireballHandler {
 
         spawnFireball(serverLevel, player);
         stack.set(ModDataComponents.LAST_NECKLACE_FIREBALL_TICK, now);
+        ModAdvancementTriggers.trigger(ModAdvancementTriggers.NETHER_FIREBALL_USED, player);
         player.displayClientMessage(Component.translatable("message.ruined_portal_overhaul.necklace.fired"), true);
     }
 

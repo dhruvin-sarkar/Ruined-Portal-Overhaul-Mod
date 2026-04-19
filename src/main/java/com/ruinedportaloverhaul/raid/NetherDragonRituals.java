@@ -1,5 +1,7 @@
 package com.ruinedportaloverhaul.raid;
 
+import com.ruinedportaloverhaul.advancement.ModAdvancementTriggers;
+import com.ruinedportaloverhaul.advancement.PortalEventTrigger;
 import com.ruinedportaloverhaul.entity.NetherDragonEntity;
 import com.ruinedportaloverhaul.entity.NetherCrystalEntity;
 import com.ruinedportaloverhaul.structure.PortalStructureHelper;
@@ -60,6 +62,7 @@ public final class NetherDragonRituals {
         BlockPos portalOrigin = dragon.portalOrigin();
         dragon.spawnAtLocation(level, new ItemStack(Items.NETHER_STAR, 2));
         dragon.spawnAtLocation(level, new ItemStack(Items.ANCIENT_DEBRIS, 1 + level.getRandom().nextInt(3)));
+        triggerNearby(level, portalOrigin, ModAdvancementTriggers.NETHER_DRAGON_DEFEATED);
         shatterPedestals(level, portalOrigin);
         PortalRaidState.get(level.getServer()).clearRitual(portalOrigin);
 
@@ -72,8 +75,15 @@ public final class NetherDragonRituals {
     private static void beginSummoning(ServerLevel level, PortalRaidState portalRaidState, BlockPos portalOrigin) {
         BlockPos origin = portalOrigin.immutable();
         portalRaidState.setDragonActive(origin, true);
+        triggerNearby(level, origin, ModAdvancementTriggers.NETHER_CRYSTAL_RITUAL_COMPLETE);
         SUMMONING_SEQUENCES.put(origin.asLong(), new SummoningSequence(level, origin, level.getGameTime()));
         playOpeningPulse(level, origin);
+    }
+
+    private static void triggerNearby(ServerLevel level, BlockPos origin, PortalEventTrigger trigger) {
+        for (ServerPlayer player : level.getPlayers(player -> player.blockPosition().distSqr(origin) <= RITUAL_MESSAGE_RANGE_SQUARED)) {
+            ModAdvancementTriggers.trigger(trigger, player);
+        }
     }
 
     private static void tick(MinecraftServer server) {

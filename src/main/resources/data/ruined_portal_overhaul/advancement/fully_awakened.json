@@ -1,0 +1,24 @@
+{
+  "parent": "ruined_portal_overhaul:nether_bond",
+  "display": {
+    "icon": {
+      "id": "minecraft:ancient_debris"
+    },
+    "title": {
+      "text": "Fully Awakened",
+      "color": "gold"
+    },
+    "description": {
+      "text": "Raise a Nether Conduit to level 2."
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "level_2": {
+      "trigger": "ruined_portal_overhaul:nether_conduit_level_2"
+    }
+  }
+}

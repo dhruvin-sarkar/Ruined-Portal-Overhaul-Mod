@@ -1,5 +1,6 @@
 package com.ruinedportaloverhaul.item;
 
+import com.ruinedportaloverhaul.advancement.ModAdvancementTriggers;
 import com.ruinedportaloverhaul.component.ModDataComponents;
 import com.ruinedportaloverhaul.network.NetherFireballHandler;
 import io.wispforest.accessories.api.core.AccessoryItem;
@@ -7,6 +8,7 @@ import io.wispforest.accessories.api.slot.SlotReference;
 import java.util.function.Consumer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.player.Player;
@@ -23,6 +25,13 @@ public class GhastTearNecklaceItem extends AccessoryItem {
 
     public GhastTearNecklaceItem(Item.Properties properties) {
         super(properties);
+    }
+
+    @Override
+    public void onEquip(ItemStack stack, SlotReference reference) {
+        if (reference.entity() instanceof ServerPlayer player) {
+            ModAdvancementTriggers.trigger(ModAdvancementTriggers.GHAST_TEAR_NECKLACE_EQUIPPED, player);
+        }
     }
 
     @Override

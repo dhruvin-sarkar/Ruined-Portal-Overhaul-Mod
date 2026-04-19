@@ -1,12 +1,14 @@
 package com.ruinedportaloverhaul.block;
 
 import com.mojang.serialization.MapCodec;
+import com.ruinedportaloverhaul.advancement.ModAdvancementTriggers;
 import com.ruinedportaloverhaul.block.entity.ModBlockEntities;
 import com.ruinedportaloverhaul.block.entity.NetherConduitBlockEntity;
 import net.minecraft.network.chat.Component;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -99,6 +101,9 @@ public class NetherConduitBlock extends BaseEntityBlock {
         conduit.upgrade();
         level.playSound(null, pos, SoundEvents.RESPAWN_ANCHOR_CHARGE, SoundSource.BLOCKS, 1.0f, 0.7f + conduit.conduitLevel() * 0.2f);
         player.displayClientMessage(Component.literal("Nether Conduit awakened to level " + conduit.conduitLevel() + "."), true);
+        if (conduit.conduitLevel() == 2 && player instanceof ServerPlayer serverPlayer) {
+            ModAdvancementTriggers.trigger(ModAdvancementTriggers.NETHER_CONDUIT_LEVEL_2, serverPlayer);
+        }
         return InteractionResult.SUCCESS_SERVER;
     }
 }
