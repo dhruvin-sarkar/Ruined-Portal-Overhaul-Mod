@@ -24,6 +24,7 @@ public final class RuinedPortalOverhaulClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         PortalAtmosphereClient.initialize();
+        NetherFireballKeybinds.initialize();
         EntityRenderers.register(
             ModEntities.PIGLIN_PILLAGER,
             context -> new PiglinIllagerRenderer<>(context, PILLAGER_TEXTURE)

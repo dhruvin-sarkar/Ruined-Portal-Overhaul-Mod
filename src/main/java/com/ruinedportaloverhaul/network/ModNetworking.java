@@ -13,6 +13,7 @@ public final class ModNetworking {
             return;
         }
         PayloadTypeRegistry.playS2C().register(PortalAtmospherePayload.TYPE, PortalAtmospherePayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(NetherFireballPayload.TYPE, NetherFireballPayload.CODEC);
         initialized = true;
     }
 }
