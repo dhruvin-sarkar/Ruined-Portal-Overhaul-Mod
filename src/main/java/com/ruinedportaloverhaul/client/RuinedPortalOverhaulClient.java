@@ -3,6 +3,7 @@ package com.ruinedportaloverhaul.client;
 import com.ruinedportaloverhaul.RuinedPortalOverhaul;
 import com.ruinedportaloverhaul.client.atmosphere.PortalAtmosphereClient;
 import com.ruinedportaloverhaul.client.render.ExiledPiglinRenderer;
+import com.ruinedportaloverhaul.client.render.NetherCrystalRenderer;
 import com.ruinedportaloverhaul.client.render.PiglinIllagerRenderer;
 import com.ruinedportaloverhaul.client.render.PiglinRavagerRenderer;
 import com.ruinedportaloverhaul.client.render.PiglinVexRenderer;
@@ -56,6 +57,10 @@ public final class RuinedPortalOverhaulClient implements ClientModInitializer {
         EntityRenderers.register(
             ModEntities.EXILED_PIGLIN,
             context -> new ExiledPiglinRenderer(context, EXILED_PIGLIN_TEXTURE)
+        );
+        EntityRenderers.register(
+            ModEntities.NETHER_CRYSTAL,
+            NetherCrystalRenderer::new
         );
     }
 
