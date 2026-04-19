@@ -2,6 +2,7 @@ package com.ruinedportaloverhaul.raid;
 
 import com.ruinedportaloverhaul.entity.NetherDragonEntity;
 import com.ruinedportaloverhaul.entity.NetherCrystalEntity;
+import com.ruinedportaloverhaul.structure.PortalStructureHelper;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -23,6 +24,11 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.BossEvent;
+import net.minecraft.world.entity.boss.enderdragon.EndCrystal;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.phys.AABB;
 
 public final class NetherDragonRituals {
     private static final double RITUAL_MESSAGE_RANGE_SQUARED = 64.0 * 64.0;
@@ -48,6 +54,19 @@ public final class NetherDragonRituals {
                 beginSummoning(level, portalRaidState, portalOrigin);
             }
         });
+    }
+
+    public static void onNetherDragonDeath(ServerLevel level, NetherDragonEntity dragon) {
+        BlockPos portalOrigin = dragon.portalOrigin();
+        dragon.spawnAtLocation(level, new ItemStack(Items.NETHER_STAR, 2));
+        dragon.spawnAtLocation(level, new ItemStack(Items.ANCIENT_DEBRIS, 1 + level.getRandom().nextInt(3)));
+        shatterPedestals(level, portalOrigin);
+        PortalRaidState.get(level.getServer()).clearRitual(portalOrigin);
+
+        ServerBossEvent bossBar = BOSS_BARS.remove(dragon.getUUID());
+        if (bossBar != null) {
+            bossBar.removeAllPlayers();
+        }
     }
 
     private static void beginSummoning(ServerLevel level, PortalRaidState portalRaidState, BlockPos portalOrigin) {
@@ -139,6 +158,22 @@ public final class NetherDragonRituals {
         bossBar.setDarkenScreen(true);
         bossBar.setCreateWorldFog(true);
         BOSS_BARS.put(dragon.getUUID(), bossBar);
+    }
+
+    private static void shatterPedestals(ServerLevel level, BlockPos origin) {
+        for (BlockPos pedestal : PortalStructureHelper.ritualPedestalPositions(origin)) {
+            AABB crystalBox = new AABB(pedestal.above()).inflate(0.75, 1.5, 0.75);
+            for (EndCrystal crystal : level.getEntitiesOfClass(EndCrystal.class, crystalBox)) {
+                if (crystal instanceof NetherCrystalEntity) {
+                    crystal.discard();
+                }
+            }
+
+            level.setBlock(pedestal, Blocks.AIR.defaultBlockState(), 3);
+            level.sendParticles(ParticleTypes.EXPLOSION, pedestal.getX() + 0.5, pedestal.getY() + 0.5, pedestal.getZ() + 0.5, 8, 0.35, 0.35, 0.35, 0.02);
+            level.sendParticles(ParticleTypes.LARGE_SMOKE, pedestal.getX() + 0.5, pedestal.getY() + 0.5, pedestal.getZ() + 0.5, 12, 0.45, 0.45, 0.45, 0.01);
+        }
+        level.playSound(null, origin, SoundEvents.GENERIC_EXPLODE.value(), SoundSource.BLOCKS, 1.4f, 0.7f);
     }
 
     private static void spawnSphericalBurst(

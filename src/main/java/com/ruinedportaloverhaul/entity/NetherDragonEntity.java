@@ -1,5 +1,6 @@
 package com.ruinedportaloverhaul.entity;
 
+import com.ruinedportaloverhaul.raid.NetherDragonRituals;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -18,9 +19,11 @@ import net.minecraft.world.level.storage.ValueOutput;
 
 public class NetherDragonEntity extends EnderDragon {
     private static final String PORTAL_ORIGIN_KEY = "RpoPortalOrigin";
+    private static final String DEATH_REWARDS_HANDLED_KEY = "RpoDeathRewardsHandled";
     private static final float MAX_HEALTH = 300.0f;
 
     private BlockPos portalOrigin = BlockPos.ZERO;
+    private boolean deathRewardsHandled;
 
     public NetherDragonEntity(EntityType<? extends EnderDragon> entityType, Level level) {
         super(entityType, level);
@@ -72,6 +75,15 @@ public class NetherDragonEntity extends EnderDragon {
     }
 
     @Override
+    protected void tickDeath() {
+        if (!this.deathRewardsHandled && this.level() instanceof ServerLevel serverLevel) {
+            this.deathRewardsHandled = true;
+            NetherDragonRituals.onNetherDragonDeath(serverLevel, this);
+        }
+        super.tickDeath();
+    }
+
+    @Override
     public boolean hurt(ServerLevel level, EnderDragonPart part, DamageSource damageSource, float damage) {
         return super.hurt(level, part, damageSource, damage);
     }
@@ -80,12 +92,14 @@ public class NetherDragonEntity extends EnderDragon {
     protected void addAdditionalSaveData(ValueOutput output) {
         super.addAdditionalSaveData(output);
         output.putLong(PORTAL_ORIGIN_KEY, this.portalOrigin.asLong());
+        output.putBoolean(DEATH_REWARDS_HANDLED_KEY, this.deathRewardsHandled);
     }
 
     @Override
     protected void readAdditionalSaveData(ValueInput input) {
         super.readAdditionalSaveData(input);
         this.setPortalOrigin(BlockPos.of(input.getLongOr(PORTAL_ORIGIN_KEY, BlockPos.ZERO.asLong())));
+        this.deathRewardsHandled = input.getBooleanOr(DEATH_REWARDS_HANDLED_KEY, false);
         this.configureNetherDragonStats();
     }
 
