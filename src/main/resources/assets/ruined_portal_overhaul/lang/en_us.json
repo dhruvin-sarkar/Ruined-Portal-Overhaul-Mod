@@ -7,6 +7,7 @@
   "entity.ruined_portal_overhaul.piglin_ravager": "Piglin Ravager",
   "entity.ruined_portal_overhaul.piglin_vex": "Piglin Vex",
   "entity.ruined_portal_overhaul.exiled_piglin": "Exiled Piglin",
+  "item.ruined_portal_overhaul.ghast_tear_necklace": "Ghast Tear Necklace",
   "block.ruined_portal_overhaul.nether_conduit": "Nether Conduit",
   "death.attack.ruined_portal_overhaul.nether_conduit": "%1$s was consumed by a Nether Conduit"
 }
