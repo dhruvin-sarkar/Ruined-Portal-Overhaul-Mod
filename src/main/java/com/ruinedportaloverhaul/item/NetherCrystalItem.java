@@ -1,6 +1,7 @@
 package com.ruinedportaloverhaul.item;
 
 import com.ruinedportaloverhaul.entity.NetherCrystalEntity;
+import com.ruinedportaloverhaul.raid.NetherDragonRituals;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionResult;
@@ -45,6 +46,7 @@ public class NetherCrystalItem extends Item {
             crystal.setShowBottom(false);
             serverLevel.addFreshEntity(crystal);
             serverLevel.gameEvent(context.getPlayer(), GameEvent.ENTITY_PLACE, crystalPos);
+            NetherDragonRituals.onNetherCrystalPlaced(serverLevel, basePos, crystal);
         }
 
         context.getItemInHand().shrink(1);
