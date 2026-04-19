@@ -23,6 +23,7 @@ public final class ModEntities {
     public static final Identifier PIGLIN_VEX_ID = id("piglin_vex");
     public static final Identifier EXILED_PIGLIN_ID = id("exiled_piglin");
     public static final Identifier NETHER_CRYSTAL_ID = id("nether_crystal");
+    public static final Identifier NETHER_DRAGON_ID = id("nether_dragon");
 
     public static final EntityType<PiglinPillagerEntity> PIGLIN_PILLAGER = registerMonster(
         PIGLIN_PILLAGER_ID,
@@ -90,6 +91,16 @@ public final class ModEntities {
             .updateInterval(Integer.MAX_VALUE)
             .fireImmune()
             .build(ResourceKey.create(Registries.ENTITY_TYPE, NETHER_CRYSTAL_ID))
+    );
+    public static final EntityType<NetherDragonEntity> NETHER_DRAGON = Registry.register(
+        BuiltInRegistries.ENTITY_TYPE,
+        NETHER_DRAGON_ID,
+        EntityType.Builder.<NetherDragonEntity>of(NetherDragonEntity::new, MobCategory.MONSTER)
+            .sized(16.0f, 8.0f)
+            .clientTrackingRange(10)
+            .updateInterval(3)
+            .fireImmune()
+            .build(ResourceKey.create(Registries.ENTITY_TYPE, NETHER_DRAGON_ID))
     );
 
     private ModEntities() {
