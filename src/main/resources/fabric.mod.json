@@ -3,7 +3,7 @@
 	"id": "ruined_portal_overhaul",
 	"version": "1.0.0",
 	"name": "Ruined Portal Overhaul",
-	"description": "Ruined Portal Overhaul transforms every overworld ruined portal encounter into a Massive Portal Dungeon: a radius-136 corrupted scar with calm Nether-like surface undulation, a protected pit hub, worm-carved corrupted caves, lava runs, an altar, atmospheric red storm effects, loot chests, and deeper treasure.\n\nExplorers who enter the approach zone feel the portal stir. Standing near the frame awakens a five-wave raid of Piglin Illager variants with crossbows, axes, ravagers, evocation magic, boss-bar progress, inter-wave warnings, ring-based spawns, server-side corruption atmosphere, red thunder, advancement progression, and Hard-mode combat upgrades.\n\nCompleting the raid lights the generated frame into a functional Nether portal, disables the pre-raid spawners, spawns a boss reward chest, and summons the Exiled Piglin Trader for a short-lived gold-based reward shop. The system tracks completion per portal location so each dungeon becomes a one-time survival challenge rather than a repeatable farm.",
+	"description": "Ruined Portal Overhaul transforms every overworld ruined portal encounter into a Massive Portal Dungeon: a radius-136 corrupted scar with calm Nether-like surface undulation, a protected pit hub, worm-carved corrupted caves, lava runs, an altar, atmospheric red storm effects, frequent loot chests, and deeper treasure.\n\nExplorers who enter the approach zone feel the portal stir, receive a red-aether boon while inside the territory, and get one starter Totem of Undying per portal. Standing near the frame awakens a five-wave raid of Piglin Illager variants with crossbows, axes, ravagers, evocation magic, boss-bar progress, inter-wave warnings, ring-based spawns, server-side corruption atmosphere, red thunder, advancement progression, richer mob drops, and Hard-mode combat upgrades.\n\nCompleting the raid lights the generated frame into a functional Nether portal, disables the pre-raid spawners, spawns a boss reward chest, and summons the Exiled Piglin Trader for a short-lived gold-based reward shop. The system tracks completion per portal location so each dungeon becomes a one-time survival challenge rather than a repeatable farm.",
 	"authors": [
 		"Dhruv Sarkar"
 	],
@@ -24,6 +24,10 @@
 	},
 	"mixins": [
 		{
+			"config": "ruined_portal_overhaul.mixins.json",
+			"environment": "*"
+		},
+		{
 			"config": "ruined_portal_overhaul.client.mixins.json",
 			"environment": "client"
 		}
@@ -32,6 +36,7 @@
 		"fabricloader": ">=0.18.6",
 		"minecraft": "~1.21.11",
 		"java": ">=21",
-		"fabric-api": ">=0.141.3+1.21.11"
+		"fabric-api": ">=0.141.3+1.21.11",
+		"accessories": "*"
 	}
 }

@@ -1,0 +1,27 @@
+{
+  "parent": "ruined_portal_overhaul:the_final_offering",
+  "display": {
+    "icon": {
+      "id": "minecraft:dragon_head"
+    },
+    "title": {
+      "text": "Here Be Dragons",
+      "color": "dark_purple"
+    },
+    "description": {
+      "text": "Survive long enough to see the Nether Dragon fall."
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "rewards": {
+    "experience": 500
+  },
+  "criteria": {
+    "dragon_defeated": {
+      "trigger": "ruined_portal_overhaul:nether_dragon_defeated"
+    }
+  }
+}

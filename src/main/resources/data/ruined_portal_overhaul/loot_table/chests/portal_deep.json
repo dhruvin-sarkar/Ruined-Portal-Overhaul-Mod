@@ -1,25 +1,25 @@
 {
-  "_comment": "Deep loot rewards the underground risk with high-value crafting materials, rare survival items, strong potions, diamond gear, and the specific high-tier books players go looking for.",
+  "_comment": "Deep loot rewards the underground risk with frequent cache payouts: high-value crafting materials, survival items, strong potions, diamond gear, totems, and the specific high-tier books players go looking for.",
   "type": "minecraft:chest",
   "pools": [
     {
       "rolls": {
         "type": "minecraft:uniform",
-        "min": 7.0,
-        "max": 9.0
+        "min": 12.0,
+        "max": 16.0
       },
       "entries": [
         {
           "type": "minecraft:item",
           "name": "minecraft:netherite_scrap",
-          "weight": 12,
+          "weight": 15,
           "functions": [
             {
               "function": "minecraft:set_count",
               "count": {
                 "type": "minecraft:uniform",
-                "min": 2.0,
-                "max": 5.0
+                "min": 3.0,
+                "max": 7.0
               }
             }
           ]
@@ -27,14 +27,14 @@
         {
           "type": "minecraft:item",
           "name": "minecraft:ancient_debris",
-          "weight": 7,
+          "weight": 10,
           "functions": [
             {
               "function": "minecraft:set_count",
               "count": {
                 "type": "minecraft:uniform",
                 "min": 1.0,
-                "max": 2.0
+                "max": 4.0
               }
             }
           ]
@@ -42,19 +42,29 @@
         {
           "type": "minecraft:item",
           "name": "minecraft:netherite_upgrade_smithing_template",
-          "weight": 5
+          "weight": 8
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:netherite_ingot",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:nether_star",
+          "weight": 2
         },
         {
           "type": "minecraft:item",
           "name": "minecraft:diamond",
-          "weight": 8,
+          "weight": 10,
           "functions": [
             {
               "function": "minecraft:set_count",
               "count": {
                 "type": "minecraft:uniform",
-                "min": 4.0,
-                "max": 9.0
+                "min": 6.0,
+                "max": 14.0
               }
             }
           ]
@@ -69,6 +79,19 @@
               "enchantments": {
                 "minecraft:smite": 4,
                 "minecraft:unbreaking": 3
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:diamond_sword",
+          "weight": 4,
+          "functions": [
+            {
+              "function": "minecraft:set_enchantments",
+              "enchantments": {
+                "minecraft:sharpness": 3
               }
             }
           ]
@@ -104,12 +127,12 @@
         {
           "type": "minecraft:item",
           "name": "minecraft:enchanted_golden_apple",
-          "weight": 3
+          "weight": 5
         },
         {
           "type": "minecraft:item",
           "name": "minecraft:totem_of_undying",
-          "weight": 3
+          "weight": 8
         },
         {
           "type": "minecraft:item",
@@ -140,7 +163,7 @@
         {
           "type": "minecraft:item",
           "name": "minecraft:enchanted_book",
-          "weight": 7,
+          "weight": 9,
           "functions": [
             {
               "function": "minecraft:set_enchantments",
@@ -153,7 +176,7 @@
         {
           "type": "minecraft:item",
           "name": "minecraft:enchanted_book",
-          "weight": 7,
+          "weight": 9,
           "functions": [
             {
               "function": "minecraft:set_enchantments",
@@ -166,7 +189,7 @@
         {
           "type": "minecraft:item",
           "name": "minecraft:enchanted_book",
-          "weight": 7,
+          "weight": 9,
           "functions": [
             {
               "function": "minecraft:set_enchantments",
@@ -179,7 +202,7 @@
         {
           "type": "minecraft:item",
           "name": "minecraft:enchanted_book",
-          "weight": 7,
+          "weight": 9,
           "functions": [
             {
               "function": "minecraft:set_enchantments",
@@ -192,7 +215,7 @@
         {
           "type": "minecraft:item",
           "name": "minecraft:enchanted_book",
-          "weight": 7,
+          "weight": 9,
           "functions": [
             {
               "function": "minecraft:set_enchantments",
@@ -205,7 +228,7 @@
         {
           "type": "minecraft:item",
           "name": "minecraft:enchanted_book",
-          "weight": 7,
+          "weight": 9,
           "functions": [
             {
               "function": "minecraft:set_enchantments",
@@ -218,7 +241,7 @@
         {
           "type": "minecraft:item",
           "name": "minecraft:enchanted_book",
-          "weight": 5,
+          "weight": 7,
           "functions": [
             {
               "function": "minecraft:set_enchantments",
@@ -237,8 +260,8 @@
               "function": "minecraft:set_count",
               "count": {
                 "type": "minecraft:uniform",
-                "min": 2.0,
-                "max": 5.0
+                "min": 3.0,
+                "max": 8.0
               }
             }
           ]
@@ -252,8 +275,8 @@
               "function": "minecraft:set_count",
               "count": {
                 "type": "minecraft:uniform",
-                "min": 3.0,
-                "max": 7.0
+                "min": 5.0,
+                "max": 10.0
               }
             }
           ]
@@ -267,8 +290,8 @@
               "function": "minecraft:set_count",
               "count": {
                 "type": "minecraft:uniform",
-                "min": 4.0,
-                "max": 10.0
+                "min": 8.0,
+                "max": 18.0
               }
             }
           ]

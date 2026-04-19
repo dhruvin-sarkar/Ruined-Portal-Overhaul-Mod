@@ -1,0 +1,24 @@
+{
+  "parent": "ruined_portal_overhaul:the_last_wave_broke",
+  "display": {
+    "icon": {
+      "id": "ruined_portal_overhaul:nether_crystal"
+    },
+    "title": {
+      "text": "The Final Offering",
+      "color": "dark_red"
+    },
+    "description": {
+      "text": "Place all four Nether Crystals on the portal pedestals."
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "ritual_complete": {
+      "trigger": "ruined_portal_overhaul:nether_crystal_ritual_complete"
+    }
+  }
+}

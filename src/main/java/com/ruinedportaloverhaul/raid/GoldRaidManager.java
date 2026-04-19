@@ -3,6 +3,7 @@ package com.ruinedportaloverhaul.raid;
 import com.ruinedportaloverhaul.entity.ModEntities;
 import com.ruinedportaloverhaul.entity.ExiledPiglinTraderEntity;
 import com.ruinedportaloverhaul.advancement.ModAdvancementTriggers;
+import com.ruinedportaloverhaul.block.NetherConduitChestPlacement;
 import com.ruinedportaloverhaul.network.PortalAtmospherePayload;
 import com.ruinedportaloverhaul.structure.PortalDungeonPiece;
 import com.ruinedportaloverhaul.structure.PortalStructureHelper;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.core.BlockPos;
@@ -38,12 +40,16 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.BossEvent;
 import net.minecraft.world.Difficulty;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.monster.Ghast;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.NetherPortalBlock;
@@ -75,12 +81,14 @@ public final class GoldRaidManager {
     private static final int GHAST_ANCHOR_TICKS = 20 * 180;
     private static final int INTER_WAVE_PULSE_INTERVAL_TICKS = 60;
     private static final int WAVE_DELAY_TICKS = 180;
+    private static final int TERRITORY_BOON_DURATION_TICKS = 260;
     private static final float MIN_PORTAL_ATMOSPHERE_INTENSITY = 0.22f;
     private static final double BOSS_BAR_PLAYER_RANGE_SQUARED = BOSS_BAR_PLAYER_RANGE * BOSS_BAR_PLAYER_RANGE;
     private static final String PORTAL_AMBIENT_TAG = "rpo_portal_ambient";
     private static final String PORTAL_AMBIENT_ORIGIN_TAG_PREFIX = "rpo_ambient_origin_";
     private static final String PORTAL_GHAST_TAG = "rpo_portal_ghast";
     private static final String PORTAL_GHAST_ORIGIN_TAG_PREFIX = "rpo_origin_";
+    private static final String PORTAL_TOTEM_TAG_PREFIX = "rpo_totem_granted_";
 
     private static final ResourceKey<LootTable> BOSS_REWARD_LOOT = ResourceKey.create(
         Registries.LOOT_TABLE,
@@ -149,6 +157,28 @@ public final class GoldRaidManager {
 
     public static void initialize() {
         ServerTickEvents.END_SERVER_TICK.register(GoldRaidManager::tick);
+        ServerEntityEvents.ENTITY_LOAD.register(GoldRaidManager::suppressCompletedPortalMobLoad);
+    }
+
+    private static void suppressCompletedPortalMobLoad(Entity entity, ServerLevel level) {
+        if (!(entity instanceof Mob mob) || entity.getType() == ModEntities.EXILED_PIGLIN || mob.isPersistenceRequired()) {
+            return;
+        }
+
+        PortalRaidState portalRaidState = PortalRaidState.get(level.getServer());
+        BlockPos entityPos = entity.blockPosition();
+        for (BlockPos portalOrigin : portalRaidState.completedPortalOrigins()) {
+            if (isInsideCompletedPortalMobSuppressionArea(entityPos, portalOrigin)) {
+                entity.discard();
+                return;
+            }
+        }
+    }
+
+    private static boolean isInsideCompletedPortalMobSuppressionArea(BlockPos entityPos, BlockPos portalOrigin) {
+        int verticalRange = PortalStructureHelper.PIT_DEPTH + 80;
+        return Math.abs(entityPos.getY() - portalOrigin.getY()) <= verticalRange
+            && horizontalDistanceSqr(entityPos, portalOrigin) <= PortalStructureHelper.OUTER_RADIUS * PortalStructureHelper.OUTER_RADIUS;
     }
 
     private static void tick(MinecraftServer server) {
@@ -419,21 +449,21 @@ public final class GoldRaidManager {
             );
             case 3 -> spawnWave(
                 state,
-                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 8),
-                new SpawnEntry(ModEntities.PIGLIN_BRUTE_PILLAGER, 10),
-                new SpawnEntry(ModEntities.PIGLIN_ILLUSIONER, 8),
-                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 10),
+                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 6),
+                new SpawnEntry(ModEntities.PIGLIN_BRUTE_PILLAGER, 8),
+                new SpawnEntry(ModEntities.PIGLIN_ILLUSIONER, 6),
+                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 8),
                 new SpawnEntry(ModEntities.PIGLIN_RAVAGER, 1),
-                new SpawnEntry(ModEntities.PIGLIN_EVOKER, 2)
+                new SpawnEntry(ModEntities.PIGLIN_EVOKER, 1)
             );
             case 4 -> spawnWave(
                 state,
-                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 14),
-                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 12),
-                new SpawnEntry(ModEntities.PIGLIN_BRUTE_PILLAGER, 10),
-                new SpawnEntry(ModEntities.PIGLIN_ILLUSIONER, 7),
-                new SpawnEntry(ModEntities.PIGLIN_RAVAGER, 3),
-                new SpawnEntry(ModEntities.PIGLIN_EVOKER, 4)
+                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 10),
+                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 9),
+                new SpawnEntry(ModEntities.PIGLIN_BRUTE_PILLAGER, 8),
+                new SpawnEntry(ModEntities.PIGLIN_ILLUSIONER, 5),
+                new SpawnEntry(ModEntities.PIGLIN_RAVAGER, 2),
+                new SpawnEntry(ModEntities.PIGLIN_EVOKER, 3)
             );
             default -> {
             }
@@ -559,6 +589,7 @@ public final class GoldRaidManager {
         ignitePortal(state.level, state.origin);
         spawnBossChest(state.level, state.origin);
         spawnExiledTrader(state.level, state.origin);
+        disablePreRaidSpawners(state.level, state.portalRaidState, state.origin);
         state.portalRaidState.markCompleted(state.origin);
 
         Component message = Component.literal("The portal falls silent.");
@@ -587,6 +618,9 @@ public final class GoldRaidManager {
         if (level.getBlockEntity(chestPos) instanceof RandomizableContainerBlockEntity chest) {
             chest.setLootTable(BOSS_REWARD_LOOT);
             chest.setLootTableSeed(level.getRandom().nextLong());
+            if (NetherConduitChestPlacement.useBossChest(origin)) {
+                NetherConduitChestPlacement.addNetherConduit(chest);
+            }
         }
     }
 
@@ -628,7 +662,32 @@ public final class GoldRaidManager {
                 continue;
             }
             sendPortalAtmosphere(player, portal);
+            applyPortalTerritoryBoon(player, portal);
         }
+    }
+
+    private static void applyPortalTerritoryBoon(ServerPlayer player, BlockPos origin) {
+        player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, TERRITORY_BOON_DURATION_TICKS, 1, true, false, true));
+        player.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, TERRITORY_BOON_DURATION_TICKS, 0, true, false, true));
+        player.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, TERRITORY_BOON_DURATION_TICKS, 0, true, false, true));
+        player.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, TERRITORY_BOON_DURATION_TICKS, 3, true, false, true));
+        ModAdvancementTriggers.trigger(ModAdvancementTriggers.AETHER_BOON, player);
+        grantTerritoryTotem(player, origin);
+    }
+
+    private static void grantTerritoryTotem(ServerPlayer player, BlockPos origin) {
+        String tag = PORTAL_TOTEM_TAG_PREFIX + origin.asLong();
+        if (player.getTags().contains(tag)) {
+            return;
+        }
+
+        player.addTag(tag);
+        ItemStack totem = new ItemStack(Items.TOTEM_OF_UNDYING);
+        if (!player.addItem(totem)) {
+            player.drop(totem, false);
+        }
+        ModAdvancementTriggers.trigger(ModAdvancementTriggers.TERRITORY_TOTEM, player);
+        player.displayClientMessage(Component.literal("The red air presses a totem into your hand.").withStyle(ChatFormatting.GOLD), true);
     }
 
     private static void sendPortalAtmosphere(ServerPlayer player, BlockPos origin) {
@@ -1270,8 +1329,8 @@ public final class GoldRaidManager {
             case 0 -> 20;
             case 1 -> 27;
             case 2 -> 34;
-            case 3 -> 40;
-            case 4 -> 50;
+            case 3 -> 30;
+            case 4 -> 37;
             default -> 0;
         };
     }

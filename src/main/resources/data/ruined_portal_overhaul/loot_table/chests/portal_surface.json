@@ -1,12 +1,12 @@
 {
-  "_comment": "Surface loot is meant to tempt players into the structure with useful raid prep: strong potions, food, mid-tier enchanted gear, and a small chance at progression materials.",
+  "_comment": "Surface loot is meant to prepare players for the raid immediately: fuller chests, strong potions, food, mid-tier enchanted gear, emergency totems, and a small chance at progression materials.",
   "type": "minecraft:chest",
   "pools": [
     {
       "rolls": {
         "type": "minecraft:uniform",
-        "min": 6.0,
-        "max": 8.0
+        "min": 9.0,
+        "max": 12.0
       },
       "entries": [
         {
@@ -18,8 +18,8 @@
               "function": "minecraft:set_count",
               "count": {
                 "type": "minecraft:uniform",
-                "min": 6.0,
-                "max": 14.0
+                "min": 8.0,
+                "max": 20.0
               }
             }
           ]
@@ -27,6 +27,21 @@
         {
           "type": "minecraft:item",
           "name": "minecraft:iron_ingot",
+          "weight": 10,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 8.0,
+                "max": 16.0
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:obsidian",
           "weight": 10,
           "functions": [
             {
@@ -41,23 +56,8 @@
         },
         {
           "type": "minecraft:item",
-          "name": "minecraft:obsidian",
-          "weight": 10,
-          "functions": [
-            {
-              "function": "minecraft:set_count",
-              "count": {
-                "type": "minecraft:uniform",
-                "min": 3.0,
-                "max": 8.0
-              }
-            }
-          ]
-        },
-        {
-          "type": "minecraft:item",
           "name": "minecraft:crying_obsidian",
-          "weight": 6,
+          "weight": 8,
           "functions": [
             {
               "function": "minecraft:set_count",
@@ -102,7 +102,7 @@
         {
           "type": "minecraft:item",
           "name": "minecraft:magma_cream",
-          "weight": 7,
+          "weight": 9,
           "functions": [
             {
               "function": "minecraft:set_count",
@@ -132,7 +132,7 @@
         {
           "type": "minecraft:item",
           "name": "minecraft:potion",
-          "weight": 9,
+          "weight": 12,
           "functions": [
             {
               "function": "minecraft:set_components",
@@ -145,7 +145,7 @@
         {
           "type": "minecraft:item",
           "name": "minecraft:potion",
-          "weight": 8,
+          "weight": 5,
           "functions": [
             {
               "function": "minecraft:set_components",
@@ -158,7 +158,7 @@
         {
           "type": "minecraft:item",
           "name": "minecraft:potion",
-          "weight": 8,
+          "weight": 4,
           "functions": [
             {
               "function": "minecraft:set_components",
@@ -171,7 +171,7 @@
         {
           "type": "minecraft:item",
           "name": "minecraft:splash_potion",
-          "weight": 4,
+          "weight": 6,
           "functions": [
             {
               "function": "minecraft:set_components",
@@ -184,7 +184,17 @@
         {
           "type": "minecraft:item",
           "name": "minecraft:golden_apple",
-          "weight": 8
+          "weight": 7
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:enchanted_golden_apple",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:totem_of_undying",
+          "weight": 2
         },
         {
           "type": "minecraft:item",
@@ -195,8 +205,8 @@
               "function": "minecraft:set_count",
               "count": {
                 "type": "minecraft:uniform",
-                "min": 4.0,
-                "max": 10.0
+                "min": 6.0,
+                "max": 16.0
               }
             }
           ]
@@ -239,7 +249,7 @@
             {
               "function": "minecraft:set_enchantments",
               "enchantments": {
-                "minecraft:fire_protection": 3
+                "minecraft:fire_protection": 4
               }
             }
           ]
@@ -253,8 +263,8 @@
               "function": "minecraft:set_count",
               "count": {
                 "type": "minecraft:uniform",
-                "min": 1.0,
-                "max": 3.0
+                "min": 2.0,
+                "max": 5.0
               }
             }
           ]
@@ -262,7 +272,17 @@
         {
           "type": "minecraft:item",
           "name": "minecraft:netherite_scrap",
-          "weight": 1
+          "weight": 2,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1.0,
+                "max": 2.0
+              }
+            }
+          ]
         },
         {
           "type": "minecraft:item",

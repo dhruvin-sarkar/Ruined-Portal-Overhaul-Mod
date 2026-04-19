@@ -1,0 +1,23 @@
+{
+  "parent": "ruined_portal_overhaul:the_air_cheats",
+  "display": {
+    "icon": {
+      "id": "minecraft:totem_of_undying"
+    },
+    "title": {
+      "text": "Not Yours Anymore"
+    },
+    "description": {
+      "text": "Accept the portal's very suspicious welcome gift."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "totem": {
+      "trigger": "ruined_portal_overhaul:territory_totem"
+    }
+  }
+}

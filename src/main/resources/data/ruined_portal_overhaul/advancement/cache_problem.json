@@ -1,0 +1,46 @@
+{
+  "parent": "ruined_portal_overhaul:down_the_red_throat",
+  "display": {
+    "icon": {
+      "id": "minecraft:netherite_upgrade_smithing_template"
+    },
+    "title": {
+      "text": "Cache Problem"
+    },
+    "description": {
+      "text": "Find enough underground loot that concern becomes logistics."
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "template": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:netherite_upgrade_smithing_template"
+          }
+        ]
+      }
+    },
+    "scrap": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:netherite_scrap"
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "template",
+      "scrap"
+    ]
+  ]
+}

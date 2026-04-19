@@ -1,0 +1,7 @@
+{
+  "replace": false,
+  "amount": 1,
+  "operation": "set",
+  "order": 300,
+  "icon": "accessories:gui/slot/necklace"
+}

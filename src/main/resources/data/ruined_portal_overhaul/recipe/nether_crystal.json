@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": "minecraft:crying_obsidian",
+    "I": "minecraft:netherite_ingot",
+    "N": "ruined_portal_overhaul:nether_conduit",
+    "S": "minecraft:nether_star"
+  },
+  "pattern": [
+    "CSC",
+    "SNS",
+    "ISI"
+  ],
+  "result": {
+    "count": 1,
+    "id": "ruined_portal_overhaul:nether_crystal"
+  }
+}

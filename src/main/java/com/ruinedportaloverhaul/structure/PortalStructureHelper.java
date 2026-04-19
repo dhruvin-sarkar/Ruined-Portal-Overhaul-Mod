@@ -64,6 +64,7 @@ public final class PortalStructureHelper {
         }
 
         placeRitualPlatform(level, pieceBox, chunkBox, origin, random);
+        placeNetheritePedestals(level, pieceBox, chunkBox, origin);
         placePortalFrame(level, pieceBox, chunkBox, origin, frame, random);
         placeAnchor(level, pieceBox, chunkBox, origin);
     }
@@ -189,6 +190,11 @@ public final class PortalStructureHelper {
             CaveNode node = caveNodes.get(i);
             carveCaveNode(level, pieceBox, chunkBox, node, random);
             tunnelSpawners.add(node.center());
+            if (i % 2 == 0 || node.band() >= 1 || random.nextFloat() < 0.35f) {
+                BlockPos cache = caveCachePosition(node, random);
+                prepareCaveCache(level, pieceBox, chunkBox, cache, node.band(), random);
+                deepChests.add(cache);
+            }
 
             double angleFromPit = Math.atan2(node.center().getZ() - origin.getZ(), node.center().getX() - origin.getX());
             if (i < 5) {
@@ -206,7 +212,7 @@ public final class PortalStructureHelper {
                 tunnelSpawners.add(midpoint(tunnel.start(), tunnel.end()));
             }
 
-            if (random.nextFloat() < 0.72f) {
+            if (random.nextFloat() < 0.88f) {
                 BlockPos branchEnd = sideBranchEnd(node, origin, random);
                 TunnelPath branch = carveOrganicTunnel(level, pieceBox, chunkBox, node.center(), branchEnd, random);
                 carveSidePocket(level, pieceBox, chunkBox, branch.end(), node.band(), random);
@@ -229,8 +235,8 @@ public final class PortalStructureHelper {
         BlockPos chamberCenter,
         RandomSource random
     ) {
-        int nodeCount = 10 + random.nextInt(4);
-        List<CaveNode> nodes = new ArrayList<>(nodeCount + 4);
+        int nodeCount = 14 + random.nextInt(5);
+        List<CaveNode> nodes = new ArrayList<>(nodeCount + 6);
         for (int i = 0; i < nodeCount; i++) {
             int band = i % 3;
             int y = switch (band) {
@@ -266,6 +272,8 @@ public final class PortalStructureHelper {
         nodes.add(new CaveNode(chamberCenter.offset(-15, -18, -12), 14, 10, 2));
         nodes.add(new CaveNode(chamberCenter.offset(23, -20, -16), 16, 11, 2));
         nodes.add(new CaveNode(chamberCenter.offset(4, -25, 28), 18, 12, 2));
+        nodes.add(new CaveNode(chamberCenter.offset(-30, -24, 22), 15, 11, 2));
+        nodes.add(new CaveNode(chamberCenter.offset(32, -14, 18), 12, 8, 1));
         return nodes;
     }
 
@@ -280,13 +288,55 @@ public final class PortalStructureHelper {
         for (int i = 0; i < caveNodes.size(); i++) {
             CaveNode current = caveNodes.get(i);
             CaveNode next = caveNodes.get((i + 1) % caveNodes.size());
-            if (random.nextFloat() < 0.82f) {
+            if (random.nextFloat() < 0.90f) {
                 tunnels.add(carveOrganicTunnel(level, pieceBox, chunkBox, current.center(), next.center(), random));
             }
-            if (i + 3 < caveNodes.size() && random.nextFloat() < 0.34f) {
+            if (i + 3 < caveNodes.size() && random.nextFloat() < 0.46f) {
                 CaveNode cross = caveNodes.get(i + 3);
                 tunnels.add(carveOrganicTunnel(level, pieceBox, chunkBox, current.center(), cross.center(), random));
             }
+        }
+    }
+
+    private static BlockPos caveCachePosition(CaveNode node, RandomSource random) {
+        int usableRadius = Math.max(2, node.radius() - 2);
+        double angle = random.nextDouble() * Math.PI * 2.0;
+        double distance = 1.5 + random.nextDouble() * usableRadius;
+        return node.center().offset(
+            (int) Math.round(Math.cos(angle) * distance),
+            -node.height() + 1,
+            (int) Math.round(Math.sin(angle) * distance)
+        );
+    }
+
+    private static void prepareCaveCache(
+        WorldGenLevel level,
+        BoundingBox pieceBox,
+        BoundingBox chunkBox,
+        BlockPos chestPos,
+        int band,
+        RandomSource random
+    ) {
+        BlockState platform = band >= 2
+            ? Blocks.POLISHED_BLACKSTONE.defaultBlockState()
+            : Blocks.POLISHED_BLACKSTONE_BRICKS.defaultBlockState();
+        BlockState trim = band >= 2
+            ? Blocks.CRACKED_POLISHED_BLACKSTONE_BRICKS.defaultBlockState()
+            : Blocks.BLACKSTONE.defaultBlockState();
+
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                BlockPos floor = chestPos.offset(dx, -1, dz);
+                set(level, pieceBox, chunkBox, floor, Math.abs(dx) + Math.abs(dz) <= 1 ? platform : trim);
+            }
+        }
+        set(level, pieceBox, chunkBox, chestPos, Blocks.AIR.defaultBlockState());
+        set(level, pieceBox, chunkBox, chestPos.above(), Blocks.AIR.defaultBlockState());
+
+        if (random.nextBoolean()) {
+            set(level, pieceBox, chunkBox, chestPos.offset(2, 1, 0), Blocks.GLOWSTONE.defaultBlockState());
+        } else {
+            set(level, pieceBox, chunkBox, chestPos.offset(0, 1, 2), Blocks.GLOWSTONE.defaultBlockState());
         }
     }
 
@@ -733,6 +783,15 @@ public final class PortalStructureHelper {
             && pos.getZ() <= box.maxZ();
     }
 
+    public static List<BlockPos> ritualPedestalPositions(BlockPos origin) {
+        return List.of(
+            origin.offset(0, 0, -6),
+            origin.offset(0, 0, 6),
+            origin.offset(6, 0, 0),
+            origin.offset(-6, 0, 0)
+        );
+    }
+
     public static BlockPos terrainTop(WorldGenLevel level, int x, int z) {
         int worldSurface = level.getHeight(Heightmap.Types.WORLD_SURFACE_WG, x, z) - 1;
         int oceanFloor = level.getHeight(Heightmap.Types.OCEAN_FLOOR_WG, x, z) - 1;
@@ -808,6 +867,20 @@ public final class PortalStructureHelper {
                 setColumn(level, pieceBox, chunkBox, pos, random.nextInt(5) == 0 ? Blocks.CRACKED_POLISHED_BLACKSTONE_BRICKS.defaultBlockState() : Blocks.POLISHED_BLACKSTONE_BRICKS.defaultBlockState(), 2);
                 set(level, pieceBox, chunkBox, pos.above(), Blocks.AIR.defaultBlockState());
             }
+        }
+    }
+
+    private static void placeNetheritePedestals(
+        WorldGenLevel level,
+        BoundingBox pieceBox,
+        BoundingBox chunkBox,
+        BlockPos origin
+    ) {
+        for (BlockPos pedestal : ritualPedestalPositions(origin)) {
+            set(level, pieceBox, chunkBox, pedestal.below(), Blocks.POLISHED_BLACKSTONE_BRICKS.defaultBlockState());
+            set(level, pieceBox, chunkBox, pedestal, Blocks.NETHERITE_BLOCK.defaultBlockState());
+            set(level, pieceBox, chunkBox, pedestal.above(), Blocks.AIR.defaultBlockState());
+            set(level, pieceBox, chunkBox, pedestal.above(2), Blocks.AIR.defaultBlockState());
         }
     }
 

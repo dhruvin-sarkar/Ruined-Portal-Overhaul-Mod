@@ -6,5 +6,18 @@
   "entity.ruined_portal_overhaul.piglin_evoker": "Piglin Evoker",
   "entity.ruined_portal_overhaul.piglin_ravager": "Piglin Ravager",
   "entity.ruined_portal_overhaul.piglin_vex": "Piglin Vex",
-  "entity.ruined_portal_overhaul.exiled_piglin": "Exiled Piglin"
+  "entity.ruined_portal_overhaul.exiled_piglin": "Exiled Piglin",
+  "entity.ruined_portal_overhaul.nether_crystal": "Nether Crystal",
+  "entity.ruined_portal_overhaul.nether_dragon": "The Nether Dragon",
+  "key.ruined_portal_overhaul.use_nether_fireball": "Use Nether Fireball",
+  "item.ruined_portal_overhaul.nether_crystal": "Nether Crystal",
+  "item.ruined_portal_overhaul.ghast_tear_necklace": "Ghast Tear Necklace",
+  "item.ruined_portal_overhaul.ghast_tear_necklace.tooltip.mobility": "Grants Speed II and Jump Boost II while worn.",
+  "item.ruined_portal_overhaul.ghast_tear_necklace.tooltip.fireball": "Press the Nether Fireball key to launch a fireball. Cooldown: %s seconds.",
+  "item.ruined_portal_overhaul.ghast_tear_necklace.tooltip.ready": "Fireball ready.",
+  "message.ruined_portal_overhaul.necklace.missing": "Equip the Ghast Tear Necklace first.",
+  "message.ruined_portal_overhaul.necklace.cooldown": "Nether Fireball ready in %s seconds.",
+  "message.ruined_portal_overhaul.necklace.fired": "Nether Fireball released.",
+  "block.ruined_portal_overhaul.nether_conduit": "Nether Conduit",
+  "death.attack.ruined_portal_overhaul.nether_conduit": "%1$s was consumed by a Nether Conduit"
 }

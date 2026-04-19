@@ -1,5 +1,6 @@
 package com.ruinedportaloverhaul.structure;
 
+import com.ruinedportaloverhaul.block.NetherConduitChestPlacement;
 import com.ruinedportaloverhaul.world.ModStructures;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +13,7 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.StructureManager;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.RandomizableContainerBlockEntity;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.level.levelgen.structure.StructurePiece;
@@ -92,13 +94,17 @@ public class PortalDungeonPiece extends StructurePiece {
 
         PortalStructureHelper.placePortalSpawners(level, this.boundingBox, chunkBox, origin, underground);
         this.placeSurfaceChests(level, chunkBox, random, origin);
-        this.placeDeepChests(level, chunkBox, random, underground.deepChests());
+        this.placeDeepChests(level, chunkBox, random, origin, underground.deepChests());
     }
 
     private void placeSurfaceChests(WorldGenLevel level, BoundingBox chunkBox, RandomSource random, BlockPos origin) {
         List<BlockPos> chests = new ArrayList<>();
         chests.add(origin.offset(9, 0, -6));
         chests.add(origin.offset(-10, 0, 7));
+        chests.add(origin.offset(22, 0, 12));
+        chests.add(origin.offset(-24, 0, -14));
+        chests.add(origin.offset(36, 0, -7));
+        chests.add(origin.offset(-38, 0, 18));
 
         for (BlockPos target : chests) {
             if (!PortalStructureHelper.isColumnInside(chunkBox, target)) {
@@ -112,11 +118,17 @@ public class PortalDungeonPiece extends StructurePiece {
         }
     }
 
-    private void placeDeepChests(WorldGenLevel level, BoundingBox chunkBox, RandomSource random, List<BlockPos> chests) {
+    private void placeDeepChests(WorldGenLevel level, BoundingBox chunkBox, RandomSource random, BlockPos origin, List<BlockPos> chests) {
+        BlockPos conduitChest = NetherConduitChestPlacement.useBossChest(origin)
+            ? null
+            : NetherConduitChestPlacement.pickDeepChest(origin, chests);
         for (BlockPos chestPos : chests) {
             this.setBlockIfInside(level, chunkBox, chestPos.below(), Blocks.POLISHED_BLACKSTONE_BRICKS.defaultBlockState());
             this.setBlockIfInside(level, chunkBox, chestPos, Blocks.AIR.defaultBlockState());
             this.createChest(level, chunkBox, random, chestPos, DEPTH_LOOT, null);
+            if (chestPos.equals(conduitChest) && level.getBlockEntity(chestPos) instanceof RandomizableContainerBlockEntity chest) {
+                NetherConduitChestPlacement.addNetherConduit(chest);
+            }
         }
     }
 
