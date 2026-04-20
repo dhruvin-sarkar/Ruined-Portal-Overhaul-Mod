@@ -318,7 +318,6 @@ Incomplete portal territories now give players a protective red-aether boon whil
 All seven combat mobs call `PiglinDifficultyScaler.applyHardHealth(...)` from their 1.21.11 spawn initialization hook. On Hard, they receive +50% max health and +60% attack damage when the attack attribute exists.
 
 ## Loot Tables
-
 Loot table files contain `_comment` fields documenting reward intent.
 
 - `chests/portal_surface`: `9-12` rolls. Surface generation now places six prep chests around the scar. Loot includes more gold/iron/obsidian, Fire Resistance, Strength II, Regeneration II, healing splash potions, golden apples/carrots, rare enchanted golden apples, emergency totems, enchanted gold gear, Fire Protection IV books, diamonds, and rare netherite scrap. Golden apple weight is increased to 7.
