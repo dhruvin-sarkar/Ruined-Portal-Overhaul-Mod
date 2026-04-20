@@ -123,6 +123,9 @@ public class PortalDungeonPiece extends StructurePiece {
             ? null
             : NetherConduitChestPlacement.pickDeepChest(origin, chests);
         for (BlockPos chestPos : chests) {
+            if (!this.boundingBox.isInside(chestPos) || !chunkBox.isInside(chestPos)) {
+                continue;
+            }
             this.setBlockIfInside(level, chunkBox, chestPos.below(), Blocks.POLISHED_BLACKSTONE_BRICKS.defaultBlockState());
             this.setBlockIfInside(level, chunkBox, chestPos, Blocks.AIR.defaultBlockState());
             this.createChest(level, chunkBox, random, chestPos, DEPTH_LOOT, null);

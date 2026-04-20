@@ -424,6 +424,7 @@ Do not use global biome modifications for structure-local proximity gradients.
 - Use `EndCrystal` and `EnderDragon` Mojang classes for the Nether Crystal/Dragon implementation.
 - Retrieve persistent raid state from `server.overworld()`.
 - Call `setDirty()` after every persistent state mutation.
+- During structure worldgen, only call `WorldGenLevel#getBlockEntity` after verifying the target position is inside both the structure piece box and the current `chunkBox`; otherwise Minecraft can throw `Requested chunk unavailable during world generation`.
 
 ## Project Progress
 

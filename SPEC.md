@@ -137,3 +137,4 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
 - Do not use `loot_tables/`; use `loot_table/`.
 - Use current Fabric and Minecraft `1.21.11` APIs when extending the mod.
 - Do not reintroduce Accessories or `data/accessories` slot/tag files until a matching `1.21.11` Accessories build has been verified in Lunar Client.
+- During structure world generation, do not read block entities outside the current `chunkBox`; generation must skip positions owned by neighboring chunks until those chunks are processed.
