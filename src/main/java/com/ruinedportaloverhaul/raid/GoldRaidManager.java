@@ -503,6 +503,9 @@ public final class GoldRaidManager {
     private static LivingEntity spawnMob(RaidState state, EntityType<? extends LivingEntity> type, int offsetIndex, int totalMobs) {
         // Resolve a collision-free surface point before spawning so wave mobs do not start inside scar or tunnel blocks.
         BlockPos spawnPos = findWaveSpawnPosition(state, type, offsetIndex, totalMobs);
+        if (spawnPos == null) {
+            return null;
+        }
         LivingEntity entity = type.spawn(state.level, spawnPos, EntitySpawnReason.EVENT);
         if (entity instanceof Mob mob) {
             mob.setTarget(state.level.getNearestPlayer(spawnPos.getX(), spawnPos.getY(), spawnPos.getZ(), 24.0, false));
@@ -541,6 +544,9 @@ public final class GoldRaidManager {
                 0,
                 (int) Math.round(Math.sin(angle) * radius)
             );
+            if (!state.level.hasChunk(horizontal.getX() >> 4, horizontal.getZ() >> 4)) {
+                continue;
+            }
             BlockPos surface = state.level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING, horizontal);
             for (int yOffset = 0; yOffset <= 2; yOffset++) {
                 BlockPos candidate = surface.above(yOffset);
@@ -549,7 +555,8 @@ public final class GoldRaidManager {
                 }
             }
         }
-        return state.origin.above(2);
+        BlockPos fallback = state.origin.above(2);
+        return canSpawnWaveMobAt(state.level, type, fallback) ? fallback : null;
     }
 
     private static boolean canSpawnWaveMobAt(ServerLevel level, EntityType<? extends LivingEntity> type, BlockPos pos) {
@@ -1248,9 +1255,13 @@ public final class GoldRaidManager {
     private static BlockPos findNearbyPortalFrame(ServerLevel level, ServerPlayer player, int range) {
         BlockPos origin = player.blockPosition();
         double rangeSquared = (double) range * (double) range;
-        for (int y = origin.getY() - 8; y <= origin.getY() + 8; y++) {
-            for (int x = origin.getX() - range; x <= origin.getX() + range; x++) {
-                for (int z = origin.getZ() - range; z <= origin.getZ() + range; z++) {
+        for (int x = origin.getX() - range; x <= origin.getX() + range; x++) {
+            for (int z = origin.getZ() - range; z <= origin.getZ() + range; z++) {
+                if (!level.hasChunk(x >> 4, z >> 4)
+                    || horizontalDistanceSqr(origin, new BlockPos(x, origin.getY(), z)) > rangeSquared) {
+                    continue;
+                }
+                for (int y = origin.getY() - 8; y <= origin.getY() + 8; y++) {
                     BlockPos portalOrigin = findPortalOriginAt(level, x, y, z);
                     if (portalOrigin != null
                         && horizontalDistanceSqr(player.blockPosition(), portalOrigin) <= rangeSquared) {
@@ -1318,7 +1329,11 @@ public final class GoldRaidManager {
     }
 
     private static boolean isPortalFrame(ServerLevel level, int x, int y, int z) {
-        BlockState state = level.getBlockState(new BlockPos(x, y, z));
+        BlockPos framePos = new BlockPos(x, y, z);
+        if (!level.getWorldBorder().isWithinBounds(framePos) || !level.hasChunk(x >> 4, z >> 4)) {
+            return false;
+        }
+        BlockState state = level.getBlockState(framePos);
         return state.is(Blocks.OBSIDIAN) || state.is(Blocks.CRYING_OBSIDIAN) || state.is(BlockTags.PORTALS);
     }
 

@@ -31,7 +31,8 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
    - `GoldRaidManager` owns structure-local ambient spawns; global biome modifications remain only low-density lore hints.
    - Incomplete, inactive portal zones attempt natural-style spawns by distance/depth band.
    - Anchored ghasts are tagged to portal origins and cleaned up if they drift beyond the anchor radius or timeout.
-   - Runtime origin, heightmap, and spawn-volume scans skip unloaded chunks so portal effects do not create new chunk work during save/quit.
+- Runtime origin, heightmap, and spawn-volume scans skip unloaded chunks so portal effects do not create new chunk work during save/quit.
+- Wave spawn and fallback portal-frame scans also skip unloaded chunks before terrain or block-state reads.
 4. Pre-Raid Spawners
    - Structure generation places deterministic surface, chamber, tunnel, and deep-cave spawners.
    - `GoldRaidManager` scans/persists nearby spawner positions and deletes them when the raid starts.

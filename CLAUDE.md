@@ -212,6 +212,7 @@ Runtime structure-local ambient spawning is also owned by `GoldRaidManager`, not
 - Ground ambient cap: `180` tagged mobs per portal footprint.
 - Ambient tick interval: every `10` server ticks.
 - Runtime portal-origin scans must only inspect chunks that are already loaded. Do not let proximity, atmosphere, or ambient-spawn scans force-load structure chunks; Save and Exit must not inherit pending chunk discovery work.
+- Wave spawn heightmap lookups and fallback portal-frame scans must also check loaded chunks before reading terrain or block states.
 - Server-stop cleanup clears runtime-only raid, ambient-spawn, ghast-anchor, summoning, and boss-bar maps. Persistent progress belongs only in `PortalRaidState`.
 - Burst size: `8-12` on the surface, `10-14` in lower caves, and `12-16` in deepest caves.
 - Outer surface pool: zombified piglins, piglin pillagers, piglin vindicators, magma cubes, rare blazes.
