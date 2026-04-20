@@ -211,6 +211,8 @@ Runtime structure-local ambient spawning is also owned by `GoldRaidManager`, not
 
 - Ground ambient cap: `180` tagged mobs per portal footprint.
 - Ambient tick interval: every `10` server ticks.
+- Runtime portal-origin scans must only inspect chunks that are already loaded. Do not let proximity, atmosphere, or ambient-spawn scans force-load structure chunks; Save and Exit must not inherit pending chunk discovery work.
+- Server-stop cleanup clears runtime-only raid, ambient-spawn, ghast-anchor, summoning, and boss-bar maps. Persistent progress belongs only in `PortalRaidState`.
 - Burst size: `8-12` on the surface, `10-14` in lower caves, and `12-16` in deepest caves.
 - Outer surface pool: zombified piglins, piglin pillagers, piglin vindicators, magma cubes, rare blazes.
 - Middle pool: piglin pillagers, vindicators, brutes, blazes, wither skeletons, magma cubes, zombified piglins.
@@ -425,6 +427,7 @@ Do not use global biome modifications for structure-local proximity gradients.
 - Retrieve persistent raid state from `server.overworld()`.
 - Call `setDirty()` after every persistent state mutation.
 - During structure worldgen, only call `WorldGenLevel#getBlockEntity` after verifying the target position is inside both the structure piece box and the current `chunkBox`; otherwise Minecraft can throw `Requested chunk unavailable during world generation`.
+- During runtime proximity scans, guard structure-manager and heightmap checks with loaded-chunk checks so gameplay effects do not force new chunk work during save/quit.
 
 ## Project Progress
 

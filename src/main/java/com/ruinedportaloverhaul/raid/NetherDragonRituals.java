@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -46,6 +47,7 @@ public final class NetherDragonRituals {
 
     public static void initialize() {
         ServerTickEvents.END_SERVER_TICK.register(NetherDragonRituals::tick);
+        ServerLifecycleEvents.SERVER_STOPPING.register(server -> clearRuntimeState());
     }
 
     public static void onNetherCrystalPlaced(ServerLevel level, BlockPos pedestalPos, NetherCrystalEntity crystal) {
@@ -208,6 +210,14 @@ public final class NetherDragonRituals {
             double z = centerZ + Math.sin(theta) * horizontal * distance;
             level.sendParticles(particle, x, y, z, 1, 0.0, 0.0, 0.0, speed);
         }
+    }
+
+    private static void clearRuntimeState() {
+        SUMMONING_SEQUENCES.clear();
+        for (ServerBossEvent bossBar : BOSS_BARS.values()) {
+            bossBar.removeAllPlayers();
+        }
+        BOSS_BARS.clear();
     }
 
     private static final class SummoningSequence {

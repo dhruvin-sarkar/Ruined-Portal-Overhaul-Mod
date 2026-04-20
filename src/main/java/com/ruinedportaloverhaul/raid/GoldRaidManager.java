@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.core.BlockPos;
@@ -158,6 +159,7 @@ public final class GoldRaidManager {
     public static void initialize() {
         ServerTickEvents.END_SERVER_TICK.register(GoldRaidManager::tick);
         ServerEntityEvents.ENTITY_LOAD.register(GoldRaidManager::suppressCompletedPortalMobLoad);
+        ServerLifecycleEvents.SERVER_STOPPING.register(server -> clearRuntimeState());
     }
 
     private static void suppressCompletedPortalMobLoad(Entity entity, ServerLevel level) {
@@ -188,6 +190,9 @@ public final class GoldRaidManager {
     }
 
     private static void tickLevel(ServerLevel level) {
+        if (!level.getServer().isRunning()) {
+            return;
+        }
         if (level != level.getServer().overworld()) {
             return;
         }
@@ -550,6 +555,9 @@ public final class GoldRaidManager {
     private static boolean canSpawnWaveMobAt(ServerLevel level, EntityType<? extends LivingEntity> type, BlockPos pos) {
         // 1.21.11 footing check: use face support instead of deprecated blocksMotion for wave spawn safety.
         return level.getWorldBorder().isWithinBounds(pos)
+            && level.hasChunkAt(pos)
+            && level.hasChunkAt(pos.above())
+            && level.hasChunkAt(pos.below())
             && level.getFluidState(pos).isEmpty()
             && level.getFluidState(pos.above()).isEmpty()
             && level.getBlockState(pos.below()).isFaceSturdy(level, pos.below(), Direction.UP)
@@ -938,6 +946,9 @@ public final class GoldRaidManager {
             if (portalRadius < minPortalRadius || portalRadius > maxPortalRadius) {
                 continue;
             }
+            if (!level.hasChunk(x >> 4, z >> 4)) {
+                continue;
+            }
             BlockPos surface = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, new BlockPos(x, origin.getY(), z));
             for (int yOffset = 0; yOffset <= 2; yOffset++) {
                 BlockPos candidate = surface.above(yOffset);
@@ -959,6 +970,9 @@ public final class GoldRaidManager {
             if (horizontalDistance(x, z, origin) > PortalStructureHelper.OUTER_RADIUS - 12) {
                 continue;
             }
+            if (!level.hasChunk(x >> 4, z >> 4)) {
+                continue;
+            }
             BlockPos surface = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, new BlockPos(x, origin.getY(), z));
             int y = Math.min(level.getMaxY() - 6, Math.max(surface.getY() + 12, player.blockPosition().getY() + 18 + random.nextInt(18)));
             BlockPos candidate = new BlockPos(x, y, z);
@@ -971,6 +985,7 @@ public final class GoldRaidManager {
 
     private static boolean hasClearGhastVolume(ServerLevel level, BlockPos base) {
         if (!level.getWorldBorder().isWithinBounds(base)
+            || !level.hasChunksAt(base.offset(-2, 0, -2), base.offset(2, 3, 2))
             || !level.noCollision(EntityType.GHAST.getSpawnAABB(base.getX() + 0.5, base.getY(), base.getZ() + 0.5))) {
             return false;
         }
@@ -1268,6 +1283,9 @@ public final class GoldRaidManager {
 
         for (int chunkX = centerChunk.x - chunkRadius; chunkX <= centerChunk.x + chunkRadius; chunkX++) {
             for (int chunkZ = centerChunk.z - chunkRadius; chunkZ <= centerChunk.z + chunkRadius; chunkZ++) {
+                if (!level.hasChunk(chunkX, chunkZ)) {
+                    continue;
+                }
                 for (StructureStart start : level.structureManager().startsForStructure(
                     new ChunkPos(chunkX, chunkZ),
                     structure -> structure.type() == ModStructures.PORTAL_DUNGEON_TYPE
@@ -1322,6 +1340,16 @@ public final class GoldRaidManager {
         double dx = first.getX() - second.getX();
         double dz = first.getZ() - second.getZ();
         return dx * dx + dz * dz;
+    }
+
+    private static void clearRuntimeState() {
+        for (RaidState state : ACTIVE_RAIDS.values()) {
+            state.bossBar.removeAllPlayers();
+        }
+        ACTIVE_RAIDS.clear();
+        NEXT_AMBIENT_SPAWN_TICK.clear();
+        NEXT_GHAST_SPAWN_TICK.clear();
+        ANCHORED_GHASTS.clear();
     }
 
     private static int expectedWaveSize(int waveIndex) {

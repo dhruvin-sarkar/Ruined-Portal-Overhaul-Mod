@@ -31,6 +31,7 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
    - `GoldRaidManager` owns structure-local ambient spawns; global biome modifications remain only low-density lore hints.
    - Incomplete, inactive portal zones attempt natural-style spawns by distance/depth band.
    - Anchored ghasts are tagged to portal origins and cleaned up if they drift beyond the anchor radius or timeout.
+   - Runtime origin, heightmap, and spawn-volume scans skip unloaded chunks so portal effects do not create new chunk work during save/quit.
 4. Pre-Raid Spawners
    - Structure generation places deterministic surface, chamber, tunnel, and deep-cave spawners.
    - `GoldRaidManager` scans/persists nearby spawner positions and deletes them when the raid starts.
@@ -138,3 +139,4 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
 - Use current Fabric and Minecraft `1.21.11` APIs when extending the mod.
 - Do not reintroduce Accessories or `data/accessories` slot/tag files until a matching `1.21.11` Accessories build has been verified in Lunar Client.
 - During structure world generation, do not read block entities outside the current `chunkBox`; generation must skip positions owned by neighboring chunks until those chunks are processed.
+- During runtime portal proximity scans, never force-load chunks; query only loaded chunks and clear runtime-only server maps on shutdown.
