@@ -1,0 +1,31 @@
+{
+  "parent": "ruined_portal_overhaul:root",
+  "display": {
+    "icon": {
+      "id": "ruined_portal_overhaul:nether_conduit"
+    },
+    "title": {
+      "text": "Nether Bond",
+      "color": "dark_red"
+    },
+    "description": {
+      "text": "Claim a Nether Conduit from a ruined portal."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "nether_conduit": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "ruined_portal_overhaul:nether_conduit"
+          }
+        ]
+      }
+    }
+  }
+}

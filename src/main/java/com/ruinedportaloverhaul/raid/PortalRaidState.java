@@ -3,11 +3,13 @@ package com.ruinedportaloverhaul.raid;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.ruinedportaloverhaul.RuinedPortalOverhaul;
+import com.ruinedportaloverhaul.structure.PortalStructureHelper;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.UUIDUtil;
@@ -21,6 +23,8 @@ public final class PortalRaidState extends SavedData {
     private static final String ACTIVE_RAIDS_KEY = "active_raids";
     private static final String ACTIVATED_PORTALS_KEY = "activated_portals";
     private static final String PORTAL_SPAWNERS_KEY = "portal_spawners";
+    private static final String RITUAL_CRYSTALS_KEY = "ritual_crystals";
+    private static final String ACTIVE_DRAGON_PORTALS_KEY = "active_dragon_portals";
 
     public static final Codec<PortalRaidState> CODEC = RecordCodecBuilder.create(instance -> instance.group(
         BlockPos.CODEC.listOf()
@@ -34,7 +38,13 @@ public final class PortalRaidState extends SavedData {
             .forGetter(state -> new ArrayList<>(state.activatedPortals)),
         PortalSpawnerData.CODEC.listOf()
             .optionalFieldOf(PORTAL_SPAWNERS_KEY, List.of())
-            .forGetter(PortalRaidState::snapshotPortalSpawners)
+            .forGetter(PortalRaidState::snapshotPortalSpawners),
+        RitualData.CODEC.listOf()
+            .optionalFieldOf(RITUAL_CRYSTALS_KEY, List.of())
+            .forGetter(PortalRaidState::snapshotRitualCrystals),
+        BlockPos.CODEC.listOf()
+            .optionalFieldOf(ACTIVE_DRAGON_PORTALS_KEY, List.of())
+            .forGetter(state -> new ArrayList<>(state.activeDragonPortals))
     ).apply(instance, PortalRaidState::new));
 
     private static final SavedDataType<PortalRaidState> TYPE = new SavedDataType<>(
@@ -51,6 +61,8 @@ public final class PortalRaidState extends SavedData {
     private final Map<BlockPos, Set<java.util.UUID>> waveTrackerUuids = new HashMap<>();
     private final Map<BlockPos, Integer> currentWaveNumbers = new HashMap<>();
     private final Map<BlockPos, Long> waveEndTimeTicks = new HashMap<>();
+    private final Map<BlockPos, Set<BlockPos>> ritualCrystals = new HashMap<>();
+    private final Set<BlockPos> activeDragonPortals = new HashSet<>();
 
     public PortalRaidState() {
     }
@@ -59,10 +71,13 @@ public final class PortalRaidState extends SavedData {
         List<BlockPos> completedPortals,
         List<ActiveRaidData> activeRaids,
         List<BlockPos> activatedPortals,
-        List<PortalSpawnerData> portalSpawners
+        List<PortalSpawnerData> portalSpawners,
+        List<RitualData> ritualCrystals,
+        List<BlockPos> activeDragonPortals
     ) {
         this.completedPortals.addAll(completedPortals);
         this.activatedPortals.addAll(activatedPortals);
+        this.activeDragonPortals.addAll(activeDragonPortals);
         for (ActiveRaidData activeRaid : activeRaids) {
             BlockPos portalOrigin = activeRaid.portalOrigin().immutable();
             this.activeRaidLocations.add(portalOrigin);
@@ -73,6 +88,9 @@ public final class PortalRaidState extends SavedData {
         for (PortalSpawnerData spawnerData : portalSpawners) {
             this.portalSpawners.put(spawnerData.portalOrigin().immutable(), immutablePositions(spawnerData.spawners()));
         }
+        for (RitualData ritualData : ritualCrystals) {
+            this.ritualCrystals.put(ritualData.portalOrigin().immutable(), new HashSet<>(immutablePositions(ritualData.filledPedestals())));
+        }
     }
 
     public static PortalRaidState get(MinecraftServer server) {
@@ -82,6 +100,10 @@ public final class PortalRaidState extends SavedData {
 
     public boolean isCompleted(BlockPos portalOrigin) {
         return this.completedPortals.contains(portalOrigin.immutable());
+    }
+
+    public Set<BlockPos> completedPortalOrigins() {
+        return Set.copyOf(this.completedPortals);
     }
 
     public boolean isRaidActive(BlockPos portalOrigin) {
@@ -111,6 +133,61 @@ public final class PortalRaidState extends SavedData {
 
     public List<BlockPos> portalSpawners(BlockPos portalOrigin) {
         return new ArrayList<>(this.portalSpawners.getOrDefault(portalOrigin.immutable(), List.of()));
+    }
+
+    public Optional<BlockPos> completedPortalForPedestal(BlockPos pedestalPos) {
+        BlockPos pedestal = pedestalPos.immutable();
+        for (BlockPos portalOrigin : this.completedPortals) {
+            if (PortalStructureHelper.ritualPedestalPositions(portalOrigin).contains(pedestal)) {
+                return Optional.of(portalOrigin);
+            }
+        }
+        return Optional.empty();
+    }
+
+    public RitualProgress markRitualCrystalPlaced(BlockPos portalOrigin, BlockPos pedestalPos) {
+        BlockPos origin = portalOrigin.immutable();
+        BlockPos pedestal = pedestalPos.immutable();
+        List<BlockPos> expectedPedestals = PortalStructureHelper.ritualPedestalPositions(origin);
+        Set<BlockPos> filledPedestals = this.ritualCrystals.computeIfAbsent(origin, ignored -> new HashSet<>());
+        boolean wasComplete = filledPedestals.containsAll(expectedPedestals);
+
+        if (expectedPedestals.contains(pedestal) && filledPedestals.add(pedestal)) {
+            this.setDirty();
+        }
+
+        boolean isComplete = filledPedestals.containsAll(expectedPedestals);
+        return new RitualProgress(origin, Set.copyOf(filledPedestals), isComplete, isComplete && !wasComplete);
+    }
+
+    public Set<BlockPos> filledRitualPedestals(BlockPos portalOrigin) {
+        return Set.copyOf(this.ritualCrystals.getOrDefault(portalOrigin.immutable(), Set.of()));
+    }
+
+    public boolean isRitualComplete(BlockPos portalOrigin) {
+        BlockPos origin = portalOrigin.immutable();
+        return this.ritualCrystals.getOrDefault(origin, Set.of()).containsAll(PortalStructureHelper.ritualPedestalPositions(origin));
+    }
+
+    public boolean isDragonActive(BlockPos portalOrigin) {
+        return this.activeDragonPortals.contains(portalOrigin.immutable());
+    }
+
+    public void setDragonActive(BlockPos portalOrigin, boolean active) {
+        BlockPos origin = portalOrigin.immutable();
+        boolean changed = active ? this.activeDragonPortals.add(origin) : this.activeDragonPortals.remove(origin);
+        if (changed) {
+            this.setDirty();
+        }
+    }
+
+    public void clearRitual(BlockPos portalOrigin) {
+        BlockPos origin = portalOrigin.immutable();
+        boolean changed = this.ritualCrystals.remove(origin) != null;
+        changed |= this.activeDragonPortals.remove(origin);
+        if (changed) {
+            this.setDirty();
+        }
     }
 
     public boolean beginRaid(BlockPos portalOrigin) {
@@ -189,6 +266,14 @@ public final class PortalRaidState extends SavedData {
         return spawners;
     }
 
+    private List<RitualData> snapshotRitualCrystals() {
+        List<RitualData> crystals = new ArrayList<>();
+        for (Map.Entry<BlockPos, Set<BlockPos>> entry : this.ritualCrystals.entrySet()) {
+            crystals.add(new RitualData(entry.getKey(), new ArrayList<>(entry.getValue())));
+        }
+        return crystals;
+    }
+
     private static List<BlockPos> immutablePositions(List<BlockPos> positions) {
         List<BlockPos> immutable = new ArrayList<>();
         for (BlockPos pos : positions) {
@@ -218,11 +303,26 @@ public final class PortalRaidState extends SavedData {
         ).apply(instance, PortalSpawnerData::new));
     }
 
+    private record RitualData(BlockPos portalOrigin, List<BlockPos> filledPedestals) {
+        private static final Codec<RitualData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            BlockPos.CODEC.fieldOf("portal_origin").forGetter(RitualData::portalOrigin),
+            BlockPos.CODEC.listOf().fieldOf("filled_pedestals").forGetter(RitualData::filledPedestals)
+        ).apply(instance, RitualData::new));
+    }
+
     public record ActiveRaidSnapshot(
         BlockPos portalOrigin,
         int currentWaveNumber,
         long waveEndTimeTicks,
         Set<java.util.UUID> waveMobs
+    ) {
+    }
+
+    public record RitualProgress(
+        BlockPos portalOrigin,
+        Set<BlockPos> filledPedestals,
+        boolean allFilled,
+        boolean newlyCompleted
     ) {
     }
 }

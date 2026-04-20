@@ -1,0 +1,24 @@
+{
+  "parent": "ruined_portal_overhaul:draped_in_sorrow",
+  "display": {
+    "icon": {
+      "id": "minecraft:fire_charge"
+    },
+    "title": {
+      "text": "Ghost Fire",
+      "color": "red"
+    },
+    "description": {
+      "text": "Launch a fireball from the Ghast Tear Necklace."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "fireball": {
+      "trigger": "ruined_portal_overhaul:nether_fireball_used"
+    }
+  }
+}

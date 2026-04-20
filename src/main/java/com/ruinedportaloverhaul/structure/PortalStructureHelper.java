@@ -64,6 +64,7 @@ public final class PortalStructureHelper {
         }
 
         placeRitualPlatform(level, pieceBox, chunkBox, origin, random);
+        placeNetheritePedestals(level, pieceBox, chunkBox, origin);
         placePortalFrame(level, pieceBox, chunkBox, origin, frame, random);
         placeAnchor(level, pieceBox, chunkBox, origin);
     }
@@ -782,6 +783,15 @@ public final class PortalStructureHelper {
             && pos.getZ() <= box.maxZ();
     }
 
+    public static List<BlockPos> ritualPedestalPositions(BlockPos origin) {
+        return List.of(
+            origin.offset(0, 0, -6),
+            origin.offset(0, 0, 6),
+            origin.offset(6, 0, 0),
+            origin.offset(-6, 0, 0)
+        );
+    }
+
     public static BlockPos terrainTop(WorldGenLevel level, int x, int z) {
         int worldSurface = level.getHeight(Heightmap.Types.WORLD_SURFACE_WG, x, z) - 1;
         int oceanFloor = level.getHeight(Heightmap.Types.OCEAN_FLOOR_WG, x, z) - 1;
@@ -857,6 +867,20 @@ public final class PortalStructureHelper {
                 setColumn(level, pieceBox, chunkBox, pos, random.nextInt(5) == 0 ? Blocks.CRACKED_POLISHED_BLACKSTONE_BRICKS.defaultBlockState() : Blocks.POLISHED_BLACKSTONE_BRICKS.defaultBlockState(), 2);
                 set(level, pieceBox, chunkBox, pos.above(), Blocks.AIR.defaultBlockState());
             }
+        }
+    }
+
+    private static void placeNetheritePedestals(
+        WorldGenLevel level,
+        BoundingBox pieceBox,
+        BoundingBox chunkBox,
+        BlockPos origin
+    ) {
+        for (BlockPos pedestal : ritualPedestalPositions(origin)) {
+            set(level, pieceBox, chunkBox, pedestal.below(), Blocks.POLISHED_BLACKSTONE_BRICKS.defaultBlockState());
+            set(level, pieceBox, chunkBox, pedestal, Blocks.NETHERITE_BLOCK.defaultBlockState());
+            set(level, pieceBox, chunkBox, pedestal.above(), Blocks.AIR.defaultBlockState());
+            set(level, pieceBox, chunkBox, pedestal.above(2), Blocks.AIR.defaultBlockState());
         }
     }
 

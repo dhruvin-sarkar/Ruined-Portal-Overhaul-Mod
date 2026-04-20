@@ -51,6 +51,11 @@
         },
         {
           "type": "minecraft:item",
+          "name": "minecraft:nether_star",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
           "name": "minecraft:diamond",
           "weight": 10,
           "functions": [
@@ -74,6 +79,19 @@
               "enchantments": {
                 "minecraft:smite": 4,
                 "minecraft:unbreaking": 3
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:diamond_sword",
+          "weight": 4,
+          "functions": [
+            {
+              "function": "minecraft:set_enchantments",
+              "enchantments": {
+                "minecraft:sharpness": 3
               }
             }
           ]
