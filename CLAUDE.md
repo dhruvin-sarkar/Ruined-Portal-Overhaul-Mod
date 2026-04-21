@@ -162,6 +162,7 @@ Summoning sequence:
 - Tick 0: Wither spawn sound plus flame and large smoke sphere around the portal.
 - Tick 40: Nearby title `The Nether Dragon Awakens`, subtitle `Flee or fight.`
 - Tick 80: Nether Dragon spawns at portal center plus `(0, 10, 0)` and plays the dragon growl.
+- Ritual crystal state must be reconciled from the actual loaded pedestal crystals. Breaking a crystal before completion cancels pending summoning, and restart recovery may only resume the summoning pulse when all four crystals are still physically present. Persistent `activeDragonPortals` means a live dragon, not merely a started summoning animation.
 
 Death behavior:
 

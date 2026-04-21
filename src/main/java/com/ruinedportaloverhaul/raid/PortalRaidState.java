@@ -164,13 +164,51 @@ public final class PortalRaidState extends SavedData {
         return Set.copyOf(this.ritualCrystals.getOrDefault(portalOrigin.immutable(), Set.of()));
     }
 
+    public Set<BlockPos> ritualPortalOrigins() {
+        return Set.copyOf(this.ritualCrystals.keySet());
+    }
+
     public boolean isRitualComplete(BlockPos portalOrigin) {
         BlockPos origin = portalOrigin.immutable();
         return this.ritualCrystals.getOrDefault(origin, Set.of()).containsAll(PortalStructureHelper.ritualPedestalPositions(origin));
     }
 
+    public RitualProgress syncRitualCrystals(BlockPos portalOrigin, Set<BlockPos> filledPedestals) {
+        BlockPos origin = portalOrigin.immutable();
+        List<BlockPos> expectedPedestals = PortalStructureHelper.ritualPedestalPositions(origin);
+        Set<BlockPos> sanitizedPedestals = new HashSet<>();
+        for (BlockPos pedestal : filledPedestals) {
+            BlockPos immutablePedestal = pedestal.immutable();
+            if (expectedPedestals.contains(immutablePedestal)) {
+                sanitizedPedestals.add(immutablePedestal);
+            }
+        }
+
+        Set<BlockPos> existingPedestals = this.ritualCrystals.get(origin);
+        boolean wasComplete = existingPedestals != null && existingPedestals.containsAll(expectedPedestals);
+        boolean changed = false;
+
+        if (sanitizedPedestals.isEmpty()) {
+            changed = this.ritualCrystals.remove(origin) != null;
+        } else if (existingPedestals == null || !existingPedestals.equals(sanitizedPedestals)) {
+            this.ritualCrystals.put(origin, sanitizedPedestals);
+            changed = true;
+        }
+
+        if (changed) {
+            this.setDirty();
+        }
+
+        boolean isComplete = sanitizedPedestals.containsAll(expectedPedestals);
+        return new RitualProgress(origin, Set.copyOf(sanitizedPedestals), isComplete, isComplete && !wasComplete);
+    }
+
     public boolean isDragonActive(BlockPos portalOrigin) {
         return this.activeDragonPortals.contains(portalOrigin.immutable());
+    }
+
+    public Set<BlockPos> activeDragonPortalOrigins() {
+        return Set.copyOf(this.activeDragonPortals);
     }
 
     public void setDragonActive(BlockPos portalOrigin, boolean active) {
