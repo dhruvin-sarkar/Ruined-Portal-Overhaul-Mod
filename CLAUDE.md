@@ -31,12 +31,15 @@ src/main/java/com/ruinedportaloverhaul/client/mixin/FogRendererMixin.java
 src/main/java/com/ruinedportaloverhaul/client/mixin/SkyRendererMixin.java
 src/main/java/com/ruinedportaloverhaul/client/mixin/WeatherEffectRendererMixin.java
 src/main/java/com/ruinedportaloverhaul/client/render/*.java
+src/main/java/com/ruinedportaloverhaul/client/render/geo/RuinedPortalGeoRenderData.java
 src/main/java/com/ruinedportaloverhaul/advancement/*.java
 src/main/java/com/ruinedportaloverhaul/block/*.java
 src/main/java/com/ruinedportaloverhaul/block/entity/*.java
 src/main/java/com/ruinedportaloverhaul/component/*.java
 src/main/java/com/ruinedportaloverhaul/damage/*.java
 src/main/java/com/ruinedportaloverhaul/entity/*.java
+src/main/java/com/ruinedportaloverhaul/entity/TextureVariantHelper.java
+src/main/java/com/ruinedportaloverhaul/entity/TextureVariantMob.java
 src/main/java/com/ruinedportaloverhaul/item/*.java
 src/main/java/com/ruinedportaloverhaul/mixin/LivingEntityLavaMovementMixin.java
 src/main/java/com/ruinedportaloverhaul/network/ModNetworking.java
@@ -60,6 +63,7 @@ src/main/resources/assets/ruined_portal_overhaul/models/block/*.json
 src/main/resources/assets/ruined_portal_overhaul/models/item/*.json
 src/main/resources/assets/ruined_portal_overhaul/textures/entity/*.png
 src/main/resources/data/minecraft/worldgen/structure/ruined_portal*.json
+src/main/resources/data/minecraft/worldgen/structure_set/ruined_portals.json
 src/main/resources/data/ruined_portal_overhaul/advancement/*.json
 src/main/resources/data/ruined_portal_overhaul/damage_type/*.json
 src/main/resources/data/ruined_portal_overhaul/loot_table/chests/*.json
@@ -79,7 +83,7 @@ This expansion adds an endgame dependency chain:
 4. The Ghast Tear Necklace uses native inventory scanning and the new nether-star economy.
 5. Four Nether Crystals on generated pedestals summon the Nether Dragon.
 
-No new PNG assets were added for these systems. Models and renderers reuse vanilla textures: conduit, netherrack, obsidian, ghast tear, end crystal, fire charge, and dragon-head icons.
+No new hand-painted PNG assets were added for the conduit, necklace, crystal, or dragon systems. The mob roster now also ships generated placeholder GeckoLib texture variants derived from the base entity sheets for visual variety without introducing bespoke art dependencies.
 
 ## Lunar-Compatible Necklace Integration
 
@@ -195,7 +199,26 @@ The generated piece uses a radius-136 surface footprint and a depth-45 undergrou
 
 Pit, chamber, and tunnel carvers replace adjacent overworld stone, deepslate, dirt, and common overworld ore/geology blocks with Nether materials so natural cave intersections read as corrupted Nether geology. Structure-local water encountered in transformed terrain is converted into lava with a bounded 8-block vertical clear. All writes are bounded by both the structure piece box and current chunk box.
 
-Overworld ruined portal structure JSON files are overridden to use `ruined_portal_overhaul:portal_dungeon`; vanilla structure-set spacing remains 40 and separation remains 15.
+Overworld ruined portal structure JSON files are overridden to use `ruined_portal_overhaul:portal_dungeon`. The matching `data/minecraft/worldgen/structure_set/ruined_portals.json` override keeps vanilla spacing `40` and separation `15`, and now adds a four-chunk exclusion zone against `minecraft:villages` so portal dungeons stop crowding village starts.
+
+## Entity Presentation
+
+GeckoLib now renders all combat mobs, the Exiled Piglin, the Nether Crystal, the Nether Conduit block entity, and the Nether Dragon.
+
+Visual variant support is active for:
+
+- `PiglinPillagerEntity`: 3 synced texture variants
+- `PiglinVindicatorEntity`: 3 synced texture variants
+- `PiglinBrutePillagerEntity`: 3 synced texture variants
+- `PiglinIllusionerEntity`: 2 synced texture variants
+- `PiglinEvokerEntity`: 2 synced texture variants
+
+Implementation notes:
+
+- Each eligible mob uses synced entity data plus save data under `Variant`, so the chosen texture survives saves and renders consistently on clients.
+- Variant selection is deterministic from the entity UUID through `TextureVariantHelper`.
+- GeckoLib texture selection is driven through `RuinedPortalGeoRenderData.TEXTURE_VARIANT`, captured during model state compilation.
+- Placeholder `_0/_1/_2` PNGs are generated derivatives of the base texture sheets and are safe for later artist replacement.
 
 ## Spawners And Spawn Pressure
 
@@ -394,6 +417,8 @@ It also injects rare overworld monster spawns:
 - Zombified Piglin, weight 1, group 1-2
 - Blaze, weight 1, group 1
 
+Global ambient corruption intentionally excludes Terralith skylands and Terralith cave biomes so surface-scar features and ambient Nether spawns stay on grounded overworld terrain.
+
 Do not use global biome modifications for structure-local proximity gradients.
 
 ## Metadata
@@ -405,7 +430,8 @@ Do not use global biome modifications for structure-local proximity gradients.
 - Sources: `https://github.com/dhruvin-sarkar/Ruined-Portal-Overhaul-Mod`
 - Issues: `https://github.com/dhruvin-sarkar/Ruined-Portal-Overhaul-Mod/issues`
 - Client entrypoint: `com.ruinedportaloverhaul.client.RuinedPortalOverhaulClient`
-- Required dependencies: Minecraft, Fabric Loader, and Fabric API
+- Required dependencies: Minecraft, Fabric Loader, Fabric API, and GeckoLib
+- Suggested compatibility mods: Cloth Config, Mod Menu, Roughly Enough Items, Terralith, Biomes O' Plenty, and Regions Unexplored
 - Common mixin config: `ruined_portal_overhaul.mixins.json`
 - Client mixin config: `ruined_portal_overhaul.client.mixins.json`
 
@@ -439,9 +465,10 @@ Do not use global biome modifications for structure-local proximity gradients.
 | Main initializer and client initializer | COMPLETE |
 | Client red storm packet receiver, overlay, music, thunder, sky, fog, weather mixins | COMPLETE |
 | 7 combat entities plus Exiled Piglin registration | COMPLETE |
-| Entity renderer registration | COMPLETE |
-| Non-solid generated entity texture sheets | COMPLETE |
+| GeckoLib entity and block renderer registration | COMPLETE |
+| Synced GeckoLib mob texture variants and generated placeholder sheets | COMPLETE |
 | Structure generation and vanilla ruined portal replacement hooks | COMPLETE |
+| Structure-set village exclusion for ruined portal dungeons | COMPLETE |
 | Calm low-frequency surface height variation around stable ritual core | COMPLETE |
 | Graph-based cave nodes, noisy worm tunnels, side pockets, lava features, and ghast-ready deep caverns | COMPLETE |
 | Runtime structure-local portal-zone ambient spawns and anchored ghasts | COMPLETE |
@@ -449,7 +476,7 @@ Do not use global biome modifications for structure-local proximity gradients.
 | Proximity-only raid trigger, no gold armor, no Bad Omen | COMPLETE |
 | Persistent completed portal tracking, active raid metadata, restart rehydration | COMPLETE |
 | Multiplayer atomic raid start guard and boss-bar membership sync | COMPLETE |
-| Hard difficulty +50% health/+60% attack scaling and mob weapon upgrades | COMPLETE |
+| Config-aware Easy/Normal/Hard mob stat scaling, wave scaling, and mob weapon upgrades | COMPLETE |
 | Exiled Piglin trades, invulnerability, restock, despawn, messages, and single-customer gate | COMPLETE |
 | Loot table reward arc: surface, deep, boss, and richer mob drops | COMPLETE |
 | Territory aether boon and once-per-portal starter totem | COMPLETE |
@@ -470,8 +497,8 @@ Do not use global biome modifications for structure-local proximity gradients.
 
 ## Known Limitations
 
-- The entity textures are simple generated release textures, not hand-painted final art.
-- The mod uses vanilla Minecraft sound events rather than shipping custom `.ogg` assets.
+- The entity textures and variant sheets are simple generated release art, not hand-painted final textures.
+- The mod registers custom sound events with vanilla fallback mappings rather than shipping bespoke `.ogg` assets.
 - The storm renderer now uses client mixins for sky, fog, rain, and weather state. These hooks are version-sensitive and should be rechecked whenever updating Minecraft mappings.
 - A full interactive `runClient` survival smoke test still needs to be performed before final submission.
 
