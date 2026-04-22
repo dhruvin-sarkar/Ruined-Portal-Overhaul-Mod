@@ -25,9 +25,14 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animatable.manager.AnimatableManager;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
-public class PiglinIllusionerEntity extends Illusioner {
+public class PiglinIllusionerEntity extends Illusioner implements GeoEntity {
     private static final float ARROW_DAMAGE = 8.0f;
+    private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
 
     public PiglinIllusionerEntity(EntityType<? extends PiglinIllusionerEntity> entityType, Level level) {
         super(entityType, level);
@@ -43,6 +48,20 @@ public class PiglinIllusionerEntity extends Illusioner {
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, EntitySpawnReason reason, SpawnGroupData spawnData) {
         SpawnGroupData result = super.finalizeSpawn(level, difficulty, reason, spawnData);
         return PiglinDifficultyScaler.applyHardHealth(this, level, result);
+    }
+
+    @Override
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(
+            RuinedPortalGeoAnimations.walkIdleController(),
+            RuinedPortalGeoAnimations.deathController(),
+            RuinedPortalGeoAnimations.actionController()
+        );
+    }
+
+    @Override
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return this.geoCache;
     }
 
     @Override
@@ -84,6 +103,7 @@ public class PiglinIllusionerEntity extends Illusioner {
         arrow.igniteForSeconds(4.0f);
         arrow.shoot(dx, dy, dz, 1.6f, 0.9f);
         serverLevel.addFreshEntity(arrow);
+        this.triggerAnim(RuinedPortalGeoAnimations.ACTION_CONTROLLER, RuinedPortalGeoAnimations.ATTACK_SHOOT);
         serverLevel.playSound(null, this.blockPosition(), SoundEvents.BLAZE_SHOOT, SoundSource.HOSTILE, 0.55f, 1.45f);
         serverLevel.playSound(null, this.blockPosition(), SoundEvents.PIGLIN_ANGRY, SoundSource.HOSTILE, 0.45f, 1.10f);
     }

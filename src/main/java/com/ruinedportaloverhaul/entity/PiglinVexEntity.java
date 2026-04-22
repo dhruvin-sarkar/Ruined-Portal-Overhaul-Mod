@@ -13,8 +13,14 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Vex;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animatable.manager.AnimatableManager;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
-public class PiglinVexEntity extends Vex {
+public class PiglinVexEntity extends Vex implements GeoEntity {
+    private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
+
     public PiglinVexEntity(EntityType<? extends PiglinVexEntity> entityType, Level level) {
         super(entityType, level);
         this.setLimitedLife(70 * 20);
@@ -30,6 +36,20 @@ public class PiglinVexEntity extends Vex {
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, EntitySpawnReason reason, SpawnGroupData spawnData) {
         SpawnGroupData result = super.finalizeSpawn(level, difficulty, reason, spawnData);
         return PiglinDifficultyScaler.applyHardHealth(this, level, result);
+    }
+
+    @Override
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(
+            RuinedPortalGeoAnimations.flyIdleController(),
+            RuinedPortalGeoAnimations.deathController(),
+            RuinedPortalGeoAnimations.actionController()
+        );
+    }
+
+    @Override
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return this.geoCache;
     }
 
     @Override

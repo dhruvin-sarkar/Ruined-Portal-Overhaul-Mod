@@ -26,9 +26,14 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animatable.manager.AnimatableManager;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
-public class PiglinBrutePillagerEntity extends Pillager {
+public class PiglinBrutePillagerEntity extends Pillager implements GeoEntity {
     private static final float ARROW_DAMAGE = 11.0f;
+    private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
 
     public PiglinBrutePillagerEntity(EntityType<? extends PiglinBrutePillagerEntity> entityType, Level level) {
         super(entityType, level);
@@ -51,6 +56,20 @@ public class PiglinBrutePillagerEntity extends Pillager {
     protected void registerGoals() {
         super.registerGoals();
         this.goalSelector.addGoal(1, new CloseRangeMeleeGoal());
+    }
+
+    @Override
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(
+            RuinedPortalGeoAnimations.walkIdleController(),
+            RuinedPortalGeoAnimations.deathController(),
+            RuinedPortalGeoAnimations.actionController()
+        );
+    }
+
+    @Override
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return this.geoCache;
     }
 
     private boolean isTargetWithinMeleeFallbackRange() {
@@ -113,6 +132,7 @@ public class PiglinBrutePillagerEntity extends Pillager {
         arrow.setBaseDamage(ARROW_DAMAGE);
         arrow.shoot(dx, dy, dz, 1.5f, 1.0f);
         serverLevel.addFreshEntity(arrow);
+        this.triggerAnim(RuinedPortalGeoAnimations.ACTION_CONTROLLER, RuinedPortalGeoAnimations.ATTACK_SHOOT);
         this.playSound(SoundEvents.CROSSBOW_SHOOT, 1.0f, 1.0f / (this.getRandom().nextFloat() * 0.4f + 0.8f));
         this.playSound(SoundEvents.PIGLIN_BRUTE_ANGRY, 0.75f, 0.75f + this.getRandom().nextFloat() * 0.25f);
     }

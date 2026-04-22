@@ -20,8 +20,14 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animatable.manager.AnimatableManager;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
-public class PiglinVindicatorEntity extends Vindicator {
+public class PiglinVindicatorEntity extends Vindicator implements GeoEntity {
+    private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
+
     public PiglinVindicatorEntity(EntityType<? extends PiglinVindicatorEntity> entityType, Level level) {
         super(entityType, level);
     }
@@ -37,6 +43,20 @@ public class PiglinVindicatorEntity extends Vindicator {
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, EntitySpawnReason reason, SpawnGroupData spawnData) {
         SpawnGroupData result = super.finalizeSpawn(level, difficulty, reason, spawnData);
         return PiglinDifficultyScaler.applyHardHealth(this, level, result);
+    }
+
+    @Override
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(
+            RuinedPortalGeoAnimations.walkIdleController(),
+            RuinedPortalGeoAnimations.deathController(),
+            RuinedPortalGeoAnimations.actionController()
+        );
+    }
+
+    @Override
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return this.geoCache;
     }
 
     @Override

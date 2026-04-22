@@ -26,8 +26,12 @@ import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animatable.manager.AnimatableManager;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
-public class ExiledPiglinTraderEntity extends WanderingTrader {
+public class ExiledPiglinTraderEntity extends WanderingTrader implements GeoEntity {
     private static final long DESPAWN_AFTER_TICKS = 72_000L;
     private static final long RESTOCK_INTERVAL_TICKS = 40_000L;
     private static final List<Component> TRADE_MESSAGES = List.of(
@@ -38,6 +42,7 @@ public class ExiledPiglinTraderEntity extends WanderingTrader {
         Component.literal("Spend fast. The scar will not stay quiet.")
     );
 
+    private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
     private long spawnGameTime = -1L;
     private long lastRestockGameTime = -1L;
 
@@ -51,6 +56,19 @@ public class ExiledPiglinTraderEntity extends WanderingTrader {
         return Mob.createMobAttributes()
             .add(Attributes.MAX_HEALTH, 20.0)
             .add(Attributes.MOVEMENT_SPEED, 0.35);
+    }
+
+    @Override
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(
+            RuinedPortalGeoAnimations.walkIdleController(),
+            RuinedPortalGeoAnimations.deathController()
+        );
+    }
+
+    @Override
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return this.geoCache;
     }
 
     public void rememberSpawnTime(long gameTime) {

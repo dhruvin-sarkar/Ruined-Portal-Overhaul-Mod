@@ -21,11 +21,16 @@ import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animatable.manager.AnimatableManager;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
-public class PiglinEvokerEntity extends Evoker {
+public class PiglinEvokerEntity extends Evoker implements GeoEntity {
     private static final int FANG_COOLDOWN_TICKS = 160;
     private static final int VEX_COOLDOWN_TICKS = 220;
 
+    private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
     private int fangCooldown;
     private int vexCooldown;
     private boolean summonedDesperationVex;
@@ -44,6 +49,20 @@ public class PiglinEvokerEntity extends Evoker {
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, EntitySpawnReason reason, SpawnGroupData spawnData) {
         SpawnGroupData result = super.finalizeSpawn(level, difficulty, reason, spawnData);
         return PiglinDifficultyScaler.applyHardHealth(this, level, result);
+    }
+
+    @Override
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(
+            RuinedPortalGeoAnimations.walkIdleController(),
+            RuinedPortalGeoAnimations.deathController(),
+            RuinedPortalGeoAnimations.actionController()
+        );
+    }
+
+    @Override
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return this.geoCache;
     }
 
     @Override
@@ -93,6 +112,7 @@ public class PiglinEvokerEntity extends Evoker {
 
     private void castMagmaEruption(ServerLevel serverLevel, Vec3 center) {
         float radius = 3.0f;
+        this.triggerAnim(RuinedPortalGeoAnimations.ACTION_CONTROLLER, RuinedPortalGeoAnimations.ATTACK_CAST);
         serverLevel.playSound(null, this.blockPosition(), SoundEvents.BLAZE_SHOOT, SoundSource.HOSTILE, 1.1f, 0.55f);
         serverLevel.playSound(null, this.blockPosition(), SoundEvents.LAVA_POP, SoundSource.HOSTILE, 0.8f, 0.70f);
         for (int i = 0; i < 10; i++) {
