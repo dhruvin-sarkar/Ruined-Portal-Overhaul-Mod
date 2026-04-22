@@ -23,6 +23,9 @@
 		],
 		"modmenu": [
 			"com.ruinedportaloverhaul.client.config.ModMenuIntegration"
+		],
+		"rei_client": [
+			"com.ruinedportaloverhaul.client.compat.rei.ModREIPlugin"
 		]
 	},
 	"mixins": [
@@ -44,6 +47,7 @@
 	},
 	"suggests": {
 		"cloth-config2": "*",
-		"modmenu": "*"
+		"modmenu": "*",
+		"roughlyenoughitems": "*"
 	}
 }
