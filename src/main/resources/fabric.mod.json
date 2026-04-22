@@ -48,6 +48,9 @@
 	"suggests": {
 		"cloth-config2": "*",
 		"modmenu": "*",
-		"roughlyenoughitems": "*"
+		"roughlyenoughitems": "*",
+		"terralith": "*",
+		"biomesoplenty": "*",
+		"regions_unexplored": "*"
 	}
 }
