@@ -1,7 +1,9 @@
 package com.ruinedportaloverhaul.block;
 
 import com.ruinedportaloverhaul.block.entity.NetherConduitBlockEntity;
+import com.ruinedportaloverhaul.block.entity.NetherConduitPowerTracker;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -24,6 +26,8 @@ public final class NetherConduitEvents {
     }
 
     public static void initialize() {
+        // The conduit power tracker is runtime-only state; clear it on shutdown so integrated-server world swaps do not leak old boosts.
+        ServerLifecycleEvents.SERVER_STOPPING.register(server -> NetherConduitPowerTracker.clear());
         UseBlockCallback.EVENT.register((player, level, hand, hitResult) -> {
             BlockPos bedPos = hitResult.getBlockPos();
             BlockState state = level.getBlockState(bedPos);

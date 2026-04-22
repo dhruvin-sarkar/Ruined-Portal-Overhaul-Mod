@@ -40,6 +40,11 @@ public final class NetherConduitPowerTracker {
         return power.level();
     }
 
+    public static void clear() {
+        // This tracker used to survive server shutdown in the same JVM; clear it so new worlds cannot inherit stale conduit power.
+        ACTIVE_PLAYER_POWER.clear();
+    }
+
     private record ConduitPower(long expiresAt, int level) {
     }
 }
