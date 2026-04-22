@@ -51,7 +51,7 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
    - Server sends `PortalAtmospherePayload` every 10 ticks while a player is horizontally inside the portal zone.
    - Client overlay is about 15-20% stronger than the previous storm pass.
    - Red thunder is roughly twice as frequent and uses a brief 2-3 tick deep-red HUD flash instead of the vanilla white sky flash.
-   - Sky, rain, weather state, and fog are handled through client mixins; fog is tighter underground through descent-scaled intensity.
+   - Sky, rain, weather state, and fog are handled through client mixins; `ClientLevelStormMixin` only affects real `ClientLevel` instances so fake storm weather does not leak into integrated-server logic, and fog is tighter underground through descent-scaled intensity.
 8. Territory Boon
    - While a portal is incomplete, players horizontally inside its radius-136 territory receive Regeneration II, Resistance I, Fire Resistance I, and Absorption IV every 10 ticks with a 260-tick duration.
    - The boon uses the same horizontal zone logic as the atmosphere, so it works on the surface, in the pit, and throughout the caves.
@@ -66,7 +66,7 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
    - Custom criteria live in `com.ruinedportaloverhaul.advancement`.
    - `PortalEventTrigger` and `ModAdvancementTriggers` register and fire portal approach, pit descent, deep storm, aether boon, territory totem, raid start, raid completion, and Exiled Piglin trade events.
 11. Nether Conduit
-   - Custom block and block entity activate from a nether-bricks frame, grant Nether survival effects, reduce lava movement at higher level, allow Nether sleep near an active conduit, and attack nearby Nether mobs.
+   - Custom block and block entity activate from a nether-bricks frame, grant Nether survival effects, reduce lava movement at higher level, allow Nether sleep near an active conduit, attack nearby Nether mobs, and clear runtime lava-boost state on server stop.
    - Exactly one conduit is inserted directly into a generated structure chest, with additional rare drops from custom raid mobs.
 12. Ghast Tear Necklace
    - Native carried charm item with no external accessory dependency.
@@ -114,7 +114,7 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
 - Java `21`
 - Mojang mappings
 - Resource paths use modern singular names such as `loot_table/` and `advancement/`.
-- Accessories is intentionally not required for the Lunar-compatible build. The available Accessories `1.21.10` jar crashes Lunar Client `1.21.11` inventory screen mixins, so the Ghast Tear Necklace is implemented as a native carried item.
+- Accessories is intentionally not required for the Lunar-compatible build. Re-verified Wisp Maven metadata still has no `1.21.11` Accessories build as of 2026-04-22, and the available `1.21.10` jar crashes Lunar Client `1.21.11` inventory screen mixins, so the Ghast Tear Necklace is implemented as a native carried item.
 
 ## Validation
 

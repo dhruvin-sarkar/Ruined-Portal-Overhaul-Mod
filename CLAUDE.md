@@ -1,6 +1,6 @@
 # Ruined Portal Overhaul - Canonical Project Context
 
-Last reconciled: 2026-04-20. Current build status: `./gradlew build` succeeds with Java 21 when `JAVA_HOME` points at `C:\Users\dhruv\.codex\jdks\temurin-21`.
+Last reconciled: 2026-04-22. Current build status: `./gradlew build` succeeds with Java 21 when `JAVA_HOME` points at `C:\Users\dhruv\.codex\jdks\temurin-21`.
 
 This file is the single source of truth for the project. `SPEC.md` is the concise companion and must stay aligned with this file.
 
@@ -18,7 +18,7 @@ This file is the single source of truth for the project. `SPEC.md` is the concis
 
 Lunar compatibility note:
 
-The original expansion targeted Accessories API, but the official Wisp Maven metadata currently has no `1.21.11` Accessories build. The newest available line is `1.4.3-beta+1.21.10`, and that jar crashes Lunar Client `1.21.11` while applying `accessories-common.mixins.json:client.InventoryScreenMixin` to `net.minecraft.class_490`. Keep this project free of the Accessories dependency until a matching `1.21.11` build has been verified in Lunar.
+The original expansion targeted Accessories API, but the official Wisp Maven metadata still has no `1.21.11` Accessories build as of 2026-04-22. The newest available line remains `1.4.3-beta+1.21.10`, and that jar crashes Lunar Client `1.21.11` while applying `accessories-common.mixins.json:client.InventoryScreenMixin` to `net.minecraft.class_490`. Keep this project free of the Accessories dependency until a matching `1.21.11` build has been verified in Lunar.
 
 ## Source Layout
 
@@ -101,7 +101,7 @@ The Nether Conduit is a custom block/block entity pair:
 - `NetherConduitBlockItem`: documents levels/effects in the item tooltip.
 - `ModBlockEntities`: registers the block entity type.
 - `NetherConduitBlockEntity`: owns activation, level state, player effects, action-bar status, nether mob attacks, and NBT persistence.
-- `NetherConduitPowerTracker`: short-lived per-player lava movement boost state used by the lava movement mixin.
+- `NetherConduitPowerTracker`: short-lived per-player lava movement boost state used by the lava movement mixin and cleared on server stop so integrated-server world swaps cannot inherit stale conduit boosts.
 - `NetherConduitEvents`: allows sleeping in Nether-like dimensions when an active conduit is within 16 blocks.
 - `LivingEntityLavaMovementMixin`: reduces lava movement drag/acceleration penalties while `NetherConduitPowerTracker` is active.
 - `ModDamageTypes` plus `data/ruined_portal_overhaul/damage_type/nether_conduit.json`: custom damage source for conduit attacks.
@@ -288,7 +288,7 @@ The red storm is a client-side visual/audio system driven by server proximity pa
 - Packet intensity uses horizontal distance and never falls below `0.22` while in-zone.
 - Packet descent uses how far the player is below the portal frame, making pit and cave atmosphere tighter and more intense.
 - `PortalAtmosphereClient` eases target intensity/descent, fades when packets stop, applies a 4.2-second breathing pulse, and renders the HUD tint. Current tint strength is about 15-20% more pronounced than the earlier storm pass.
-- `ClientLevelStormMixin` makes the local client report rain/thunder gradients during the storm.
+- `ClientLevelStormMixin` makes the local client report rain/thunder gradients during the storm and now ignores integrated-server `Level` instances so fake weather stays client-visual only.
 - `WeatherEffectRendererMixin` forces red rain visuals.
 - `SkyRendererMixin` tints the sky toward a dark red storm color and dims rain brightness.
 - `FogRendererMixin` tints fog red and tightens fog distance, especially underground.
