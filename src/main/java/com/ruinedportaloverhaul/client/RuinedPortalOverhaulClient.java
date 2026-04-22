@@ -12,11 +12,13 @@ import com.ruinedportaloverhaul.client.render.geo.PiglinVexGeoRenderer;
 import com.ruinedportaloverhaul.client.render.geo.PiglinVindicatorGeoRenderer;
 import com.ruinedportaloverhaul.entity.ModEntities;
 import net.fabricmc.api.ClientModInitializer;
+import net.minecraft.client.renderer.entity.EnderDragonRenderer;
 import net.minecraft.client.renderer.entity.EntityRenderers;
 
 public final class RuinedPortalOverhaulClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
+        // Fix: the custom dragon entity had no client renderer registration, so the summon now resolves to Minecraft's dragon renderer instead of rendering nothing.
         PortalAtmosphereClient.initialize();
         NetherFireballKeybinds.initialize();
         EntityRenderers.register(
@@ -54,6 +56,10 @@ public final class RuinedPortalOverhaulClient implements ClientModInitializer {
         EntityRenderers.register(
             ModEntities.NETHER_CRYSTAL,
             NetherCrystalRenderer::new
+        );
+        EntityRenderers.register(
+            ModEntities.NETHER_DRAGON,
+            EnderDragonRenderer::new
         );
     }
 }
