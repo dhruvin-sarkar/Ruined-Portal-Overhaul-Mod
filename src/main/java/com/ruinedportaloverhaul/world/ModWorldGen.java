@@ -1,5 +1,6 @@
 package com.ruinedportaloverhaul.world;
 
+import com.ruinedportaloverhaul.config.ModConfigManager;
 import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
 import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
 import net.minecraft.core.registries.Registries;
@@ -18,6 +19,7 @@ public final class ModWorldGen {
     }
 
     public static void initialize() {
+        // Fix: the global lore spawns were always injected, so the startup gate now honors the worldgen config instead of forcing them on every pack.
         BiomeModifications.addFeature(
             BiomeSelectors.foundInOverworld(),
             GenerationStep.Decoration.UNDERGROUND_ORES,
@@ -34,8 +36,10 @@ public final class ModWorldGen {
             UNDERGROUND_BLACKSTONE_VEIN
         );
 
-        BiomeModifications.addSpawn(BiomeSelectors.foundInOverworld(), MobCategory.MONSTER, EntityType.ZOMBIFIED_PIGLIN, 1, 1, 2);
-        BiomeModifications.addSpawn(BiomeSelectors.foundInOverworld(), MobCategory.MONSTER, EntityType.BLAZE, 1, 1, 1);
+        if (ModConfigManager.enableAmbientNetherSpawns()) {
+            BiomeModifications.addSpawn(BiomeSelectors.foundInOverworld(), MobCategory.MONSTER, EntityType.ZOMBIFIED_PIGLIN, 1, 1, 2);
+            BiomeModifications.addSpawn(BiomeSelectors.foundInOverworld(), MobCategory.MONSTER, EntityType.BLAZE, 1, 1, 1);
+        }
     }
 
     private static ResourceKey<PlacedFeature> placedFeature(String path) {

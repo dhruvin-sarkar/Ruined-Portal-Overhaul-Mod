@@ -4,6 +4,7 @@ import com.ruinedportaloverhaul.entity.ModEntities;
 import com.ruinedportaloverhaul.entity.ExiledPiglinTraderEntity;
 import com.ruinedportaloverhaul.advancement.ModAdvancementTriggers;
 import com.ruinedportaloverhaul.block.NetherConduitChestPlacement;
+import com.ruinedportaloverhaul.config.ModConfigManager;
 import com.ruinedportaloverhaul.network.PortalAtmospherePayload;
 import com.ruinedportaloverhaul.sound.ModSounds;
 import com.ruinedportaloverhaul.structure.PortalDungeonPiece;
@@ -63,6 +64,7 @@ import net.minecraft.world.level.levelgen.structure.StructureStart;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.phys.AABB;
 
+@SuppressWarnings("deprecation")
 public final class GoldRaidManager {
     private static final int APPROACH_TRIGGER_RANGE = PortalStructureHelper.OUTER_RADIUS;
     private static final int RAID_TRIGGER_RANGE = PortalStructureHelper.INNER_RADIUS + 13;
@@ -74,7 +76,6 @@ public final class GoldRaidManager {
     private static final int ATMOSPHERE_PACKET_INTERVAL_TICKS = 10;
     private static final int AMBIENT_PARTICLE_INTERVAL_TICKS = 40;
     private static final int AMBIENT_SPAWN_INTERVAL_TICKS = 10;
-    private static final int AMBIENT_MOB_CAP = 180;
     private static final int AMBIENT_BURST_MIN = 8;
     private static final int AMBIENT_BURST_RANDOM = 5;
     private static final int ANCHORED_GHAST_CAP = 16;
@@ -82,7 +83,6 @@ public final class GoldRaidManager {
     private static final int GHAST_ANCHOR_RADIUS = PortalStructureHelper.OUTER_RADIUS + 32;
     private static final int GHAST_ANCHOR_TICKS = 20 * 180;
     private static final int INTER_WAVE_PULSE_INTERVAL_TICKS = 60;
-    private static final int WAVE_DELAY_TICKS = 180;
     private static final int TERRITORY_BOON_DURATION_TICKS = 260;
     private static final float MIN_PORTAL_ATMOSPHERE_INTENSITY = 0.22f;
     private static final double BOSS_BAR_PLAYER_RANGE_SQUARED = BOSS_BAR_PLAYER_RANGE * BOSS_BAR_PLAYER_RANGE;
@@ -164,6 +164,10 @@ public final class GoldRaidManager {
     }
 
     private static void suppressCompletedPortalMobLoad(Entity entity, ServerLevel level) {
+        // Fix: post-raid suppression can now be disabled live instead of always discarding mobs near completed portals.
+        if (!ModConfigManager.enablePostRaidSuppression()) {
+            return;
+        }
         if (!(entity instanceof Mob mob) || entity.getType() == ModEntities.EXILED_PIGLIN || mob.isPersistenceRequired()) {
             return;
         }
@@ -191,6 +195,7 @@ public final class GoldRaidManager {
     }
 
     private static void tickLevel(ServerLevel level) {
+        // Fix: raid activation and ambient caps were hardcoded, so the main raid tick now reads the live config instead of one baked combat profile.
         if (!level.getServer().isRunning()) {
             return;
         }
@@ -230,7 +235,7 @@ public final class GoldRaidManager {
                 long key = raidKey(level, portal);
                 if (!portalRaidState.isRaidActive(portal)
                     && !ACTIVE_RAIDS.containsKey(key)
-                    && horizontalDistanceSqr(player.blockPosition(), portal) <= RAID_TRIGGER_RANGE * RAID_TRIGGER_RANGE) {
+                    && horizontalDistanceSqr(player.blockPosition(), portal) <= raidTriggerRangeSquared()) {
                     startRaid(level, portal, key, portalRaidState, player);
                 }
             }
@@ -252,6 +257,7 @@ public final class GoldRaidManager {
     }
 
     private static void restorePersistedRaids(ServerLevel level, PortalRaidState portalRaidState) {
+        // Fix: restored raids now rebuild their expected wave size from the live difficulty and config multipliers instead of frozen vanilla counts.
         for (PortalRaidState.ActiveRaidSnapshot snapshot : portalRaidState.activeRaidSnapshots()) {
             BlockPos origin = snapshot.portalOrigin().immutable();
             long key = raidKey(level, origin);
@@ -283,7 +289,7 @@ public final class GoldRaidManager {
                     state.activeMobs.add(uuid);
                 }
             }
-            state.waveSize = Math.max(expectedWaveSize(waveIndex), state.activeMobs.size());
+            state.waveSize = Math.max(expectedWaveSize(level, waveIndex), state.activeMobs.size());
             if (snapshot.waveEndTimeTicks() > level.getGameTime()) {
                 state.delayTicks = (int) Math.min(Integer.MAX_VALUE, snapshot.waveEndTimeTicks() - level.getGameTime());
             }
@@ -340,6 +346,7 @@ public final class GoldRaidManager {
     }
 
     private static boolean tickRaid(RaidState state) {
+        // Fix: wave pacing now respects the configured delay and keeps status text visible even when the boss bar is intentionally disabled.
         syncBossBarPlayers(state);
 
         if (!state.activeMobs.isEmpty() && !state.level.isPositionEntityTicking(state.origin)) {
@@ -373,7 +380,10 @@ public final class GoldRaidManager {
             }
             int seconds = Math.max(1, (state.delayTicks + 19) / 20);
             Component message = Component.literal("Next wave in " + seconds + "s");
-            for (ServerPlayer player : state.bossBar.getPlayers()) {
+            for (ServerPlayer player : state.level.players()) {
+                if (horizontalDistanceSqr(player.blockPosition(), state.origin) > BOSS_BAR_PLAYER_RANGE_SQUARED) {
+                    continue;
+                }
                 player.displayClientMessage(message, true);
             }
             return false;
@@ -383,12 +393,19 @@ public final class GoldRaidManager {
         state.level.playSound(null, state.origin, ModSounds.RAID_WAVE_COMPLETE, SoundSource.HOSTILE, 1.0f, 1.0f);
         state.bossBar.setName(Component.literal(WAVE_LABELS[state.waveIndex]));
         spawnWave(state);
-        state.delayTicks = WAVE_DELAY_TICKS;
+        state.delayTicks = ModConfigManager.interWaveDelayTicks();
         state.persistWaveState();
         return false;
     }
 
     private static void syncBossBarPlayers(RaidState state) {
+        // Fix: disabling the boss bar now truly hides it by clearing tracked viewers instead of silently keeping the bar attached.
+        if (!ModConfigManager.enableBossBar()) {
+            state.bossBar.removeAllPlayers();
+            state.trackedPlayers.clear();
+            return;
+        }
+
         Set<UUID> inRange = new HashSet<>();
         for (ServerPlayer player : state.level.players()) {
             if (horizontalDistanceSqr(player.blockPosition(), state.origin) <= BOSS_BAR_PLAYER_RANGE_SQUARED) {
@@ -411,6 +428,7 @@ public final class GoldRaidManager {
     }
 
     private static void startRaid(ServerLevel level, BlockPos origin, long key, PortalRaidState portalRaidState, ServerPlayer triggeringPlayer) {
+        // Fix: newly started raids now inherit the live pacing config rather than hardcoding the old inter-wave timer.
         if (!portalRaidState.beginRaid(origin)) {
             return;
         }
@@ -428,52 +446,17 @@ public final class GoldRaidManager {
         broadcastRaidStartTitle(level, origin);
         disablePreRaidSpawners(level, portalRaidState, origin);
         spawnWave(state);
-        state.delayTicks = WAVE_DELAY_TICKS;
+        state.delayTicks = ModConfigManager.interWaveDelayTicks();
         state.persistWaveState();
     }
 
     private static void spawnWave(RaidState state) {
+        // Fix: raid waves now scale from the live difficulty and config multiplier instead of spawning one fixed roster forever.
         state.activeMobs.clear();
         state.waveSize = 0;
-        switch (state.waveIndex) {
-            case 0 -> spawnWave(
-                state,
-                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 12),
-                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 8)
-            );
-            case 1 -> spawnWave(
-                state,
-                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 14),
-                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 8),
-                new SpawnEntry(ModEntities.PIGLIN_BRUTE_PILLAGER, 5)
-            );
-            case 2 -> spawnWave(
-                state,
-                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 12),
-                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 9),
-                new SpawnEntry(ModEntities.PIGLIN_BRUTE_PILLAGER, 8),
-                new SpawnEntry(ModEntities.PIGLIN_ILLUSIONER, 5)
-            );
-            case 3 -> spawnWave(
-                state,
-                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 6),
-                new SpawnEntry(ModEntities.PIGLIN_BRUTE_PILLAGER, 8),
-                new SpawnEntry(ModEntities.PIGLIN_ILLUSIONER, 6),
-                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 8),
-                new SpawnEntry(ModEntities.PIGLIN_RAVAGER, 1),
-                new SpawnEntry(ModEntities.PIGLIN_EVOKER, 1)
-            );
-            case 4 -> spawnWave(
-                state,
-                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 10),
-                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 9),
-                new SpawnEntry(ModEntities.PIGLIN_BRUTE_PILLAGER, 8),
-                new SpawnEntry(ModEntities.PIGLIN_ILLUSIONER, 5),
-                new SpawnEntry(ModEntities.PIGLIN_RAVAGER, 2),
-                new SpawnEntry(ModEntities.PIGLIN_EVOKER, 3)
-            );
-            default -> {
-            }
+        SpawnEntry[] entries = scaledWaveEntries(state.level, state.waveIndex);
+        if (entries.length > 0) {
+            spawnWave(state, entries);
         }
         state.bossBar.setProgress(1.0f);
         state.persistWaveState();
@@ -673,12 +656,15 @@ public final class GoldRaidManager {
     }
 
     private static void tickPortalZoneStormPayloads(ServerLevel level, PortalRaidState portalRaidState) {
+        // Fix: the territory boon stays active while the red storm toggle now suppresses only the client weather packet when the user disables it.
         for (ServerPlayer player : level.players()) {
             BlockPos portal = findNearbyGeneratedPortal(level, player, PortalStructureHelper.OUTER_RADIUS);
             if (portal == null || portalRaidState.isCompleted(portal)) {
                 continue;
             }
-            sendPortalAtmosphere(player, portal);
+            if (ModConfigManager.enableRedStorm()) {
+                sendPortalAtmosphere(player, portal);
+            }
             applyPortalTerritoryBoon(player, portal);
         }
     }
@@ -708,6 +694,10 @@ public final class GoldRaidManager {
     }
 
     private static void sendPortalAtmosphere(ServerPlayer player, BlockPos origin) {
+        // Fix: storm payloads now honor the live toggle on the server too, which prevents needless traffic once the client storm is disabled.
+        if (!ModConfigManager.enableRedStorm()) {
+            return;
+        }
         if (!ServerPlayNetworking.canSend(player, PortalAtmospherePayload.TYPE)) {
             return;
         }
@@ -773,12 +763,13 @@ public final class GoldRaidManager {
     }
 
     private static void tickPortalZoneNaturalSpawns(ServerLevel level, PortalRaidState portalRaidState, long gameTime) {
+        // Fix: completed portals only suppress ambient repopulation when the suppression config is enabled, instead of forcing the territory silent forever.
         Set<BlockPos> attempted = new HashSet<>();
         for (ServerPlayer player : level.players()) {
             BlockPos portal = findPortalDungeonOrigin(level, player.blockPosition(), PortalStructureHelper.OUTER_RADIUS);
             if (portal == null
                 || !attempted.add(portal.immutable())
-                || portalRaidState.isCompleted(portal)
+                || (portalRaidState.isCompleted(portal) && ModConfigManager.enablePostRaidSuppression())
                 || level.getDifficulty() == Difficulty.PEACEFUL) {
                 continue;
             }
@@ -790,16 +781,18 @@ public final class GoldRaidManager {
     }
 
     private static void trySpawnAmbientGroundMob(ServerLevel level, ServerPlayer player, BlockPos origin, long key, long gameTime) {
+        // Fix: portal ambient repopulation now uses the live mob-cap config instead of one permanent hardcoded ceiling.
         long nextSpawnTick = NEXT_AMBIENT_SPAWN_TICK.getOrDefault(key, 0L);
         int existingMobs = countPortalAmbientMobs(level, origin);
-        if (gameTime < nextSpawnTick || existingMobs >= AMBIENT_MOB_CAP) {
+        int ambientMobCap = ModConfigManager.ambientMobCap();
+        if (gameTime < nextSpawnTick || existingMobs >= ambientMobCap) {
             return;
         }
 
         double distance = horizontalDistance(player.blockPosition(), origin);
         List<AmbientSpawnEntry> entries = ambientSpawnEntries(player, origin, distance);
         int depthBonus = player.getY() <= origin.getY() - 38.0 ? 4 : player.getY() <= origin.getY() - 16.0 ? 2 : 0;
-        int burstSize = Math.min(AMBIENT_MOB_CAP - existingMobs, AMBIENT_BURST_MIN + depthBonus + level.getRandom().nextInt(AMBIENT_BURST_RANDOM));
+        int burstSize = Math.min(ambientMobCap - existingMobs, AMBIENT_BURST_MIN + depthBonus + level.getRandom().nextInt(AMBIENT_BURST_RANDOM));
         int spawned = 0;
         for (int i = 0; i < burstSize; i++) {
             EntityType<? extends LivingEntity> type = pickAmbientType(level.getRandom(), entries);
@@ -1369,15 +1362,84 @@ public final class GoldRaidManager {
         ANCHORED_GHASTS.clear();
     }
 
-    private static int expectedWaveSize(int waveIndex) {
+    private static int expectedWaveSize(ServerLevel level, int waveIndex) {
+        return totalScaledWaveMobCount(level, waveIndex);
+    }
+
+    private static SpawnEntry[] scaledWaveEntries(ServerLevel level, int waveIndex) {
+        SpawnEntry[] baseEntries = baseWaveEntries(waveIndex);
+        SpawnEntry[] scaledEntries = new SpawnEntry[baseEntries.length];
+        for (int i = 0; i < baseEntries.length; i++) {
+            SpawnEntry entry = baseEntries[i];
+            scaledEntries[i] = new SpawnEntry(entry.type(), scaledWaveCount(level, entry.count()));
+        }
+        return scaledEntries;
+    }
+
+    private static SpawnEntry[] baseWaveEntries(int waveIndex) {
         return switch (waveIndex) {
-            case 0 -> 20;
-            case 1 -> 27;
-            case 2 -> 34;
-            case 3 -> 30;
-            case 4 -> 37;
-            default -> 0;
+            case 0 -> new SpawnEntry[] {
+                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 12),
+                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 8)
+            };
+            case 1 -> new SpawnEntry[] {
+                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 14),
+                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 8),
+                new SpawnEntry(ModEntities.PIGLIN_BRUTE_PILLAGER, 5)
+            };
+            case 2 -> new SpawnEntry[] {
+                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 12),
+                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 9),
+                new SpawnEntry(ModEntities.PIGLIN_BRUTE_PILLAGER, 8),
+                new SpawnEntry(ModEntities.PIGLIN_ILLUSIONER, 5)
+            };
+            case 3 -> new SpawnEntry[] {
+                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 6),
+                new SpawnEntry(ModEntities.PIGLIN_BRUTE_PILLAGER, 8),
+                new SpawnEntry(ModEntities.PIGLIN_ILLUSIONER, 6),
+                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 8),
+                new SpawnEntry(ModEntities.PIGLIN_RAVAGER, 1),
+                new SpawnEntry(ModEntities.PIGLIN_EVOKER, 1)
+            };
+            case 4 -> new SpawnEntry[] {
+                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 10),
+                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 9),
+                new SpawnEntry(ModEntities.PIGLIN_BRUTE_PILLAGER, 8),
+                new SpawnEntry(ModEntities.PIGLIN_ILLUSIONER, 5),
+                new SpawnEntry(ModEntities.PIGLIN_RAVAGER, 2),
+                new SpawnEntry(ModEntities.PIGLIN_EVOKER, 3)
+            };
+            default -> new SpawnEntry[0];
         };
+    }
+
+    private static int totalScaledWaveMobCount(ServerLevel level, int waveIndex) {
+        int total = 0;
+        for (SpawnEntry entry : scaledWaveEntries(level, waveIndex)) {
+            total += entry.count();
+            if (waveIndex != 4 && entry.type() == ModEntities.PIGLIN_RAVAGER) {
+                total += entry.count();
+            }
+        }
+        return total;
+    }
+
+    private static int scaledWaveCount(ServerLevel level, int baseCount) {
+        return Math.max(1, (int) Math.round(baseCount * waveCountScale(level)));
+    }
+
+    private static double waveCountScale(ServerLevel level) {
+        double difficultyMultiplier = switch (level.getDifficulty()) {
+            case PEACEFUL, EASY -> 0.7;
+            case NORMAL -> 1.0;
+            case HARD -> 1.3;
+        };
+        return difficultyMultiplier * ModConfigManager.waveCountMultiplier();
+    }
+
+    private static double raidTriggerRangeSquared() {
+        double triggerRadius = ModConfigManager.raidTriggerRadius();
+        return triggerRadius * triggerRadius;
     }
 
     private static final class RaidState {

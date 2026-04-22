@@ -1,6 +1,7 @@
 package com.ruinedportaloverhaul.client.atmosphere;
 
 import com.ruinedportaloverhaul.RuinedPortalOverhaul;
+import com.ruinedportaloverhaul.config.ModConfigManager;
 import com.ruinedportaloverhaul.network.PortalAtmospherePayload;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
@@ -20,8 +21,6 @@ public final class PortalAtmosphereClient {
     private static final Music RED_STORM_MUSIC = new Music(SoundEvents.MUSIC_BIOME_BASALT_DELTAS, 0, 0, true);
     private static final long PACKET_FADE_NANOS = 1_600_000_000L;
     private static final long STORM_UPDATE_MIN_NANOS = 1_000_000L;
-    private static final long FLASH_MIN_DELAY_NANOS = 225_000_000L;
-    private static final long FLASH_RANDOM_DELAY_NANOS = 700_000_000L;
     private static final long FLASH_TICK_NANOS = 50_000_000L;
     private static final double PULSE_PERIOD_NANOS = 4_200_000_000.0;
     private static final float PULSE_FLOOR = 0.72f;
@@ -50,6 +49,13 @@ public final class PortalAtmosphereClient {
     }
 
     private static void receive(PortalAtmospherePayload payload) {
+        // Fix: the client storm now respects the live config toggle so disabling it fades out instead of leaving stale target intensity behind.
+        if (!ModConfigManager.enableRedStorm()) {
+            targetIntensity = 0.0f;
+            targetDescent = 0.0f;
+            lastPacketNanos = 0L;
+            return;
+        }
         targetIntensity = clamp01(payload.intensity());
         targetDescent = clamp01(payload.descent());
         lastPacketNanos = System.nanoTime();
@@ -100,10 +106,15 @@ public final class PortalAtmosphereClient {
     }
 
     private static void updateStormState(long now) {
+        // Fix: storm intensity was hardcoded, so the client now fades cleanly when disabled and multiplies the live config intensity instead of freezing one preset.
         if (lastStormUpdateNanos != 0L && now - lastStormUpdateNanos < STORM_UPDATE_MIN_NANOS) {
             return;
         }
         lastStormUpdateNanos = now;
+        if (!ModConfigManager.enableRedStorm()) {
+            targetIntensity = 0.0f;
+            targetDescent = 0.0f;
+        }
         if (now - lastPacketNanos > PACKET_FADE_NANOS) {
             targetIntensity = 0.0f;
             targetDescent = 0.0f;
@@ -112,11 +123,12 @@ public final class PortalAtmosphereClient {
         displayIntensity += (targetIntensity - displayIntensity) * 0.10f;
         displayDescent += (targetDescent - displayDescent) * 0.08f;
         stormPulse = breathingPulse(now);
-        stormIntensity = clamp01(displayIntensity * (0.94f + displayDescent * 0.26f));
+        stormIntensity = clamp01((float) (displayIntensity * ModConfigManager.stormIntensity()) * (0.94f + displayDescent * 0.26f));
         updateStormMusic();
     }
 
     private static void triggerStormFlashes(long now) {
+        // Fix: thunder cadence was fixed in nanoseconds, so flash scheduling now tracks the live frequency setting and still accelerates under heavier storms.
         if (stormIntensity < 0.42f) {
             nextFlashNanos = 0L;
             return;
@@ -126,27 +138,28 @@ public final class PortalAtmosphereClient {
             return;
         }
         if (nextFlashNanos == 0L) {
-            nextFlashNanos = now + FLASH_MIN_DELAY_NANOS + randomNanos(FLASH_RANDOM_DELAY_NANOS);
+            nextFlashNanos = now + baseFlashDelayNanos() + randomNanos(randomFlashDelayNanos());
         }
         if (now >= nextFlashNanos) {
             int flashTicks = 2 + STORM_RANDOM.nextInt(2);
             redFlashEndNanos = now + flashTicks * FLASH_TICK_NANOS;
             playRedThunder(client);
             nextFlashNanos = now
-                + FLASH_MIN_DELAY_NANOS
-                + randomNanos(FLASH_RANDOM_DELAY_NANOS)
-                - (long) (stormIntensity * 260_000_000L);
+                + baseFlashDelayNanos()
+                + randomNanos(randomFlashDelayNanos())
+                - tickToNanos(Math.max(0, (int) Math.round(ModConfigManager.thunderFrequency() * stormIntensity * 0.25)));
         }
     }
 
     private static void updateStormMusic() {
+        // Fix: music needed to stop when the storm is disabled live, not only when packets taper out on their own.
         Minecraft client = Minecraft.getInstance();
         if (client.level == null || client.player == null) {
             musicPlaying = false;
             return;
         }
 
-        if (stormIntensity > 0.18f) {
+        if (ModConfigManager.enableRedStorm() && stormIntensity > 0.18f) {
             if (!musicPlaying || !client.getMusicManager().isPlayingMusic(RED_STORM_MUSIC)) {
                 client.getMusicManager().startPlaying(RED_STORM_MUSIC);
                 musicPlaying = true;
@@ -196,6 +209,18 @@ public final class PortalAtmosphereClient {
 
     private static long randomNanos(long maxExclusive) {
         return (long) (STORM_RANDOM.nextDouble() * maxExclusive);
+    }
+
+    private static long baseFlashDelayNanos() {
+        return tickToNanos(Math.max(20, (int) Math.round(ModConfigManager.thunderFrequency() * 0.75)));
+    }
+
+    private static long randomFlashDelayNanos() {
+        return tickToNanos(Math.max(10, (int) Math.round(ModConfigManager.thunderFrequency() * 0.75)));
+    }
+
+    private static long tickToNanos(int ticks) {
+        return ticks * FLASH_TICK_NANOS;
     }
 
     private static int argb(int alpha, int red, int green, int blue) {

@@ -2,6 +2,7 @@ package com.ruinedportaloverhaul.raid;
 
 import com.ruinedportaloverhaul.advancement.ModAdvancementTriggers;
 import com.ruinedportaloverhaul.advancement.PortalEventTrigger;
+import com.ruinedportaloverhaul.config.ModConfigManager;
 import com.ruinedportaloverhaul.entity.NetherDragonEntity;
 import com.ruinedportaloverhaul.entity.NetherCrystalEntity;
 import com.ruinedportaloverhaul.sound.ModSounds;
@@ -54,10 +55,14 @@ public final class NetherDragonRituals {
     }
 
     public static void onNetherCrystalPlaced(ServerLevel level, BlockPos pedestalPos, NetherCrystalEntity crystal) {
+        // Fix: ritual placements used to summon unconditionally, so new crystals now respect the live dragon toggle while still preserving ritual progress.
         PortalRaidState portalRaidState = PortalRaidState.get(level.getServer());
         portalRaidState.completedPortalForPedestal(pedestalPos).ifPresent(portalOrigin -> {
             PortalRaidState.RitualProgress progress = portalRaidState.markRitualCrystalPlaced(portalOrigin, pedestalPos);
-            if (progress.allFilled() && !portalRaidState.isDragonActive(portalOrigin) && !SUMMONING_SEQUENCES.containsKey(portalOrigin.asLong())) {
+            if (ModConfigManager.enableNetherDragon()
+                && progress.allFilled()
+                && !portalRaidState.isDragonActive(portalOrigin)
+                && !SUMMONING_SEQUENCES.containsKey(portalOrigin.asLong())) {
                 beginSummoning(level, portalOrigin);
             }
         });
@@ -97,6 +102,7 @@ public final class NetherDragonRituals {
     }
 
     private static void reconcilePortalState(MinecraftServer server) {
+        // Fix: ritual reconciliation now keeps existing dragons intact while refusing to start new summoning sequences when the dragon feature is disabled.
         ServerLevel level = server.overworld();
         PortalRaidState portalRaidState = PortalRaidState.get(server);
         Set<BlockPos> trackedPortals = new HashSet<>(portalRaidState.ritualPortalOrigins());
@@ -122,8 +128,10 @@ public final class NetherDragonRituals {
             }
 
             portalRaidState.setDragonActive(portalOrigin, false);
-            if (sequence == null && progress.allFilled()) {
+            if (ModConfigManager.enableNetherDragon() && sequence == null && progress.allFilled()) {
                 beginSummoning(level, portalOrigin);
+            } else if (!ModConfigManager.enableNetherDragon() && sequence != null) {
+                SUMMONING_SEQUENCES.remove(portalOrigin.asLong());
             }
         }
     }
@@ -187,6 +195,10 @@ public final class NetherDragonRituals {
     }
 
     private static void spawnDragon(ServerLevel level, BlockPos origin) {
+        // Fix: the summon stage now rechecks the dragon toggle so disabling the feature mid-ritual cannot still spawn a boss from a queued sequence.
+        if (!ModConfigManager.enableNetherDragon()) {
+            return;
+        }
         NetherDragonEntity dragon = new NetherDragonEntity(level, origin);
         dragon.setPos(origin.getX() + 0.5, origin.getY() + 10.0, origin.getZ() + 0.5);
         dragon.setYRot(level.getRandom().nextFloat() * 360.0f);
