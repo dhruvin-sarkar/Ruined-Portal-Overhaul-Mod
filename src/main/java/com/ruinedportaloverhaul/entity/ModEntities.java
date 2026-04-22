@@ -2,6 +2,7 @@ package com.ruinedportaloverhaul.entity;
 
 import com.ruinedportaloverhaul.RuinedPortalOverhaul;
 import java.util.function.Supplier;
+import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityType;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -107,6 +108,8 @@ public final class ModEntities {
     }
 
     public static void initialize() {
+        // Fix: the Nether Dragon is built with the plain entity builder, so its attributes now register explicitly instead of relying on createMob defaults that never run for this type.
+        FabricDefaultAttributeRegistry.register(NETHER_DRAGON, NetherDragonEntity.createAttributes());
         RuinedPortalOverhaul.LOGGER.info("Registered piglin raid entity hooks");
     }
 

@@ -15,6 +15,8 @@
   "item.ruined_portal_overhaul.ghast_tear_necklace.tooltip.mobility": "Carry to gain Speed II and Jump Boost II.",
   "item.ruined_portal_overhaul.ghast_tear_necklace.tooltip.fireball": "Press the Nether Fireball key to launch a fireball. Cooldown: %s seconds.",
   "item.ruined_portal_overhaul.ghast_tear_necklace.tooltip.ready": "Fireball ready.",
+  "bossbar.ruined_portal_overhaul.nether_dragon": "The Nether Dragon",
+  "bossbar.ruined_portal_overhaul.nether_dragon_enraged": "The Nether Dragon - Enraged",
   "text.autoconfig.ruined_portal_overhaul.title": "Ruined Portal Overhaul",
   "text.autoconfig.ruined_portal_overhaul.option.structureRarity": "Structure Rarity",
   "text.autoconfig.ruined_portal_overhaul.option.enableAmbientNetherSpawns": "Enable Ambient Nether Spawns",

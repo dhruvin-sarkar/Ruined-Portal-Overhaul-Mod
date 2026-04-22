@@ -69,9 +69,11 @@ public final class NetherDragonRituals {
     }
 
     public static void onNetherDragonDeath(ServerLevel level, NetherDragonEntity dragon) {
+        // Fix: the death reward sequence now lands after the dragon's short cinematic, so loot, pedestal shattering, boss-bar cleanup, and the toast stinger resolve together.
         BlockPos portalOrigin = dragon.portalOrigin();
         dragon.spawnAtLocation(level, new ItemStack(Items.NETHER_STAR, 2));
         dragon.spawnAtLocation(level, new ItemStack(Items.ANCIENT_DEBRIS, 1 + level.getRandom().nextInt(3)));
+        level.playSound(null, portalOrigin, SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundSource.HOSTILE, 1.2f, 0.9f);
         triggerNearby(level, portalOrigin, ModAdvancementTriggers.NETHER_DRAGON_DEFEATED);
         shatterPedestals(level, portalOrigin);
         PortalRaidState.get(level.getServer()).clearRitual(portalOrigin);
@@ -168,6 +170,7 @@ public final class NetherDragonRituals {
                 continue;
             }
 
+            bossBar.setName(dragon.bossBarTitle());
             bossBar.setProgress(Math.max(0.0f, dragon.getHealth() / dragon.getMaxHealth()));
             ServerLevel dragonLevel = (ServerLevel) dragon.level();
             for (ServerPlayer player : dragonLevel.players()) {
@@ -216,7 +219,7 @@ public final class NetherDragonRituals {
         }
 
         ServerBossEvent bossBar = new ServerBossEvent(
-            Component.literal("The Nether Dragon").withStyle(ChatFormatting.DARK_RED),
+            dragon.bossBarTitle(),
             BossEvent.BossBarColor.RED,
             BossEvent.BossBarOverlay.PROGRESS
         );

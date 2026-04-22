@@ -2,6 +2,7 @@ package com.ruinedportaloverhaul.client.atmosphere;
 
 import com.ruinedportaloverhaul.RuinedPortalOverhaul;
 import com.ruinedportaloverhaul.config.ModConfigManager;
+import com.ruinedportaloverhaul.network.DragonPhaseFlashPayload;
 import com.ruinedportaloverhaul.network.PortalAtmospherePayload;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
@@ -42,6 +43,9 @@ public final class PortalAtmosphereClient {
     }
 
     public static void initialize() {
+        ClientPlayNetworking.registerGlobalReceiver(DragonPhaseFlashPayload.TYPE, (payload, context) ->
+            context.client().execute(() -> receiveDragonPhaseFlash(payload))
+        );
         ClientPlayNetworking.registerGlobalReceiver(PortalAtmospherePayload.TYPE, (payload, context) ->
             context.client().execute(() -> receive(payload))
         );
@@ -61,24 +65,32 @@ public final class PortalAtmosphereClient {
         lastPacketNanos = System.nanoTime();
     }
 
+    private static void receiveDragonPhaseFlash(DragonPhaseFlashPayload payload) {
+        // Fix: dragon phase transitions needed a guaranteed fullscreen cue, so the overlay now accepts an explicit flash packet even when the red storm is faded out.
+        redFlashEndNanos = Math.max(redFlashEndNanos, System.nanoTime() + Math.max(1, payload.ticks()) * FLASH_TICK_NANOS);
+    }
+
     private static void renderOverlay(GuiGraphics graphics, DeltaTracker tickCounter) {
         long now = System.nanoTime();
         updateStormState(now);
         triggerStormFlashes(now);
-        if (stormIntensity < 0.01f) {
+        boolean flashActive = now < redFlashEndNanos;
+        if (stormIntensity < 0.01f && !flashActive) {
             return;
         }
 
         int width = graphics.guiWidth();
         int height = graphics.guiHeight();
-        float pulsedIntensity = stormIntensity * stormPulse;
-        int fullAlpha = Math.min(45, Math.round(pulsedIntensity * (16.5f + displayDescent * 28.0f)));
-        int lowerAlpha = Math.min(74, Math.round(pulsedIntensity * (24.0f + displayDescent * 50.0f)));
-        int fullColor = argb(fullAlpha, 142, 12, 18);
-        int lowerColor = argb(lowerAlpha, 210, 18, 24);
-        graphics.fill(0, 0, width, height, fullColor);
-        graphics.fillGradient(0, height - Math.max(48, height / 3), width, height, argb(0, 210, 18, 24), lowerColor);
-        if (now < redFlashEndNanos) {
+        if (stormIntensity >= 0.01f) {
+            float pulsedIntensity = stormIntensity * stormPulse;
+            int fullAlpha = Math.min(45, Math.round(pulsedIntensity * (16.5f + displayDescent * 28.0f)));
+            int lowerAlpha = Math.min(74, Math.round(pulsedIntensity * (24.0f + displayDescent * 50.0f)));
+            int fullColor = argb(fullAlpha, 142, 12, 18);
+            int lowerColor = argb(lowerAlpha, 210, 18, 24);
+            graphics.fill(0, 0, width, height, fullColor);
+            graphics.fillGradient(0, height - Math.max(48, height / 3), width, height, argb(0, 210, 18, 24), lowerColor);
+        }
+        if (flashActive) {
             float flashProgress = (redFlashEndNanos - now) / (float) (3L * FLASH_TICK_NANOS);
             int flashAlpha = Math.min(84, Math.max(0, Math.round(84.0f * flashProgress)));
             graphics.fill(0, 0, width, height, argb(flashAlpha, 138, 0, 0));

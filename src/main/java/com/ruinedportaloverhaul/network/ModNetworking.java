@@ -13,6 +13,7 @@ public final class ModNetworking {
         if (initialized) {
             return;
         }
+        PayloadTypeRegistry.playS2C().register(DragonPhaseFlashPayload.TYPE, DragonPhaseFlashPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(PortalAtmospherePayload.TYPE, PortalAtmospherePayload.CODEC);
         PayloadTypeRegistry.playC2S().register(NetherFireballPayload.TYPE, NetherFireballPayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(NetherFireballPayload.TYPE, (payload, context) ->
