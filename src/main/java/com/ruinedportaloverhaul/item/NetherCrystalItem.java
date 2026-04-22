@@ -2,8 +2,10 @@ package com.ruinedportaloverhaul.item;
 
 import com.ruinedportaloverhaul.entity.NetherCrystalEntity;
 import com.ruinedportaloverhaul.raid.NetherDragonRituals;
+import com.ruinedportaloverhaul.sound.ModSounds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.Item;
@@ -46,6 +48,7 @@ public class NetherCrystalItem extends Item {
             crystal.setShowBottom(false);
             serverLevel.addFreshEntity(crystal);
             serverLevel.gameEvent(context.getPlayer(), GameEvent.ENTITY_PLACE, crystalPos);
+            serverLevel.playSound(null, crystalPos, ModSounds.RITUAL_CRYSTAL_PLACE, SoundSource.BLOCKS, 0.9f, 1.0f);
             NetherDragonRituals.onNetherCrystalPlaced(serverLevel, basePos, crystal);
         }
 

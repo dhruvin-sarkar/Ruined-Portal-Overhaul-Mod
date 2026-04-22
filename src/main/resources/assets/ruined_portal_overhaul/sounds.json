@@ -1,0 +1,292 @@
+{
+  "block.nether_conduit.ambient": {
+    "subtitle": "subtitle.ruined_portal_overhaul.block.nether_conduit.ambient",
+    "sounds": [
+      {
+        "name": "minecraft:block.conduit.ambient"
+      }
+    ]
+  },
+  "block.nether_conduit.activate": {
+    "subtitle": "subtitle.ruined_portal_overhaul.block.nether_conduit.activate",
+    "sounds": [
+      {
+        "name": "minecraft:block.conduit.activate"
+      }
+    ]
+  },
+  "block.nether_conduit.deactivate": {
+    "subtitle": "subtitle.ruined_portal_overhaul.block.nether_conduit.deactivate",
+    "sounds": [
+      {
+        "name": "minecraft:block.conduit.deactivate"
+      }
+    ]
+  },
+  "entity.piglin_pillager.ambient": {
+    "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_pillager.ambient",
+    "sounds": [
+      {
+        "name": "minecraft:entity.piglin.ambient"
+      }
+    ]
+  },
+  "entity.piglin_pillager.hurt": {
+    "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_pillager.hurt",
+    "sounds": [
+      {
+        "name": "minecraft:entity.piglin.hurt"
+      }
+    ]
+  },
+  "entity.piglin_pillager.death": {
+    "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_pillager.death",
+    "sounds": [
+      {
+        "name": "minecraft:entity.piglin.death"
+      }
+    ]
+  },
+  "entity.piglin_vindicator.ambient": {
+    "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_vindicator.ambient",
+    "sounds": [
+      {
+        "name": "minecraft:entity.piglin.ambient"
+      }
+    ]
+  },
+  "entity.piglin_vindicator.hurt": {
+    "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_vindicator.hurt",
+    "sounds": [
+      {
+        "name": "minecraft:entity.piglin.hurt"
+      }
+    ]
+  },
+  "entity.piglin_vindicator.death": {
+    "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_vindicator.death",
+    "sounds": [
+      {
+        "name": "minecraft:entity.piglin.death"
+      }
+    ]
+  },
+  "entity.piglin_brute_pillager.ambient": {
+    "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_brute_pillager.ambient",
+    "sounds": [
+      {
+        "name": "minecraft:entity.piglin_brute.ambient"
+      }
+    ]
+  },
+  "entity.piglin_brute_pillager.hurt": {
+    "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_brute_pillager.hurt",
+    "sounds": [
+      {
+        "name": "minecraft:entity.piglin_brute.hurt"
+      }
+    ]
+  },
+  "entity.piglin_brute_pillager.death": {
+    "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_brute_pillager.death",
+    "sounds": [
+      {
+        "name": "minecraft:entity.piglin_brute.death"
+      }
+    ]
+  },
+  "entity.piglin_illusioner.ambient": {
+    "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_illusioner.ambient",
+    "sounds": [
+      {
+        "name": "minecraft:entity.piglin.ambient"
+      }
+    ]
+  },
+  "entity.piglin_illusioner.hurt": {
+    "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_illusioner.hurt",
+    "sounds": [
+      {
+        "name": "minecraft:entity.piglin.hurt"
+      }
+    ]
+  },
+  "entity.piglin_illusioner.death": {
+    "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_illusioner.death",
+    "sounds": [
+      {
+        "name": "minecraft:entity.piglin.death"
+      }
+    ]
+  },
+  "entity.piglin_evoker.ambient": {
+    "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_evoker.ambient",
+    "sounds": [
+      {
+        "name": "minecraft:entity.piglin.ambient"
+      }
+    ]
+  },
+  "entity.piglin_evoker.hurt": {
+    "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_evoker.hurt",
+    "sounds": [
+      {
+        "name": "minecraft:entity.piglin.hurt"
+      }
+    ]
+  },
+  "entity.piglin_evoker.death": {
+    "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_evoker.death",
+    "sounds": [
+      {
+        "name": "minecraft:entity.piglin.death"
+      }
+    ]
+  },
+  "entity.piglin_evoker.cast_spell": {
+    "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_evoker.cast_spell",
+    "sounds": [
+      {
+        "name": "minecraft:entity.evoker.cast_spell"
+      }
+    ]
+  },
+  "entity.piglin_ravager.ambient": {
+    "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_ravager.ambient",
+    "sounds": [
+      {
+        "name": "minecraft:entity.ravager.ambient"
+      }
+    ]
+  },
+  "entity.piglin_ravager.hurt": {
+    "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_ravager.hurt",
+    "sounds": [
+      {
+        "name": "minecraft:entity.ravager.hurt"
+      }
+    ]
+  },
+  "entity.piglin_ravager.death": {
+    "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_ravager.death",
+    "sounds": [
+      {
+        "name": "minecraft:entity.ravager.death"
+      }
+    ]
+  },
+  "entity.piglin_ravager.roar": {
+    "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_ravager.roar",
+    "sounds": [
+      {
+        "name": "minecraft:entity.ravager.roar"
+      }
+    ]
+  },
+  "entity.piglin_vex.ambient": {
+    "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_vex.ambient",
+    "sounds": [
+      {
+        "name": "minecraft:entity.piglin.ambient"
+      }
+    ]
+  },
+  "entity.piglin_vex.hurt": {
+    "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_vex.hurt",
+    "sounds": [
+      {
+        "name": "minecraft:entity.piglin.hurt"
+      }
+    ]
+  },
+  "entity.piglin_vex.death": {
+    "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_vex.death",
+    "sounds": [
+      {
+        "name": "minecraft:entity.piglin.death"
+      }
+    ]
+  },
+  "entity.exiled_piglin.ambient": {
+    "subtitle": "subtitle.ruined_portal_overhaul.entity.exiled_piglin.ambient",
+    "sounds": [
+      {
+        "name": "minecraft:entity.piglin.ambient"
+      }
+    ]
+  },
+  "entity.exiled_piglin.hurt": {
+    "subtitle": "subtitle.ruined_portal_overhaul.entity.exiled_piglin.hurt",
+    "sounds": [
+      {
+        "name": "minecraft:entity.piglin.hurt"
+      }
+    ]
+  },
+  "entity.exiled_piglin.death": {
+    "subtitle": "subtitle.ruined_portal_overhaul.entity.exiled_piglin.death",
+    "sounds": [
+      {
+        "name": "minecraft:entity.piglin.death"
+      }
+    ]
+  },
+  "entity.nether_dragon.ambient": {
+    "subtitle": "subtitle.ruined_portal_overhaul.entity.nether_dragon.ambient",
+    "sounds": [
+      {
+        "name": "minecraft:entity.ender_dragon.ambient"
+      }
+    ]
+  },
+  "entity.nether_dragon.phase2": {
+    "subtitle": "subtitle.ruined_portal_overhaul.entity.nether_dragon.phase2",
+    "sounds": [
+      {
+        "name": "minecraft:entity.wither.spawn"
+      }
+    ]
+  },
+  "raid.start": {
+    "subtitle": "subtitle.ruined_portal_overhaul.raid.start",
+    "sounds": [
+      {
+        "name": "minecraft:entity.wither.spawn",
+        "volume": 0.7
+      }
+    ]
+  },
+  "raid.wave_complete": {
+    "subtitle": "subtitle.ruined_portal_overhaul.raid.wave_complete",
+    "sounds": [
+      {
+        "name": "minecraft:entity.player.levelup"
+      }
+    ]
+  },
+  "raid.complete": {
+    "subtitle": "subtitle.ruined_portal_overhaul.raid.complete",
+    "sounds": [
+      {
+        "name": "minecraft:ui.toast.challenge_complete"
+      }
+    ]
+  },
+  "ritual.crystal_place": {
+    "subtitle": "subtitle.ruined_portal_overhaul.ritual.crystal_place",
+    "sounds": [
+      {
+        "name": "minecraft:block.portal.travel",
+        "volume": 0.75
+      }
+    ]
+  },
+  "ritual.dragon_summon": {
+    "subtitle": "subtitle.ruined_portal_overhaul.ritual.dragon_summon",
+    "sounds": [
+      {
+        "name": "minecraft:entity.ender_dragon.growl"
+      }
+    ]
+  }
+}

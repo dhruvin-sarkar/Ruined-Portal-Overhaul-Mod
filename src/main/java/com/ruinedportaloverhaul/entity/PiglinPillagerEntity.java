@@ -25,6 +25,7 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
+import com.ruinedportaloverhaul.sound.ModSounds;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animatable.manager.AnimatableManager;
@@ -153,16 +154,16 @@ public class PiglinPillagerEntity extends Pillager implements GeoEntity {
 
     @Override
     protected SoundEvent getAmbientSound() {
-        return SoundEvents.PIGLIN_AMBIENT;
+        return ModSounds.ENTITY_PIGLIN_PILLAGER_AMBIENT;
     }
 
     @Override
     protected SoundEvent getHurtSound(DamageSource damageSource) {
-        return SoundEvents.PIGLIN_HURT;
+        return ModSounds.ENTITY_PIGLIN_PILLAGER_HURT;
     }
 
     @Override
     protected SoundEvent getDeathSound() {
-        return SoundEvents.PIGLIN_DEATH;
+        return ModSounds.ENTITY_PIGLIN_PILLAGER_DEATH;
     }
 }

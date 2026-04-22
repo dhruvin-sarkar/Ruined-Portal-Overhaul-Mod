@@ -11,6 +11,7 @@ import com.ruinedportaloverhaul.item.ModItems;
 import com.ruinedportaloverhaul.network.ModNetworking;
 import com.ruinedportaloverhaul.raid.GoldRaidManager;
 import com.ruinedportaloverhaul.raid.NetherDragonRituals;
+import com.ruinedportaloverhaul.sound.ModSounds;
 import com.ruinedportaloverhaul.world.ModStructures;
 import com.ruinedportaloverhaul.world.ModWorldGen;
 import net.fabricmc.api.ModInitializer;
@@ -24,6 +25,7 @@ public class RuinedPortalOverhaul implements ModInitializer {
     @Override
     public void onInitialize() {
         LOGGER.info("Initializing {}", MOD_ID);
+        ModSounds.initialize();
         ModDataComponents.initialize();
         ModItems.initialize();
         GhastTearNecklaceEvents.initialize();

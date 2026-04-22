@@ -1,9 +1,9 @@
 package com.ruinedportaloverhaul.entity;
 
+import com.ruinedportaloverhaul.sound.ModSounds;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EntitySpawnReason;
@@ -58,16 +58,16 @@ public class PiglinVexEntity extends Vex implements GeoEntity {
 
     @Override
     protected SoundEvent getAmbientSound() {
-        return SoundEvents.PIGLIN_AMBIENT;
+        return ModSounds.ENTITY_PIGLIN_VEX_AMBIENT;
     }
 
     @Override
     protected SoundEvent getHurtSound(DamageSource damageSource) {
-        return SoundEvents.PIGLIN_HURT;
+        return ModSounds.ENTITY_PIGLIN_VEX_HURT;
     }
 
     @Override
     protected SoundEvent getDeathSound() {
-        return SoundEvents.PIGLIN_DEATH;
+        return ModSounds.ENTITY_PIGLIN_VEX_DEATH;
     }
 }

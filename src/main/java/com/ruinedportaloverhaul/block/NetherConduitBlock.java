@@ -4,9 +4,9 @@ import com.mojang.serialization.MapCodec;
 import com.ruinedportaloverhaul.advancement.ModAdvancementTriggers;
 import com.ruinedportaloverhaul.block.entity.ModBlockEntities;
 import com.ruinedportaloverhaul.block.entity.NetherConduitBlockEntity;
+import com.ruinedportaloverhaul.sound.ModSounds;
 import net.minecraft.network.chat.Component;
 import net.minecraft.core.BlockPos;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -99,7 +99,7 @@ public class NetherConduitBlock extends BaseEntityBlock {
             stack.shrink(cost);
         }
         conduit.upgrade();
-        level.playSound(null, pos, SoundEvents.RESPAWN_ANCHOR_CHARGE, SoundSource.BLOCKS, 1.0f, 0.7f + conduit.conduitLevel() * 0.2f);
+        level.playSound(null, pos, ModSounds.BLOCK_NETHER_CONDUIT_ACTIVATE, SoundSource.BLOCKS, 1.0f, 0.7f + conduit.conduitLevel() * 0.2f);
         player.displayClientMessage(Component.literal("Nether Conduit awakened to level " + conduit.conduitLevel() + "."), true);
         if (conduit.conduitLevel() == 2 && player instanceof ServerPlayer serverPlayer) {
             ModAdvancementTriggers.trigger(ModAdvancementTriggers.NETHER_CONDUIT_LEVEL_2, serverPlayer);

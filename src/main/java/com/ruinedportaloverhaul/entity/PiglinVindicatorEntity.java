@@ -1,9 +1,9 @@
 package com.ruinedportaloverhaul.entity;
 
+import com.ruinedportaloverhaul.sound.ModSounds;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.damagesource.DamageSource;
@@ -86,16 +86,16 @@ public class PiglinVindicatorEntity extends Vindicator implements GeoEntity {
 
     @Override
     protected SoundEvent getAmbientSound() {
-        return SoundEvents.PIGLIN_AMBIENT;
+        return ModSounds.ENTITY_PIGLIN_VINDICATOR_AMBIENT;
     }
 
     @Override
     protected SoundEvent getHurtSound(DamageSource damageSource) {
-        return SoundEvents.PIGLIN_HURT;
+        return ModSounds.ENTITY_PIGLIN_VINDICATOR_HURT;
     }
 
     @Override
     protected SoundEvent getDeathSound() {
-        return SoundEvents.PIGLIN_DEATH;
+        return ModSounds.ENTITY_PIGLIN_VINDICATOR_DEATH;
     }
 }

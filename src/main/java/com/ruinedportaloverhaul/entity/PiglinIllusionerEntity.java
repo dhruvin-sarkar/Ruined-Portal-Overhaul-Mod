@@ -1,5 +1,6 @@
 package com.ruinedportaloverhaul.entity;
 
+import com.ruinedportaloverhaul.sound.ModSounds;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
@@ -110,16 +111,16 @@ public class PiglinIllusionerEntity extends Illusioner implements GeoEntity {
 
     @Override
     protected SoundEvent getAmbientSound() {
-        return SoundEvents.PIGLIN_AMBIENT;
+        return ModSounds.ENTITY_PIGLIN_ILLUSIONER_AMBIENT;
     }
 
     @Override
     protected SoundEvent getHurtSound(DamageSource damageSource) {
-        return SoundEvents.PIGLIN_HURT;
+        return ModSounds.ENTITY_PIGLIN_ILLUSIONER_HURT;
     }
 
     @Override
     protected SoundEvent getDeathSound() {
-        return SoundEvents.PIGLIN_DEATH;
+        return ModSounds.ENTITY_PIGLIN_ILLUSIONER_DEATH;
     }
 }

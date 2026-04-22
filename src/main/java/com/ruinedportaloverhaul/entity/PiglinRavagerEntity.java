@@ -1,10 +1,10 @@
 package com.ruinedportaloverhaul.entity;
 
+import com.ruinedportaloverhaul.sound.ModSounds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.Difficulty;
@@ -88,7 +88,7 @@ public class PiglinRavagerEntity extends Ravager implements GeoEntity {
             this.hardWallRoarCooldown--;
         } else if (serverLevel.getDifficulty() == Difficulty.HARD && this.hasHardWallImpact(serverLevel)) {
             this.hardWallRoarCooldown = 80;
-            serverLevel.playSound(null, this.blockPosition(), SoundEvents.HOGLIN_ANGRY, SoundSource.HOSTILE, 1.4f, 0.75f);
+            serverLevel.playSound(null, this.blockPosition(), ModSounds.ENTITY_PIGLIN_RAVAGER_ROAR, SoundSource.HOSTILE, 1.4f, 0.75f);
             for (Player target : serverLevel.getEntitiesOfClass(Player.class, this.getBoundingBox().inflate(7.0))) {
                 target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 60, 1), this);
             }
@@ -126,16 +126,16 @@ public class PiglinRavagerEntity extends Ravager implements GeoEntity {
 
     @Override
     protected SoundEvent getAmbientSound() {
-        return SoundEvents.HOGLIN_AMBIENT;
+        return ModSounds.ENTITY_PIGLIN_RAVAGER_AMBIENT;
     }
 
     @Override
     protected SoundEvent getHurtSound(DamageSource damageSource) {
-        return SoundEvents.HOGLIN_HURT;
+        return ModSounds.ENTITY_PIGLIN_RAVAGER_HURT;
     }
 
     @Override
     protected SoundEvent getDeathSound() {
-        return SoundEvents.HOGLIN_DEATH;
+        return ModSounds.ENTITY_PIGLIN_RAVAGER_DEATH;
     }
 }

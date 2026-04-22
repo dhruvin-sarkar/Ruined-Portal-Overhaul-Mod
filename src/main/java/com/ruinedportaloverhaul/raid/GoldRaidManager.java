@@ -5,6 +5,7 @@ import com.ruinedportaloverhaul.entity.ExiledPiglinTraderEntity;
 import com.ruinedportaloverhaul.advancement.ModAdvancementTriggers;
 import com.ruinedportaloverhaul.block.NetherConduitChestPlacement;
 import com.ruinedportaloverhaul.network.PortalAtmospherePayload;
+import com.ruinedportaloverhaul.sound.ModSounds;
 import com.ruinedportaloverhaul.structure.PortalDungeonPiece;
 import com.ruinedportaloverhaul.structure.PortalStructureHelper;
 import com.ruinedportaloverhaul.world.ModStructures;
@@ -379,6 +380,7 @@ public final class GoldRaidManager {
         }
 
         state.waveIndex++;
+        state.level.playSound(null, state.origin, ModSounds.RAID_WAVE_COMPLETE, SoundSource.HOSTILE, 1.0f, 1.0f);
         state.bossBar.setName(Component.literal(WAVE_LABELS[state.waveIndex]));
         spawnWave(state);
         state.delayTicks = WAVE_DELAY_TICKS;
@@ -1093,7 +1095,7 @@ public final class GoldRaidManager {
     }
 
     private static void playRaidStartEffects(ServerLevel level, BlockPos origin) {
-        level.playSound(null, origin, SoundEvents.WITHER_SPAWN, SoundSource.HOSTILE, 1.5f, 1.0f);
+        level.playSound(null, origin, ModSounds.RAID_START, SoundSource.HOSTILE, 1.5f, 1.0f);
         spawnRandomizedParticleBurst(level, origin, ParticleTypes.LARGE_SMOKE, 40, 3.0, 0.01);
         spawnRandomizedParticleBurst(level, origin, ParticleTypes.FLAME, 20, 3.0, 0.01);
     }
@@ -1116,25 +1118,25 @@ public final class GoldRaidManager {
             double z = centerZ + 4.0 * Math.sin(i * Math.PI / 6.0);
             spawnParticle(level, ParticleTypes.SOUL, x, centerY, z, 1, 0.0, 0.0, 0.0, 0.01);
         }
-        level.playSound(null, origin, SoundEvents.PORTAL_AMBIENT, SoundSource.HOSTILE, 0.6f, 0.8f);
+        level.playSound(null, origin, ModSounds.RAID_WAVE_COMPLETE, SoundSource.HOSTILE, 0.6f, 0.8f);
     }
 
     private static void playHighThreatSpawnSound(ServerLevel level, EntityType<? extends LivingEntity> type, BlockPos spawnPos) {
         if (type == ModEntities.PIGLIN_RAVAGER) {
-            level.playSound(null, spawnPos, SoundEvents.HOGLIN_ANGRY, SoundSource.HOSTILE, 1.5f, 0.7f);
+            level.playSound(null, spawnPos, ModSounds.ENTITY_PIGLIN_RAVAGER_ROAR, SoundSource.HOSTILE, 1.5f, 0.7f);
         } else if (type == ModEntities.PIGLIN_EVOKER) {
-            level.playSound(null, spawnPos, SoundEvents.PIGLIN_BRUTE_ANGRY, SoundSource.HOSTILE, 1.1f, 0.85f);
+            level.playSound(null, spawnPos, ModSounds.ENTITY_PIGLIN_EVOKER_CAST_SPELL, SoundSource.HOSTILE, 1.1f, 0.85f);
         }
     }
 
     private static void playCompletionFanfare(ServerLevel level, BlockPos origin) {
-        level.playSound(null, origin, SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundSource.PLAYERS, 1.0f, 1.0f);
+        level.playSound(null, origin, ModSounds.RAID_COMPLETE, SoundSource.PLAYERS, 1.0f, 1.0f);
         spawnRandomizedParticleBurst(level, origin, ParticleTypes.FIREWORK, 60, 10.0, 0.02);
         spawnRandomizedParticleBurst(level, origin, ParticleTypes.TOTEM_OF_UNDYING, 30, 4.0, 0.02);
     }
 
     private static void playExiledPiglinSpawnEffects(ServerLevel level, BlockPos spawnPos) {
-        level.playSound(null, spawnPos, SoundEvents.PIGLIN_AMBIENT, SoundSource.NEUTRAL, 1.0f, 0.7f);
+        level.playSound(null, spawnPos, ModSounds.ENTITY_EXILED_PIGLIN_AMBIENT, SoundSource.NEUTRAL, 1.0f, 0.7f);
         spawnParticle(level, ParticleTypes.SMOKE, spawnPos.getX() + 0.5, spawnPos.getY() + 0.5, spawnPos.getZ() + 0.5, 15, 0.5, 0.5, 0.5, 0.02);
     }
 

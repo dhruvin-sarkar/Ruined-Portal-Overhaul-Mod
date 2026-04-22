@@ -4,6 +4,7 @@ import com.ruinedportaloverhaul.advancement.ModAdvancementTriggers;
 import com.ruinedportaloverhaul.advancement.PortalEventTrigger;
 import com.ruinedportaloverhaul.entity.NetherDragonEntity;
 import com.ruinedportaloverhaul.entity.NetherCrystalEntity;
+import com.ruinedportaloverhaul.sound.ModSounds;
 import com.ruinedportaloverhaul.structure.PortalStructureHelper;
 import java.util.HashSet;
 import java.util.HashMap;
@@ -172,7 +173,7 @@ public final class NetherDragonRituals {
     }
 
     private static void playOpeningPulse(ServerLevel level, BlockPos origin) {
-        level.playSound(null, origin, SoundEvents.WITHER_SPAWN, SoundSource.HOSTILE, 2.0f, 0.85f);
+        level.playSound(null, origin, ModSounds.RITUAL_DRAGON_SUMMON, SoundSource.HOSTILE, 2.0f, 0.85f);
         spawnSphericalBurst(level, origin, ParticleTypes.FLAME, 80, 5.0, 0.02);
         spawnSphericalBurst(level, origin, ParticleTypes.LARGE_SMOKE, 40, 5.5, 0.01);
     }
@@ -192,7 +193,7 @@ public final class NetherDragonRituals {
         dragon.setXRot(0.0f);
         level.addFreshEntity(dragon);
         PortalRaidState.get(level.getServer()).setDragonActive(origin, true);
-        level.playSound(null, origin, SoundEvents.ENDER_DRAGON_GROWL, SoundSource.HOSTILE, 5.0f, 0.85f);
+        level.playSound(null, origin, ModSounds.RITUAL_DRAGON_SUMMON, SoundSource.HOSTILE, 5.0f, 0.85f);
 
         ensureBossBar(dragon);
     }

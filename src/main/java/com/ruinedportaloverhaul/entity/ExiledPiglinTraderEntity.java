@@ -1,13 +1,13 @@
 package com.ruinedportaloverhaul.entity;
 
 import com.ruinedportaloverhaul.advancement.ModAdvancementTriggers;
+import com.ruinedportaloverhaul.sound.ModSounds;
 import java.util.List;
 import java.util.Optional;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -153,17 +153,17 @@ public class ExiledPiglinTraderEntity extends WanderingTrader implements GeoEnti
 
     @Override
     protected SoundEvent getAmbientSound() {
-        return SoundEvents.PIGLIN_AMBIENT;
+        return ModSounds.ENTITY_EXILED_PIGLIN_AMBIENT;
     }
 
     @Override
     protected SoundEvent getHurtSound(DamageSource damageSource) {
-        return SoundEvents.PIGLIN_HURT;
+        return ModSounds.ENTITY_EXILED_PIGLIN_HURT;
     }
 
     @Override
     protected SoundEvent getDeathSound() {
-        return SoundEvents.PIGLIN_DEATH;
+        return ModSounds.ENTITY_EXILED_PIGLIN_DEATH;
     }
 
     @Override

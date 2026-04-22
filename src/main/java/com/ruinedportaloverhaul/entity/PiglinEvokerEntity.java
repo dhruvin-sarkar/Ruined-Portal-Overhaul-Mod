@@ -1,9 +1,9 @@
 package com.ruinedportaloverhaul.entity;
 
+import com.ruinedportaloverhaul.sound.ModSounds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
@@ -113,8 +113,7 @@ public class PiglinEvokerEntity extends Evoker implements GeoEntity {
     private void castMagmaEruption(ServerLevel serverLevel, Vec3 center) {
         float radius = 3.0f;
         this.triggerAnim(RuinedPortalGeoAnimations.ACTION_CONTROLLER, RuinedPortalGeoAnimations.ATTACK_CAST);
-        serverLevel.playSound(null, this.blockPosition(), SoundEvents.BLAZE_SHOOT, SoundSource.HOSTILE, 1.1f, 0.55f);
-        serverLevel.playSound(null, this.blockPosition(), SoundEvents.LAVA_POP, SoundSource.HOSTILE, 0.8f, 0.70f);
+        serverLevel.playSound(null, this.blockPosition(), ModSounds.ENTITY_PIGLIN_EVOKER_CAST_SPELL, SoundSource.HOSTILE, 1.1f, 0.55f);
         for (int i = 0; i < 10; i++) {
             double angle = Math.toRadians((360.0 / 10.0) * i);
             double x = center.x + Math.cos(angle) * radius;
@@ -148,23 +147,23 @@ public class PiglinEvokerEntity extends Evoker implements GeoEntity {
                 false
             );
             if (spawnedVex != null) {
-                serverLevel.playSound(null, spawnPos, SoundEvents.PIGLIN_ANGRY, SoundSource.HOSTILE, 0.85f, 0.95f);
+                serverLevel.playSound(null, spawnPos, ModSounds.ENTITY_PIGLIN_EVOKER_CAST_SPELL, SoundSource.HOSTILE, 0.85f, 0.95f);
             }
         }
     }
 
     @Override
     protected SoundEvent getAmbientSound() {
-        return SoundEvents.PIGLIN_AMBIENT;
+        return ModSounds.ENTITY_PIGLIN_EVOKER_AMBIENT;
     }
 
     @Override
     protected SoundEvent getHurtSound(DamageSource damageSource) {
-        return SoundEvents.PIGLIN_HURT;
+        return ModSounds.ENTITY_PIGLIN_EVOKER_HURT;
     }
 
     @Override
     protected SoundEvent getDeathSound() {
-        return SoundEvents.PIGLIN_DEATH;
+        return ModSounds.ENTITY_PIGLIN_EVOKER_DEATH;
     }
 }

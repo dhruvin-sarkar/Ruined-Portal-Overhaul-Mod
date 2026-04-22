@@ -1,10 +1,12 @@
 package com.ruinedportaloverhaul.entity;
 
 import com.ruinedportaloverhaul.raid.NetherDragonRituals;
+import com.ruinedportaloverhaul.sound.ModSounds;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
@@ -81,6 +83,11 @@ public class NetherDragonEntity extends EnderDragon {
             NetherDragonRituals.onNetherDragonDeath(serverLevel, this);
         }
         super.tickDeath();
+    }
+
+    @Override
+    protected SoundEvent getAmbientSound() {
+        return ModSounds.ENTITY_NETHER_DRAGON_AMBIENT;
     }
 
     @Override

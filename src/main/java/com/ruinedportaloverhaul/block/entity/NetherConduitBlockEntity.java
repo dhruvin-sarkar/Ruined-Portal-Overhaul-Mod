@@ -2,12 +2,14 @@ package com.ruinedportaloverhaul.block.entity;
 
 import com.ruinedportaloverhaul.damage.ModDamageTypes;
 import com.ruinedportaloverhaul.entity.ModEntities;
+import com.ruinedportaloverhaul.sound.ModSounds;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -45,15 +47,26 @@ public class NetherConduitBlockEntity extends BlockEntity {
         if (gameTime % ACTIVATION_SCAN_INTERVAL_TICKS == 0) {
             int frameBlocks = countFrameBlocks(level, pos);
             boolean active = frameBlocks >= ACTIVATION_REQUIRED_FRAME_BLOCKS;
+            boolean wasActive = blockEntity.active;
             if (blockEntity.active != active || blockEntity.frameBlockCount != frameBlocks) {
                 blockEntity.active = active;
                 blockEntity.frameBlockCount = frameBlocks;
                 blockEntity.setChanged();
+                if (level instanceof ServerLevel serverLevel) {
+                    if (active && !wasActive) {
+                        serverLevel.playSound(null, pos, ModSounds.BLOCK_NETHER_CONDUIT_ACTIVATE, SoundSource.BLOCKS, 0.9f, 1.0f);
+                    } else if (!active && wasActive) {
+                        serverLevel.playSound(null, pos, ModSounds.BLOCK_NETHER_CONDUIT_DEACTIVATE, SoundSource.BLOCKS, 0.8f, 0.9f);
+                    }
+                }
             }
 
             if (blockEntity.active && level instanceof ServerLevel serverLevel) {
                 blockEntity.applyActiveEffects(serverLevel, pos);
                 blockEntity.displayStatus(serverLevel, pos);
+                if (gameTime % (ACTIVATION_SCAN_INTERVAL_TICKS * 4L) == 0L) {
+                    serverLevel.playSound(null, pos, ModSounds.BLOCK_NETHER_CONDUIT_AMBIENT, SoundSource.BLOCKS, 0.55f, 0.95f + blockEntity.conduitLevel * 0.05f);
+                }
             }
         }
 

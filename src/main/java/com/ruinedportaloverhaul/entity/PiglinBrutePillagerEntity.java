@@ -26,6 +26,7 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
+import com.ruinedportaloverhaul.sound.ModSounds;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animatable.manager.AnimatableManager;
@@ -139,17 +140,17 @@ public class PiglinBrutePillagerEntity extends Pillager implements GeoEntity {
 
     @Override
     protected SoundEvent getAmbientSound() {
-        return SoundEvents.PIGLIN_BRUTE_AMBIENT;
+        return ModSounds.ENTITY_PIGLIN_BRUTE_PILLAGER_AMBIENT;
     }
 
     @Override
     protected SoundEvent getHurtSound(DamageSource damageSource) {
-        return SoundEvents.PIGLIN_BRUTE_HURT;
+        return ModSounds.ENTITY_PIGLIN_BRUTE_PILLAGER_HURT;
     }
 
     @Override
     protected SoundEvent getDeathSound() {
-        return SoundEvents.PIGLIN_BRUTE_DEATH;
+        return ModSounds.ENTITY_PIGLIN_BRUTE_PILLAGER_DEATH;
     }
 
     private final class CloseRangeMeleeGoal extends MeleeAttackGoal {
