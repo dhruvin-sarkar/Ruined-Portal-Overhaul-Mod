@@ -3,13 +3,19 @@ package com.ruinedportaloverhaul.item;
 import com.ruinedportaloverhaul.entity.NetherCrystalEntity;
 import com.ruinedportaloverhaul.raid.NetherDragonRituals;
 import com.ruinedportaloverhaul.sound.ModSounds;
+import java.util.function.Consumer;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.ChatFormatting;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -19,6 +25,22 @@ import net.minecraft.world.phys.AABB;
 public class NetherCrystalItem extends Item {
     public NetherCrystalItem(Properties properties) {
         super(properties);
+    }
+
+    @Override
+    public void appendHoverText(
+        ItemStack stack,
+        Item.TooltipContext context,
+        TooltipDisplay tooltipDisplay,
+        Consumer<Component> tooltip,
+        TooltipFlag flag
+    ) {
+        // The crystal previously had no tooltip at all, so this now frames the ritual clearly
+        // and tells players what placing all four crystals will actually unleash.
+        super.appendHoverText(stack, context, tooltipDisplay, tooltip, flag);
+        tooltip.accept(Component.translatable("item.ruined_portal_overhaul.nether_crystal.tooltip.line1").withStyle(ChatFormatting.DARK_PURPLE));
+        tooltip.accept(Component.translatable("item.ruined_portal_overhaul.nether_crystal.tooltip.line2").withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
+        tooltip.accept(Component.translatable("item.ruined_portal_overhaul.nether_crystal.tooltip.line3").withStyle(ChatFormatting.DARK_RED));
     }
 
     @Override

@@ -48,15 +48,47 @@ public class GhastTearNecklaceItem extends Item {
         Consumer<Component> tooltip,
         TooltipFlag flag
     ) {
+        // The previous tooltip only exposed a flat cooldown sentence and never showed live remaining time,
+        // so this now leads with lore, documents the real keybound fireball trigger, and reports cooldown progress.
+        super.appendHoverText(stack, context, tooltipDisplay, tooltip, flag);
+        tooltip.accept(Component.translatable("item.ruined_portal_overhaul.ghast_tear_necklace.tooltip.lore").withStyle(ChatFormatting.AQUA));
         tooltip.accept(Component.translatable("item.ruined_portal_overhaul.ghast_tear_necklace.tooltip.mobility").withStyle(ChatFormatting.GRAY));
         tooltip.accept(Component.translatable(
             "item.ruined_portal_overhaul.ghast_tear_necklace.tooltip.fireball",
-            NetherFireballHandler.COOLDOWN_TICKS / 20
+            Component.translatable("key.ruined_portal_overhaul.use_nether_fireball"),
+            formatDuration(NetherFireballHandler.COOLDOWN_TICKS)
         ).withStyle(ChatFormatting.DARK_RED));
 
-        long lastUse = stack.getOrDefault(ModDataComponents.LAST_NECKLACE_FIREBALL_TICK, Long.MIN_VALUE);
-        if (lastUse == Long.MIN_VALUE) {
+        int remainingCooldownTicks = remainingCooldownTicks(stack);
+        if (remainingCooldownTicks > 0) {
+            tooltip.accept(
+                Component.translatable(
+                    "item.ruined_portal_overhaul.ghast_tear_necklace.tooltip.remaining",
+                    formatDuration(remainingCooldownTicks)
+                ).withStyle(ChatFormatting.GOLD)
+            );
+        } else {
             tooltip.accept(Component.translatable("item.ruined_portal_overhaul.ghast_tear_necklace.tooltip.ready").withStyle(ChatFormatting.GOLD));
         }
+    }
+
+    private static int remainingCooldownTicks(ItemStack stack) {
+        long lastUse = stack.getOrDefault(ModDataComponents.LAST_NECKLACE_FIREBALL_TICK, Long.MIN_VALUE);
+        if (lastUse == Long.MIN_VALUE) {
+            return 0;
+        }
+
+        long clientGameTime = TooltipClientState.currentClientGameTime();
+        if (clientGameTime == Long.MIN_VALUE) {
+            return 0;
+        }
+
+        long elapsed = Math.max(0L, clientGameTime - lastUse);
+        return (int) Math.max(0L, NetherFireballHandler.COOLDOWN_TICKS - elapsed);
+    }
+
+    private static String formatDuration(int ticks) {
+        int totalSeconds = Math.max(0, ticks) / 20;
+        return "%d:%02d".formatted(totalSeconds / 60, totalSeconds % 60);
     }
 }
