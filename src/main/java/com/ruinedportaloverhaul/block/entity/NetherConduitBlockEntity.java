@@ -198,7 +198,8 @@ public class NetherConduitBlockEntity extends BlockEntity {
     private void displayStatus(ServerLevel level, BlockPos pos) {
         AABB range = new AABB(pos).inflate(STATUS_RADIUS);
         double radiusSqr = STATUS_RADIUS * STATUS_RADIUS;
-        Component message = Component.literal("Nether Conduit L" + this.conduitLevel + ": " + effectsDescription(this.conduitLevel))
+        // Fix: the conduit status banner now composes translated fragments so every level description stays localizable.
+        Component message = Component.translatable("message.ruined_portal_overhaul.conduit.status", this.conduitLevel, effectsDescription(this.conduitLevel))
             .withStyle(this.conduitLevel >= MAX_CONDUIT_LEVEL ? ChatFormatting.GOLD : ChatFormatting.RED);
         for (ServerPlayer player : level.getPlayers(player -> range.contains(player.position()) && player.distanceToSqr(pos.getCenter()) <= radiusSqr)) {
             player.displayClientMessage(message, true);
@@ -233,11 +234,11 @@ public class NetherConduitBlockEntity extends BlockEntity {
         };
     }
 
-    private static String effectsDescription(int conduitLevel) {
+    private static Component effectsDescription(int conduitLevel) {
         return switch (conduitLevel) {
-            case 1 -> "Fire Resistance II, Haste, Regeneration, 20-block strike";
-            case 2 -> "Fire Resistance II, Haste II, Regeneration II, near-zero lava drag";
-            default -> "Fire Resistance, Haste, Regeneration";
+            case 1 -> Component.translatable("message.ruined_portal_overhaul.conduit.effects.level_1");
+            case 2 -> Component.translatable("message.ruined_portal_overhaul.conduit.effects.level_2");
+            default -> Component.translatable("message.ruined_portal_overhaul.conduit.effects.base");
         };
     }
 

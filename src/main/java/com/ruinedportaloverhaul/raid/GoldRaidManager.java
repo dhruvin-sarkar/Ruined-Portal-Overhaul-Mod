@@ -97,12 +97,12 @@ public final class GoldRaidManager {
         com.ruinedportaloverhaul.world.ModStructures.id("chests/portal_boss_reward")
     );
 
-    private static final String[] WAVE_LABELS = {
-        "The Red Storm Breaks",
-        "They Grow Bolder",
-        "The Brutes Arrive",
-        "Chaos Unleashed",
-        "The Evoker Awakens"
+    private static final String[] WAVE_LABEL_KEYS = {
+        "bossbar.ruined_portal_overhaul.raid.wave_1",
+        "bossbar.ruined_portal_overhaul.raid.wave_2",
+        "bossbar.ruined_portal_overhaul.raid.wave_3",
+        "bossbar.ruined_portal_overhaul.raid.wave_4",
+        "bossbar.ruined_portal_overhaul.raid.wave_5"
     };
 
     private static final Map<Long, RaidState> ACTIVE_RAIDS = new HashMap<>();
@@ -273,9 +273,9 @@ public final class GoldRaidManager {
                 continue;
             }
 
-            int waveIndex = Math.max(0, Math.min(WAVE_LABELS.length - 1, snapshot.currentWaveNumber() - 1));
+            int waveIndex = Math.max(0, Math.min(WAVE_LABEL_KEYS.length - 1, snapshot.currentWaveNumber() - 1));
             ServerBossEvent bossBar = new ServerBossEvent(
-                Component.literal(WAVE_LABELS[waveIndex]),
+                waveLabelComponent(waveIndex),
                 BossEvent.BossBarColor.YELLOW,
                 BossEvent.BossBarOverlay.PROGRESS
             );
@@ -298,8 +298,9 @@ public final class GoldRaidManager {
     }
 
     private static void playApproachActivation(ServerLevel level, ServerPlayer player, BlockPos origin) {
+        // Fix: the first raid warning now uses a translation key so the approach cue localizes like the rest of the encounter.
         ModAdvancementTriggers.trigger(ModAdvancementTriggers.PORTAL_APPROACH, player);
-        player.displayClientMessage(Component.literal("...something stirs.").withStyle(ChatFormatting.DARK_PURPLE), true);
+        player.displayClientMessage(Component.translatable("message.ruined_portal_overhaul.raid.approach").withStyle(ChatFormatting.DARK_PURPLE), true);
         level.playSound(null, origin, SoundEvents.PORTAL_AMBIENT, SoundSource.HOSTILE, 0.4f, 0.6f);
     }
 
@@ -346,7 +347,7 @@ public final class GoldRaidManager {
     }
 
     private static boolean tickRaid(RaidState state) {
-        // Fix: wave pacing now respects the configured delay and keeps status text visible even when the boss bar is intentionally disabled.
+        // Fix: wave pacing now respects the configured delay while the inter-wave countdown and boss-bar labels stay fully localizable.
         syncBossBarPlayers(state);
 
         if (!state.activeMobs.isEmpty() && !state.level.isPositionEntityTicking(state.origin)) {
@@ -379,7 +380,7 @@ public final class GoldRaidManager {
                 spawnInterWavePulse(state.level, state.origin);
             }
             int seconds = Math.max(1, (state.delayTicks + 19) / 20);
-            Component message = Component.literal("Next wave in " + seconds + "s");
+            Component message = Component.translatable("message.ruined_portal_overhaul.raid.next_wave", seconds);
             for (ServerPlayer player : state.level.players()) {
                 if (horizontalDistanceSqr(player.blockPosition(), state.origin) > BOSS_BAR_PLAYER_RANGE_SQUARED) {
                     continue;
@@ -391,7 +392,7 @@ public final class GoldRaidManager {
 
         state.waveIndex++;
         state.level.playSound(null, state.origin, ModSounds.RAID_WAVE_COMPLETE, SoundSource.HOSTILE, 1.0f, 1.0f);
-        state.bossBar.setName(Component.literal(WAVE_LABELS[state.waveIndex]));
+        state.bossBar.setName(waveLabelComponent(state.waveIndex));
         spawnWave(state);
         state.delayTicks = ModConfigManager.interWaveDelayTicks();
         state.persistWaveState();
@@ -434,7 +435,7 @@ public final class GoldRaidManager {
         }
         ModAdvancementTriggers.trigger(ModAdvancementTriggers.RAID_STARTED, triggeringPlayer);
         ServerBossEvent bossBar = new ServerBossEvent(
-            Component.literal(WAVE_LABELS[0]),
+            waveLabelComponent(0),
             BossEvent.BossBarColor.YELLOW,
             BossEvent.BossBarOverlay.PROGRESS
         );
@@ -578,6 +579,7 @@ public final class GoldRaidManager {
     }
 
     private static void finishRaid(RaidState state) {
+        // Fix: the claimed-portal stinger now uses a translation key so the raid completion message localizes with the rest of the flow.
         List<ServerPlayer> nearbyPlayers = state.level.getPlayers(player -> horizontalDistanceSqr(player.blockPosition(), state.origin) < 1600.0);
         for (ServerPlayer player : nearbyPlayers) {
             ModAdvancementTriggers.trigger(ModAdvancementTriggers.RAID_COMPLETED, player);
@@ -592,7 +594,7 @@ public final class GoldRaidManager {
         disablePreRaidSpawners(state.level, state.portalRaidState, state.origin);
         state.portalRaidState.markCompleted(state.origin);
 
-        Component message = Component.literal("The portal falls silent.");
+        Component message = Component.translatable("message.ruined_portal_overhaul.raid.complete");
         for (ServerPlayer player : nearbyPlayers) {
             player.displayClientMessage(message, true);
         }
@@ -625,7 +627,7 @@ public final class GoldRaidManager {
     }
 
     private static void spawnExiledTrader(ServerLevel level, BlockPos origin) {
-        // Treat the trader as the raid completion event spawn so its lifecycle matches the encounter state.
+        // Fix: the raid reward trader now keeps a translated display name while still spawning from the raid completion lifecycle.
         level.setBlock(origin.offset(4, 1, 0), Blocks.NETHER_BRICK_FENCE.defaultBlockState(), 3);
         level.setBlock(origin.offset(4, 1, 1), Blocks.CRIMSON_FENCE_GATE.defaultBlockState(), 3);
         ExiledPiglinTraderEntity trader = ModEntities.EXILED_PIGLIN.spawn(
@@ -634,7 +636,7 @@ public final class GoldRaidManager {
             EntitySpawnReason.EVENT
         );
         if (trader != null) {
-            trader.setCustomName(Component.literal("Exiled Piglin"));
+            trader.setCustomName(Component.translatable("entity.ruined_portal_overhaul.exiled_piglin"));
             trader.setCustomNameVisible(true);
             trader.rememberSpawnTime(level.getGameTime());
             playExiledPiglinSpawnEffects(level, trader.blockPosition());
@@ -679,6 +681,7 @@ public final class GoldRaidManager {
     }
 
     private static void grantTerritoryTotem(ServerPlayer player, BlockPos origin) {
+        // Fix: the territory boon handoff now uses a translation key so its action-bar cue localizes instead of hardcoding English.
         String tag = PORTAL_TOTEM_TAG_PREFIX + origin.asLong();
         if (player.getTags().contains(tag)) {
             return;
@@ -690,7 +693,7 @@ public final class GoldRaidManager {
             player.drop(totem, false);
         }
         ModAdvancementTriggers.trigger(ModAdvancementTriggers.TERRITORY_TOTEM, player);
-        player.displayClientMessage(Component.literal("The red air presses a totem into your hand.").withStyle(ChatFormatting.GOLD), true);
+        player.displayClientMessage(Component.translatable("message.ruined_portal_overhaul.raid.totem").withStyle(ChatFormatting.GOLD), true);
     }
 
     private static void sendPortalAtmosphere(ServerPlayer player, BlockPos origin) {
@@ -1094,12 +1097,18 @@ public final class GoldRaidManager {
     }
 
     private static void broadcastRaidStartTitle(ServerLevel level, BlockPos origin) {
+        // Fix: the raid title cards now use translation keys so encounter titles and subtitles follow the selected language.
         double rangeSquared = RAID_TITLE_PLAYER_RANGE * RAID_TITLE_PLAYER_RANGE;
         for (ServerPlayer player : level.getPlayers(player -> horizontalDistanceSqr(player.blockPosition(), origin) <= rangeSquared)) {
             player.connection.send(new ClientboundSetTitlesAnimationPacket(10, 40, 20));
-            player.connection.send(new ClientboundSetTitleTextPacket(Component.literal("The Red Storm Breaks").withStyle(ChatFormatting.DARK_RED)));
-            player.connection.send(new ClientboundSetSubtitleTextPacket(Component.literal("Survive the waves...").withStyle(ChatFormatting.RED)));
+            player.connection.send(new ClientboundSetTitleTextPacket(Component.translatable("title.ruined_portal_overhaul.raid.start").withStyle(ChatFormatting.DARK_RED)));
+            player.connection.send(new ClientboundSetSubtitleTextPacket(Component.translatable("subtitle.ruined_portal_overhaul.raid.start").withStyle(ChatFormatting.RED)));
         }
+    }
+
+    private static Component waveLabelComponent(int waveIndex) {
+        int safeIndex = Math.max(0, Math.min(WAVE_LABEL_KEYS.length - 1, waveIndex));
+        return Component.translatable(WAVE_LABEL_KEYS[safeIndex]);
     }
 
     private static void spawnInterWavePulse(ServerLevel level, BlockPos origin) {

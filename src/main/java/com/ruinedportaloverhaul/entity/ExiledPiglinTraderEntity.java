@@ -34,12 +34,12 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 public class ExiledPiglinTraderEntity extends WanderingTrader implements GeoEntity {
     private static final long DESPAWN_AFTER_TICKS = 72_000L;
     private static final long RESTOCK_INTERVAL_TICKS = 40_000L;
-    private static final List<Component> TRADE_MESSAGES = List.of(
-        Component.literal("...the portal remembers you."),
-        Component.literal("Gold speaks louder than oaths."),
-        Component.literal("Take what the Nether left behind."),
-        Component.literal("No clan. No throne. Still, I trade."),
-        Component.literal("Spend fast. The scar will not stay quiet.")
+    private static final List<String> TRADE_MESSAGES = List.of(
+        "message.ruined_portal_overhaul.trader.line_1",
+        "message.ruined_portal_overhaul.trader.line_2",
+        "message.ruined_portal_overhaul.trader.line_3",
+        "message.ruined_portal_overhaul.trader.line_4",
+        "message.ruined_portal_overhaul.trader.line_5"
     );
 
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
@@ -92,10 +92,11 @@ public class ExiledPiglinTraderEntity extends WanderingTrader implements GeoEnti
 
     @Override
     public InteractionResult mobInteract(Player player, InteractionHand interactionHand) {
+        // Fix: trader chatter and busy feedback now use translation keys so the post-raid encounter flavor localizes with the rest of the mod.
         Player tradingPlayer = this.getTradingPlayer();
         if (tradingPlayer != null && tradingPlayer != player) {
             if (!this.level().isClientSide()) {
-                player.displayClientMessage(Component.literal("The Exiled Piglin is already trading."), true);
+                player.displayClientMessage(Component.translatable("message.ruined_portal_overhaul.trader.busy"), true);
             }
             return InteractionResult.SUCCESS_SERVER;
         }
@@ -104,7 +105,7 @@ public class ExiledPiglinTraderEntity extends WanderingTrader implements GeoEnti
         InteractionResult result = super.mobInteract(player, interactionHand);
         if (canOpenTrades && !this.level().isClientSide() && this.getTradingPlayer() == player) {
             RandomSource random = this.getRandom();
-            player.displayClientMessage(TRADE_MESSAGES.get(random.nextInt(TRADE_MESSAGES.size())), true);
+            player.displayClientMessage(Component.translatable(TRADE_MESSAGES.get(random.nextInt(TRADE_MESSAGES.size()))), true);
         }
         return result;
     }

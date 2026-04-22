@@ -190,10 +190,11 @@ public final class NetherDragonRituals {
     }
 
     private static void broadcastTitle(ServerLevel level, BlockPos origin) {
+        // Fix: the ritual title card now uses translation keys so the dragon summon announcement follows the selected language.
         for (ServerPlayer player : level.getPlayers(player -> player.blockPosition().distSqr(origin) <= RITUAL_MESSAGE_RANGE_SQUARED)) {
             player.connection.send(new ClientboundSetTitlesAnimationPacket(10, 50, 20));
-            player.connection.send(new ClientboundSetTitleTextPacket(Component.literal("The Nether Dragon Awakens").withStyle(ChatFormatting.DARK_RED)));
-            player.connection.send(new ClientboundSetSubtitleTextPacket(Component.literal("Flee or fight.").withStyle(ChatFormatting.RED)));
+            player.connection.send(new ClientboundSetTitleTextPacket(Component.translatable("title.ruined_portal_overhaul.ritual.dragon_awakens").withStyle(ChatFormatting.DARK_RED)));
+            player.connection.send(new ClientboundSetSubtitleTextPacket(Component.translatable("subtitle.ruined_portal_overhaul.ritual.dragon_awakens").withStyle(ChatFormatting.RED)));
         }
     }
 

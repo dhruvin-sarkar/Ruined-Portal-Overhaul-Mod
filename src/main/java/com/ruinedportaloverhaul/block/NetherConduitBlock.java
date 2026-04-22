@@ -76,6 +76,7 @@ public class NetherConduitBlock extends BaseEntityBlock {
             return InteractionResult.PASS;
         }
 
+        // Fix: conduit upgrade feedback now uses translation keys so the action-bar text localizes cleanly instead of hardcoding English strings.
         if (!(level.getBlockEntity(pos) instanceof NetherConduitBlockEntity conduit)) {
             return InteractionResult.PASS;
         }
@@ -86,12 +87,12 @@ public class NetherConduitBlock extends BaseEntityBlock {
 
         int cost = conduit.nextUpgradeCost();
         if (cost == 0) {
-            player.displayClientMessage(Component.literal("The Nether Conduit is already fully awakened."), true);
+            player.displayClientMessage(Component.translatable("message.ruined_portal_overhaul.conduit.maxed"), true);
             return InteractionResult.SUCCESS_SERVER;
         }
 
         if (!player.isCreative() && stack.getCount() < cost) {
-            player.displayClientMessage(Component.literal("This upgrade needs " + cost + " ancient debris."), true);
+            player.displayClientMessage(Component.translatable("message.ruined_portal_overhaul.conduit.upgrade_cost", cost), true);
             return InteractionResult.SUCCESS_SERVER;
         }
 
@@ -100,7 +101,7 @@ public class NetherConduitBlock extends BaseEntityBlock {
         }
         conduit.upgrade();
         level.playSound(null, pos, ModSounds.BLOCK_NETHER_CONDUIT_ACTIVATE, SoundSource.BLOCKS, 1.0f, 0.7f + conduit.conduitLevel() * 0.2f);
-        player.displayClientMessage(Component.literal("Nether Conduit awakened to level " + conduit.conduitLevel() + "."), true);
+        player.displayClientMessage(Component.translatable("message.ruined_portal_overhaul.conduit.upgrade_success", conduit.conduitLevel()), true);
         if (conduit.conduitLevel() == 2 && player instanceof ServerPlayer serverPlayer) {
             ModAdvancementTriggers.trigger(ModAdvancementTriggers.NETHER_CONDUIT_LEVEL_2, serverPlayer);
         }
