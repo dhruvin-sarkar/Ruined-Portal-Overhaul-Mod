@@ -3,6 +3,9 @@ package com.ruinedportaloverhaul.entity;
 import com.ruinedportaloverhaul.sound.ModSounds;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
@@ -20,12 +23,16 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animatable.manager.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-public class PiglinVindicatorEntity extends Vindicator implements GeoEntity {
+public class PiglinVindicatorEntity extends Vindicator implements GeoEntity, TextureVariantMob {
+    private static final int TEXTURE_VARIANT_COUNT = 3;
+    private static final EntityDataAccessor<Integer> TEXTURE_VARIANT = SynchedEntityData.defineId(PiglinVindicatorEntity.class, EntityDataSerializers.INT);
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
 
     public PiglinVindicatorEntity(EntityType<? extends PiglinVindicatorEntity> entityType, Level level) {
@@ -40,9 +47,32 @@ public class PiglinVindicatorEntity extends Vindicator implements GeoEntity {
     }
 
     @Override
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        // Fix: the vindicator visuals previously had no synced variant state, which left GeckoLib stuck on a single texture. The entity now advertises a stable variant index to the client.
+        super.defineSynchedData(builder);
+        builder.define(TEXTURE_VARIANT, 0);
+    }
+
+    @Override
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, EntitySpawnReason reason, SpawnGroupData spawnData) {
+        // Fix: spawn initialization used to stop at stats and gear, so every vindicator rendered identically. The UUID now seeds a deterministic visual variant before the mob enters play.
         SpawnGroupData result = super.finalizeSpawn(level, difficulty, reason, spawnData);
+        this.getEntityData().set(TEXTURE_VARIANT, TextureVariantHelper.selectVariant(this.getUUID(), TEXTURE_VARIANT_COUNT));
         return PiglinDifficultyScaler.applyHardHealth(this, level, result);
+    }
+
+    @Override
+    protected void addAdditionalSaveData(ValueOutput valueOutput) {
+        // Fix: save data previously omitted the chosen texture variant, causing reloads to lose visual diversity. The current variant now persists with the entity.
+        super.addAdditionalSaveData(valueOutput);
+        TextureVariantHelper.writeVariant(valueOutput, this.getTextureVariant(), TEXTURE_VARIANT_COUNT);
+    }
+
+    @Override
+    protected void readAdditionalSaveData(ValueInput valueInput) {
+        // Fix: loaded vindicators used to fall back to the default appearance because no variant was restored. The saved variant is now read back into synced data on load.
+        super.readAdditionalSaveData(valueInput);
+        this.getEntityData().set(TEXTURE_VARIANT, TextureVariantHelper.readVariant(valueInput, this.getUUID(), TEXTURE_VARIANT_COUNT));
     }
 
     @Override
@@ -97,5 +127,15 @@ public class PiglinVindicatorEntity extends Vindicator implements GeoEntity {
     @Override
     protected SoundEvent getDeathSound() {
         return ModSounds.ENTITY_PIGLIN_VINDICATOR_DEATH;
+    }
+
+    @Override
+    public int getTextureVariant() {
+        return this.getEntityData().get(TEXTURE_VARIANT);
+    }
+
+    @Override
+    public int getTextureVariantCount() {
+        return TEXTURE_VARIANT_COUNT;
     }
 }

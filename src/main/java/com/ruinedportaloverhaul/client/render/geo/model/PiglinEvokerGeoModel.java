@@ -4,6 +4,6 @@ import com.ruinedportaloverhaul.entity.PiglinEvokerEntity;
 
 public final class PiglinEvokerGeoModel extends AbstractRuinedPortalEntityGeoModel<PiglinEvokerEntity> {
     public PiglinEvokerGeoModel() {
-        super("piglin_evoker");
+        super("piglin_evoker", 2);
     }
 }

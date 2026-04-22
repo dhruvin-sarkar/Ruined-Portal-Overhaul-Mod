@@ -19,20 +19,27 @@ import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.monster.illager.Pillager;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import com.ruinedportaloverhaul.sound.ModSounds;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animatable.manager.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-public class PiglinPillagerEntity extends Pillager implements GeoEntity {
+public class PiglinPillagerEntity extends Pillager implements GeoEntity, TextureVariantMob {
     private static final float ARROW_DAMAGE = 9.5f;
+    private static final int TEXTURE_VARIANT_COUNT = 3;
+    private static final EntityDataAccessor<Integer> TEXTURE_VARIANT = SynchedEntityData.defineId(PiglinPillagerEntity.class, EntityDataSerializers.INT);
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
 
     public PiglinPillagerEntity(EntityType<? extends PiglinPillagerEntity> entityType, Level level) {
@@ -44,6 +51,13 @@ public class PiglinPillagerEntity extends Pillager implements GeoEntity {
             .add(Attributes.MAX_HEALTH, 44.0)
             .add(Attributes.MOVEMENT_SPEED, 0.34)
             .add(Attributes.ATTACK_DAMAGE, 10.0);
+    }
+
+    @Override
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        // Fix: the pillager variants were previously only implied by asset names, so clients had no synced variant to render. The shared data value now keeps the chosen texture variant stable across networking.
+        super.defineSynchedData(builder);
+        builder.define(TEXTURE_VARIANT, 0);
     }
 
     @Override
@@ -68,8 +82,24 @@ public class PiglinPillagerEntity extends Pillager implements GeoEntity {
 
     @Override
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, EntitySpawnReason reason, SpawnGroupData spawnData) {
+        // Fix: every pillager used the same texture because spawn initialization never picked a persistent visual variant. The UUID now seeds the synced variant before the first render packet is sent.
         SpawnGroupData result = super.finalizeSpawn(level, difficulty, reason, spawnData);
+        this.getEntityData().set(TEXTURE_VARIANT, TextureVariantHelper.selectVariant(this.getUUID(), TEXTURE_VARIANT_COUNT));
         return PiglinDifficultyScaler.applyHardHealth(this, level, result);
+    }
+
+    @Override
+    protected void addAdditionalSaveData(ValueOutput valueOutput) {
+        // Fix: visual variants were previously transient, so save/load cycles could collapse mobs back to the default appearance. The chosen variant is now written alongside the rest of the entity state.
+        super.addAdditionalSaveData(valueOutput);
+        TextureVariantHelper.writeVariant(valueOutput, this.getTextureVariant(), TEXTURE_VARIANT_COUNT);
+    }
+
+    @Override
+    protected void readAdditionalSaveData(ValueInput valueInput) {
+        // Fix: loaded mobs used to rely on whatever default texture the client saw first. Save data now restores the exact variant and resyncs it to the client-facing data accessor.
+        super.readAdditionalSaveData(valueInput);
+        this.getEntityData().set(TEXTURE_VARIANT, TextureVariantHelper.readVariant(valueInput, this.getUUID(), TEXTURE_VARIANT_COUNT));
     }
 
     @Override
@@ -165,5 +195,15 @@ public class PiglinPillagerEntity extends Pillager implements GeoEntity {
     @Override
     protected SoundEvent getDeathSound() {
         return ModSounds.ENTITY_PIGLIN_PILLAGER_DEATH;
+    }
+
+    @Override
+    public int getTextureVariant() {
+        return this.getEntityData().get(TEXTURE_VARIANT);
+    }
+
+    @Override
+    public int getTextureVariantCount() {
+        return TEXTURE_VARIANT_COUNT;
     }
 }

@@ -3,6 +3,9 @@ package com.ruinedportaloverhaul.entity;
 import com.ruinedportaloverhaul.sound.ModSounds;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -26,13 +29,17 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animatable.manager.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-public class PiglinIllusionerEntity extends Illusioner implements GeoEntity {
+public class PiglinIllusionerEntity extends Illusioner implements GeoEntity, TextureVariantMob {
     private static final float ARROW_DAMAGE = 8.0f;
+    private static final int TEXTURE_VARIANT_COUNT = 2;
+    private static final EntityDataAccessor<Integer> TEXTURE_VARIANT = SynchedEntityData.defineId(PiglinIllusionerEntity.class, EntityDataSerializers.INT);
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
 
     public PiglinIllusionerEntity(EntityType<? extends PiglinIllusionerEntity> entityType, Level level) {
@@ -46,9 +53,32 @@ public class PiglinIllusionerEntity extends Illusioner implements GeoEntity {
     }
 
     @Override
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        // Fix: illusioner variants were never synchronized to the client, so all summoned copies looked the same. A synced variant field now carries the chosen texture index.
+        super.defineSynchedData(builder);
+        builder.define(TEXTURE_VARIANT, 0);
+    }
+
+    @Override
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, EntitySpawnReason reason, SpawnGroupData spawnData) {
+        // Fix: illusioner spawns previously stopped after stat scaling, leaving no persistent visual identity. The UUID now seeds a deterministic texture variant on spawn.
         SpawnGroupData result = super.finalizeSpawn(level, difficulty, reason, spawnData);
+        this.getEntityData().set(TEXTURE_VARIANT, TextureVariantHelper.selectVariant(this.getUUID(), TEXTURE_VARIANT_COUNT));
         return PiglinDifficultyScaler.applyHardHealth(this, level, result);
+    }
+
+    @Override
+    protected void addAdditionalSaveData(ValueOutput valueOutput) {
+        // Fix: illusioner appearance previously reset after save/load because the selected variant was never written. The active variant now persists in save data.
+        super.addAdditionalSaveData(valueOutput);
+        TextureVariantHelper.writeVariant(valueOutput, this.getTextureVariant(), TEXTURE_VARIANT_COUNT);
+    }
+
+    @Override
+    protected void readAdditionalSaveData(ValueInput valueInput) {
+        // Fix: restored illusioners defaulted to the first texture because no variant was reapplied. The saved variant now repopulates synced data when the entity loads.
+        super.readAdditionalSaveData(valueInput);
+        this.getEntityData().set(TEXTURE_VARIANT, TextureVariantHelper.readVariant(valueInput, this.getUUID(), TEXTURE_VARIANT_COUNT));
     }
 
     @Override
@@ -122,5 +152,15 @@ public class PiglinIllusionerEntity extends Illusioner implements GeoEntity {
     @Override
     protected SoundEvent getDeathSound() {
         return ModSounds.ENTITY_PIGLIN_ILLUSIONER_DEATH;
+    }
+
+    @Override
+    public int getTextureVariant() {
+        return this.getEntityData().get(TEXTURE_VARIANT);
+    }
+
+    @Override
+    public int getTextureVariantCount() {
+        return TEXTURE_VARIANT_COUNT;
     }
 }

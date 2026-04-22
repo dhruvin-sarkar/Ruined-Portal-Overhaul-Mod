@@ -20,20 +20,27 @@ import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.monster.illager.Pillager;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import com.ruinedportaloverhaul.sound.ModSounds;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animatable.manager.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-public class PiglinBrutePillagerEntity extends Pillager implements GeoEntity {
+public class PiglinBrutePillagerEntity extends Pillager implements GeoEntity, TextureVariantMob {
     private static final float ARROW_DAMAGE = 11.0f;
+    private static final int TEXTURE_VARIANT_COUNT = 3;
+    private static final EntityDataAccessor<Integer> TEXTURE_VARIANT = SynchedEntityData.defineId(PiglinBrutePillagerEntity.class, EntityDataSerializers.INT);
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
 
     public PiglinBrutePillagerEntity(EntityType<? extends PiglinBrutePillagerEntity> entityType, Level level) {
@@ -48,9 +55,32 @@ public class PiglinBrutePillagerEntity extends Pillager implements GeoEntity {
     }
 
     @Override
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        // Fix: brute pillagers previously had no client-visible variant state, so their GeckoLib model could never swap textures. A synced variant slot now carries the selected appearance.
+        super.defineSynchedData(builder);
+        builder.define(TEXTURE_VARIANT, 0);
+    }
+
+    @Override
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, EntitySpawnReason reason, SpawnGroupData spawnData) {
+        // Fix: brute pillager spawning used to randomize only equipment, leaving visuals identical. The UUID now deterministically seeds a persistent texture variant during initialization.
         SpawnGroupData result = super.finalizeSpawn(level, difficulty, reason, spawnData);
+        this.getEntityData().set(TEXTURE_VARIANT, TextureVariantHelper.selectVariant(this.getUUID(), TEXTURE_VARIANT_COUNT));
         return PiglinDifficultyScaler.applyHardHealth(this, level, result);
+    }
+
+    @Override
+    protected void addAdditionalSaveData(ValueOutput valueOutput) {
+        // Fix: reloads used to discard brute texture selection because the variant never entered save data. The synced variant is now written with the rest of the mob state.
+        super.addAdditionalSaveData(valueOutput);
+        TextureVariantHelper.writeVariant(valueOutput, this.getTextureVariant(), TEXTURE_VARIANT_COUNT);
+    }
+
+    @Override
+    protected void readAdditionalSaveData(ValueInput valueInput) {
+        // Fix: restored brutes defaulted back to variant zero because no saved appearance was reapplied. The saved variant now repopulates the synced entity data on load.
+        super.readAdditionalSaveData(valueInput);
+        this.getEntityData().set(TEXTURE_VARIANT, TextureVariantHelper.readVariant(valueInput, this.getUUID(), TEXTURE_VARIANT_COUNT));
     }
 
     @Override
@@ -151,6 +181,16 @@ public class PiglinBrutePillagerEntity extends Pillager implements GeoEntity {
     @Override
     protected SoundEvent getDeathSound() {
         return ModSounds.ENTITY_PIGLIN_BRUTE_PILLAGER_DEATH;
+    }
+
+    @Override
+    public int getTextureVariant() {
+        return this.getEntityData().get(TEXTURE_VARIANT);
+    }
+
+    @Override
+    public int getTextureVariantCount() {
+        return TEXTURE_VARIANT_COUNT;
     }
 
     private final class CloseRangeMeleeGoal extends MeleeAttackGoal {

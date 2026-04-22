@@ -4,6 +4,6 @@ import com.ruinedportaloverhaul.entity.PiglinPillagerEntity;
 
 public final class PiglinPillagerGeoModel extends AbstractRuinedPortalEntityGeoModel<PiglinPillagerEntity> {
     public PiglinPillagerGeoModel() {
-        super("piglin_pillager");
+        super("piglin_pillager", 3);
     }
 }

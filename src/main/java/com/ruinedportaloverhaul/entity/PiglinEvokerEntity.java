@@ -2,6 +2,9 @@ package com.ruinedportaloverhaul.entity;
 
 import com.ruinedportaloverhaul.sound.ModSounds;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
@@ -26,9 +29,11 @@ import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animatable.manager.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-public class PiglinEvokerEntity extends Evoker implements GeoEntity {
+public class PiglinEvokerEntity extends Evoker implements GeoEntity, TextureVariantMob {
     private static final int FANG_COOLDOWN_TICKS = 160;
     private static final int VEX_COOLDOWN_TICKS = 220;
+    private static final int TEXTURE_VARIANT_COUNT = 2;
+    private static final EntityDataAccessor<Integer> TEXTURE_VARIANT = SynchedEntityData.defineId(PiglinEvokerEntity.class, EntityDataSerializers.INT);
 
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
     private int fangCooldown;
@@ -46,8 +51,17 @@ public class PiglinEvokerEntity extends Evoker implements GeoEntity {
     }
 
     @Override
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        // Fix: evokers previously had no synced visual variant, so GeckoLib could only ever render the base texture. The builder now registers a stable variant slot for client rendering.
+        super.defineSynchedData(builder);
+        builder.define(TEXTURE_VARIANT, 0);
+    }
+
+    @Override
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, EntitySpawnReason reason, SpawnGroupData spawnData) {
+        // Fix: evoker spawn setup previously handled only stats, leaving every caster visually identical. The UUID now seeds a deterministic variant before any client render occurs.
         SpawnGroupData result = super.finalizeSpawn(level, difficulty, reason, spawnData);
+        this.getEntityData().set(TEXTURE_VARIANT, TextureVariantHelper.selectVariant(this.getUUID(), TEXTURE_VARIANT_COUNT));
         return PiglinDifficultyScaler.applyHardHealth(this, level, result);
     }
 
@@ -100,13 +114,17 @@ public class PiglinEvokerEntity extends Evoker implements GeoEntity {
 
     @Override
     protected void addAdditionalSaveData(ValueOutput valueOutput) {
+        // Fix: the evoker's save data previously tracked only spell-state flags, so its chosen appearance was lost across reloads. The current variant is now stored with the rest of the entity state.
         super.addAdditionalSaveData(valueOutput);
+        TextureVariantHelper.writeVariant(valueOutput, this.getTextureVariant(), TEXTURE_VARIANT_COUNT);
         valueOutput.putBoolean("SummonedDesperationVex", this.summonedDesperationVex);
     }
 
     @Override
     protected void readAdditionalSaveData(ValueInput valueInput) {
+        // Fix: restored evokers used to forget which texture they were using because only combat flags were reloaded. The saved variant now repopulates synced data before AI resumes.
         super.readAdditionalSaveData(valueInput);
+        this.getEntityData().set(TEXTURE_VARIANT, TextureVariantHelper.readVariant(valueInput, this.getUUID(), TEXTURE_VARIANT_COUNT));
         this.summonedDesperationVex = valueInput.getBooleanOr("SummonedDesperationVex", false);
     }
 
@@ -165,5 +183,15 @@ public class PiglinEvokerEntity extends Evoker implements GeoEntity {
     @Override
     protected SoundEvent getDeathSound() {
         return ModSounds.ENTITY_PIGLIN_EVOKER_DEATH;
+    }
+
+    @Override
+    public int getTextureVariant() {
+        return this.getEntityData().get(TEXTURE_VARIANT);
+    }
+
+    @Override
+    public int getTextureVariantCount() {
+        return TEXTURE_VARIANT_COUNT;
     }
 }
