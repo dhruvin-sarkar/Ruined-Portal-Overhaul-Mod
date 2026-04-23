@@ -63,7 +63,7 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
 9. Loot
    - `portal_surface`: 9-12 rolls with six surface prep chests, including stronger potion frequency, golden apples/carrots, emergency totems, enchanted gold gear, diamonds, and rare scrap.
    - `portal_deep`: 12-16 rolls with frequent underground caches, netherite scraps, ancient debris, templates, rare netherite ingots, diamond gear, totems, enchanted apples, Mending, Efficiency V, Sharpness V, Protection IV, Thorns III, and survival potions.
-   - `portal_boss_reward`: 16-20 rolls plus a two-roll high-weight totem/enchanted-golden-apple bonus pool and guaranteed `Shard of the Nether`; includes 2-5 netherite ingots and the weighted `Corrupted Portal Key`.
+   - `portal_boss_reward`: 16-20 rolls plus a two-roll high-weight totem/enchanted-golden-apple bonus pool and guaranteed `Shard of the Nether`; includes 1-2 netherite ingots and the weighted `Corrupted Portal Key`.
    - Custom combat mob drops are richer across the board, with more gold, food, ammunition, equipment, books, totems from high-threat mobs, and rare netherite/debris drops from deeper wave threats.
 10. Advancements
    - Advancements live under `data/ruined_portal_overhaul/advancement/`.

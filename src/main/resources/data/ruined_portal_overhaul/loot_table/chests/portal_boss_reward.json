@@ -1,5 +1,5 @@
 {
-  "_comment": "Boss loot is the five-wave payoff: a very full high-value windfall with 2-5 netherite ingots, frequent Totems of Undying, rare books, and unique named artifacts.",
+  "_comment": "Boss loot is the five-wave payoff: a very full high-value windfall with 1-2 netherite ingots, frequent Totems of Undying, rare books, and unique named artifacts.",
   "type": "minecraft:chest",
   "pools": [
     {
@@ -18,8 +18,8 @@
               "function": "minecraft:set_count",
               "count": {
                 "type": "minecraft:uniform",
-                "min": 2.0,
-                "max": 5.0
+                "min": 1.0,
+                "max": 2.0
               }
             }
           ]
