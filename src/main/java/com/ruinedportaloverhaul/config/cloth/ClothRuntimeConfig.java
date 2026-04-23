@@ -8,6 +8,9 @@ import me.shedaniel.autoconfig.annotation.ConfigEntry;
 
 @Config(name = RuinedPortalOverhaul.MOD_ID)
 public final class ClothRuntimeConfig implements ConfigData, ModConfigAccess {
+    @ConfigEntry.BoundedDiscrete(min = 16, max = 64)
+    public int structureRarity = 32;
+
     public boolean enableAmbientNetherSpawns = true;
     public boolean enableOuterZoneScatter = true;
     public double raidTriggerRadius = 24.0;
@@ -32,6 +35,11 @@ public final class ClothRuntimeConfig implements ConfigData, ModConfigAccess {
     public boolean enablePostRaidSuppression = true;
     public double netherStarDropRate = 1.0;
     public boolean enableNetherDragon = true;
+
+    @Override
+    public int structureRarity() {
+        return clamp(this.structureRarity, 16, 64);
+    }
 
     @Override
     public boolean enableAmbientNetherSpawns() {

@@ -1,6 +1,8 @@
 package com.ruinedportaloverhaul.config;
 
 public interface ModConfigAccess {
+    int structureRarity();
+
     boolean enableAmbientNetherSpawns();
 
     boolean enableOuterZoneScatter();

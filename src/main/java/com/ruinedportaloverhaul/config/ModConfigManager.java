@@ -43,6 +43,10 @@ public final class ModConfigManager {
         return runtimeSource.get();
     }
 
+    public static int structureRarity() {
+        return current().structureRarity();
+    }
+
     public static boolean enableAmbientNetherSpawns() {
         return current().enableAmbientNetherSpawns();
     }
@@ -104,6 +108,11 @@ public final class ModConfigManager {
     }
 
     private static final class DefaultConfig implements ModConfigAccess {
+        @Override
+        public int structureRarity() {
+            return 32;
+        }
+
         @Override
         public boolean enableAmbientNetherSpawns() {
             return true;
