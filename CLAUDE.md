@@ -472,6 +472,7 @@ Structure rarity note:
 
 - Version: `1.0.0`
 - Author: `Dhruv Sarkar`
+- Description now covers the current release scope: Procedural Portal Dungeon, Gold Tribute Raid, Exiled Piglin Trader, GeckoLib animated/variant mobs, Nether Conduit, Ghast Tear Necklace, Nether Crystal ritual, Nether Dragon phase-two boss, optional ModMenu/Cloth Config, and optional REI progression info.
 - Sources: `https://github.com/dhruvin-sarkar/Ruined-Portal-Overhaul-Mod`
 - Issues: `https://github.com/dhruvin-sarkar/Ruined-Portal-Overhaul-Mod/issues`
 - Client entrypoint: `com.ruinedportaloverhaul.client.RuinedPortalOverhaulClient`
