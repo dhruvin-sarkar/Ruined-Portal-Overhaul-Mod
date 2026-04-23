@@ -1191,6 +1191,7 @@ public final class PortalStructureHelper {
         RandomSource random,
         double gradient
     ) {
+        // Fix: outer scatter only placed netherrack, so the far scar lacked the promised crying-obsidian artifact flecks. Rare accent blocks now appear inside sparse patches without changing the low-density outer footprint.
         int radius = 1 + random.nextInt(gradient > 0.55 ? 4 : 3);
         for (int dx = -radius; dx <= radius; dx++) {
             for (int dz = -radius; dz <= radius; dz++) {
@@ -1217,7 +1218,10 @@ public final class PortalStructureHelper {
                 if (convertLocalWaterToLava(level, pieceBox, chunkBox, top)) {
                     continue;
                 }
-                setColumn(level, pieceBox, chunkBox, top, Blocks.NETHERRACK.defaultBlockState(), 2);
+                BlockState surface = random.nextFloat() < 0.055f
+                    ? Blocks.CRYING_OBSIDIAN.defaultBlockState()
+                    : Blocks.NETHERRACK.defaultBlockState();
+                setColumn(level, pieceBox, chunkBox, top, surface, 2);
             }
         }
     }
