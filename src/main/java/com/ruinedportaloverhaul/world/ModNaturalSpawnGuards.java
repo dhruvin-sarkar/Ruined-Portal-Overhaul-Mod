@@ -1,5 +1,6 @@
 package com.ruinedportaloverhaul.world;
 
+import com.ruinedportaloverhaul.config.ModConfigManager;
 import com.ruinedportaloverhaul.raid.PortalRaidState;
 import com.ruinedportaloverhaul.structure.PortalStructureHelper;
 import net.minecraft.core.BlockPos;
@@ -15,8 +16,11 @@ public final class ModNaturalSpawnGuards {
     }
 
     public static boolean shouldSuppressNaturalSpawn(ServerLevel level, BlockPos spawnPos) {
-        // Fix: portal ambient pressure is now owned entirely by the structure-local raid manager, so this guard only blocks new natural spawns inside completed portal territory instead of globally interfering with blaze or piglin spawns elsewhere in the overworld.
+        // Fix: portal ambient pressure is now owned entirely by the structure-local raid manager, so this guard only blocks new natural spawns inside completed portal territory when post-raid suppression is enabled instead of globally interfering with blaze or piglin spawns elsewhere in the overworld.
         if (!Level.OVERWORLD.equals(level.dimension())) {
+            return false;
+        }
+        if (!ModConfigManager.enablePostRaidSuppression()) {
             return false;
         }
 
