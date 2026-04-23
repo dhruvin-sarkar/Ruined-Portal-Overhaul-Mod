@@ -106,7 +106,7 @@ public final class NetherDragonRituals {
     }
 
     private static void reconcilePortalState(MinecraftServer server) {
-        // Fix: ritual reconciliation now keeps existing dragons intact while refusing to start new summoning sequences when the dragon feature is disabled.
+        // Fix: ritual reconciliation now keeps existing dragons intact, preserves saved active-dragon locks while dragons are unloaded, and refuses new summoning sequences when the dragon feature is disabled.
         ServerLevel level = server.overworld();
         PortalRaidState portalRaidState = PortalRaidState.get(server);
         Set<BlockPos> trackedPortals = new HashSet<>(portalRaidState.ritualPortalOrigins());
@@ -131,7 +131,9 @@ public final class NetherDragonRituals {
                 continue;
             }
 
-            portalRaidState.setDragonActive(portalOrigin, false);
+            if (portalRaidState.isDragonActive(portalOrigin)) {
+                continue;
+            }
             if (ModConfigManager.enableNetherDragon() && sequence == null && progress.allFilled()) {
                 beginSummoning(level, portalOrigin);
             } else if (!ModConfigManager.enableNetherDragon() && sequence != null) {
@@ -241,14 +243,14 @@ public final class NetherDragonRituals {
     }
 
     private static NetherDragonEntity findLoadedDragon(MinecraftServer server, BlockPos portalOrigin) {
-        AABB searchBox = new AABB(portalOrigin).inflate(256.0, 192.0, 256.0);
+        // Fix: active dragon recovery used to search only near the portal, so a wide-roaming dragon could be missed and a duplicate ritual could begin. Scan all currently loaded entities and let the saved active flag cover temporarily unloaded dragons.
         for (ServerLevel level : server.getAllLevels()) {
-            for (NetherDragonEntity dragon : level.getEntitiesOfClass(
-                NetherDragonEntity.class,
-                searchBox,
-                candidate -> candidate.isAlive() && candidate.portalOrigin().equals(portalOrigin)
-            )) {
-                return dragon;
+            for (net.minecraft.world.entity.Entity entity : level.getAllEntities()) {
+                if (entity instanceof NetherDragonEntity dragon
+                    && dragon.isAlive()
+                    && dragon.portalOrigin().equals(portalOrigin)) {
+                    return dragon;
+                }
             }
         }
         return null;
