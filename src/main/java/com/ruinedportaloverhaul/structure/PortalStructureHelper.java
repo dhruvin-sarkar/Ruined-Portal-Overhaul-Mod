@@ -39,13 +39,19 @@ public final class PortalStructureHelper {
         BoundingBox pieceBox,
         BoundingBox chunkBox,
         BlockPos origin,
+        PortalDungeonVariant variant,
         PortalFrameSpec frame,
         RandomSource random
     ) {
+        // Fix: the inner zone used to assume one flat netherrack basin, which buried the sunken variant and prevented basalt-citadel material swaps. Variant-aware terrain targeting now keeps each portal core readable while preserving the baseline layout.
         int minX = Math.max(origin.getX() - INNER_RADIUS, Math.max(pieceBox.minX(), chunkBox.minX()));
         int maxX = Math.min(origin.getX() + INNER_RADIUS, Math.min(pieceBox.maxX(), chunkBox.maxX()));
         int minZ = Math.max(origin.getZ() - INNER_RADIUS, Math.max(pieceBox.minZ(), chunkBox.minZ()));
         int maxZ = Math.min(origin.getZ() + INNER_RADIUS, Math.min(pieceBox.maxZ(), chunkBox.maxZ()));
+        long terrainSeed = origin.asLong() ^ 0x2D0AB1F4D7C35E91L;
+        BlockState innerSurface = variant == PortalDungeonVariant.BASALT_CITADEL
+            ? Blocks.BLACKSTONE.defaultBlockState()
+            : Blocks.NETHERRACK.defaultBlockState();
 
         for (int x = minX; x <= maxX; x++) {
             for (int z = minZ; z <= maxZ; z++) {
@@ -56,17 +62,22 @@ public final class PortalStructureHelper {
                     continue;
                 }
 
-                BlockPos top = terrainTop(level, x, z);
-                setColumn(level, pieceBox, chunkBox, top, Blocks.NETHERRACK.defaultBlockState(), 3);
+                BlockPos top = variant == PortalDungeonVariant.SUNKEN_SANCTUM
+                    ? sunkenInnerZoneTop(level, pieceBox, chunkBox, origin, x, z, terrainSeed)
+                    : terrainTop(level, x, z);
+                setColumn(level, pieceBox, chunkBox, top, innerSurface, 3);
                 convertLocalWaterToLava(level, pieceBox, chunkBox, top);
                 set(level, pieceBox, chunkBox, top.above(), Blocks.AIR.defaultBlockState());
             }
         }
 
-        placeRitualPlatform(level, pieceBox, chunkBox, origin, random);
+        placeRitualPlatform(level, pieceBox, chunkBox, origin, variant, random);
         placeNetheritePedestals(level, pieceBox, chunkBox, origin);
         placePortalFrame(level, pieceBox, chunkBox, origin, frame, random);
         placeAnchor(level, pieceBox, chunkBox, origin);
+        if (variant == PortalDungeonVariant.BASALT_CITADEL) {
+            placeBasaltCitadelColumns(level, pieceBox, chunkBox, origin, frame);
+        }
     }
 
     public static void buildMiddleZone(
@@ -74,12 +85,15 @@ public final class PortalStructureHelper {
         BoundingBox pieceBox,
         BoundingBox chunkBox,
         BlockPos origin,
+        PortalDungeonVariant variant,
         RandomSource random
     ) {
+        // Fix: the middle ring previously generated only one surface profile, so the sunken bowl and added soul-sand identity could never appear. Variant-aware shaping now preserves the original scar while letting alternate variants read differently from spawn.
         int minX = Math.max(origin.getX() - MIDDLE_RADIUS, Math.max(pieceBox.minX(), chunkBox.minX()));
         int maxX = Math.min(origin.getX() + MIDDLE_RADIUS, Math.min(pieceBox.maxX(), chunkBox.maxX()));
         int minZ = Math.max(origin.getZ() - MIDDLE_RADIUS, Math.max(pieceBox.minZ(), chunkBox.minZ()));
         int maxZ = Math.min(origin.getZ() + MIDDLE_RADIUS, Math.min(pieceBox.maxZ(), chunkBox.maxZ()));
+        long terrainSeed = origin.asLong() ^ 0x6E0F4D2A51B97C3DL;
 
         for (int x = minX; x <= maxX; x++) {
             for (int z = minZ; z <= maxZ; z++) {
@@ -90,17 +104,11 @@ public final class PortalStructureHelper {
                     continue;
                 }
 
-                BlockPos top = sculptedTerrainTop(
-                    level,
-                    pieceBox,
-                    chunkBox,
-                    origin,
-                    x,
-                    z,
-                    distance,
-                    origin.asLong() ^ 0x6E0F4D2A51B97C3DL
-                );
-                setColumn(level, pieceBox, chunkBox, top, Blocks.NETHERRACK.defaultBlockState(), distance < MIDDLE_RADIUS * 0.65 ? 3 : 2);
+                BlockPos top = variant == PortalDungeonVariant.SUNKEN_SANCTUM
+                    ? sunkenMiddleZoneTop(level, pieceBox, chunkBox, origin, x, z, distance, terrainSeed)
+                    : sculptedTerrainTop(level, pieceBox, chunkBox, origin, x, z, distance, terrainSeed);
+                BlockState surface = pickMiddleZoneSurface(variant, origin, x, z, distance, terrainSeed);
+                setColumn(level, pieceBox, chunkBox, top, surface, distance < MIDDLE_RADIUS * 0.65 ? 3 : 2);
                 convertLocalWaterToLava(level, pieceBox, chunkBox, top);
                 if (random.nextFloat() < 0.08f) {
                     set(level, pieceBox, chunkBox, top.above(), Blocks.AIR.defaultBlockState());
@@ -116,6 +124,10 @@ public final class PortalStructureHelper {
         int basaltFormations = 7 + random.nextInt(6);
         for (int i = 0; i < basaltFormations; i++) {
             placeBasaltFormation(level, pieceBox, chunkBox, randomRingPos(origin, random, INNER_RADIUS + 4, MIDDLE_RADIUS - 3), random);
+        }
+
+        if (variant == PortalDungeonVariant.SUNKEN_SANCTUM) {
+            placeSunkenSanctumArch(level, pieceBox, chunkBox, origin);
         }
     }
 
@@ -158,8 +170,10 @@ public final class PortalStructureHelper {
         BoundingBox pieceBox,
         BoundingBox chunkBox,
         BlockPos origin,
+        PortalDungeonVariant variant,
         RandomSource random
     ) {
+        // Fix: underground generation previously had no hook for variant-specific pit hazards, so the basalt citadel could not add its moat without forking the whole cave system. The shared layout now accepts variant-only pit adornments and keeps the favored pit/carver logic intact.
         int chamberCenterY = Math.max(level.getMinY() + 14, origin.getY() - 33);
         int chamberFloorY = chamberCenterY - 6;
         BlockPos chamberCenter = new BlockPos(origin.getX(), chamberCenterY, origin.getZ());
@@ -167,6 +181,9 @@ public final class PortalStructureHelper {
         int pitBottomY = chamberCenterY + 6;
         carvePit(level, pieceBox, chunkBox, origin, pitBottomY);
         placePitLavaSeeps(level, pieceBox, chunkBox, origin, pitBottomY, random);
+        if (variant == PortalDungeonVariant.BASALT_CITADEL) {
+            placePitLavaMoat(level, pieceBox, chunkBox, origin, random);
+        }
         carvePrimaryChamber(level, pieceBox, chunkBox, chamberCenter, random);
         placeChamberSpikes(level, pieceBox, chunkBox, chamberCenter, random);
         placeLargeLavaLake(level, pieceBox, chunkBox, new BlockPos(origin.getX(), chamberFloorY + 1, origin.getZ()), random);
@@ -823,18 +840,8 @@ public final class PortalStructureHelper {
             return naturalTop;
         }
 
-        int targetY = clamp(naturalTop.getY() + offset, pieceBox.minY() + 2, pieceBox.maxY() - 2);
-        if (targetY > naturalTop.getY()) {
-            for (int y = naturalTop.getY() + 1; y <= targetY; y++) {
-                set(level, pieceBox, chunkBox, new BlockPos(x, y, z), Blocks.NETHERRACK.defaultBlockState());
-            }
-        } else {
-            for (int y = targetY + 1; y <= naturalTop.getY() + 1; y++) {
-                set(level, pieceBox, chunkBox, new BlockPos(x, y, z), Blocks.AIR.defaultBlockState());
-            }
-        }
-
-        return new BlockPos(x, targetY, z);
+        int targetY = naturalTop.getY() + offset;
+        return retargetTerrainTop(level, pieceBox, chunkBox, x, z, targetY, Blocks.NETHERRACK.defaultBlockState());
     }
 
     private static int surfaceHeightOffset(long seed, int x, int z) {
@@ -851,16 +858,97 @@ public final class PortalStructureHelper {
         return clamp(offset, -3, 3);
     }
 
+    private static BlockPos retargetTerrainTop(
+        WorldGenLevel level,
+        BoundingBox pieceBox,
+        BoundingBox chunkBox,
+        int x,
+        int z,
+        int requestedTargetY,
+        BlockState raisedFill
+    ) {
+        BlockPos naturalTop = terrainTop(level, x, z);
+        int targetY = clamp(requestedTargetY, pieceBox.minY() + 2, pieceBox.maxY() - 2);
+        if (targetY > naturalTop.getY()) {
+            for (int y = naturalTop.getY() + 1; y <= targetY; y++) {
+                set(level, pieceBox, chunkBox, new BlockPos(x, y, z), raisedFill);
+            }
+        } else if (targetY < naturalTop.getY()) {
+            for (int y = targetY + 1; y <= naturalTop.getY() + 1; y++) {
+                set(level, pieceBox, chunkBox, new BlockPos(x, y, z), Blocks.AIR.defaultBlockState());
+            }
+        }
+        return new BlockPos(x, targetY, z);
+    }
+
+    private static BlockPos sunkenInnerZoneTop(
+        WorldGenLevel level,
+        BoundingBox pieceBox,
+        BoundingBox chunkBox,
+        BlockPos origin,
+        int x,
+        int z,
+        long seed
+    ) {
+        int offset = clamp((int) Math.round(surfaceHeightOffset(seed, x, z) * 0.35), -1, 1);
+        return retargetTerrainTop(level, pieceBox, chunkBox, x, z, origin.getY() + offset, Blocks.NETHERRACK.defaultBlockState());
+    }
+
+    private static BlockPos sunkenMiddleZoneTop(
+        WorldGenLevel level,
+        BoundingBox pieceBox,
+        BoundingBox chunkBox,
+        BlockPos origin,
+        int x,
+        int z,
+        double distance,
+        long seed
+    ) {
+        BlockPos naturalTop = terrainTop(level, x, z);
+        double normalized = clamp01((distance - INNER_RADIUS) / (MIDDLE_RADIUS - INNER_RADIUS));
+        double bowlStrength = 1.0 - normalized;
+        int bowlDepth = (int) Math.round(4.0 * bowlStrength * bowlStrength);
+        int shaping = clamp((int) Math.round(surfaceHeightOffset(seed, x, z) * Math.max(0.15, normalized * 0.45)), -2, 2);
+        int targetY = naturalTop.getY() - bowlDepth + shaping;
+        return retargetTerrainTop(level, pieceBox, chunkBox, x, z, Math.min(targetY, naturalTop.getY()), Blocks.NETHERRACK.defaultBlockState());
+    }
+
+    private static BlockState pickMiddleZoneSurface(
+        PortalDungeonVariant variant,
+        BlockPos origin,
+        int x,
+        int z,
+        double distance,
+        long seed
+    ) {
+        if (variant != PortalDungeonVariant.SUNKEN_SANCTUM) {
+            return Blocks.NETHERRACK.defaultBlockState();
+        }
+
+        double soulRoll = coordinateNoise(seed ^ 0x0B6E29C14AF93D57L, Math.floorDiv(x, 3), Math.floorDiv(z, 3));
+        double northBias = z < origin.getZ() ? 0.16 : 0.0;
+        if (distance < INNER_RADIUS + 10.0 || soulRoll < 0.18 + northBias) {
+            return Blocks.SOUL_SOIL.defaultBlockState();
+        }
+        if (soulRoll < 0.42 + northBias) {
+            return Blocks.SOUL_SAND.defaultBlockState();
+        }
+        return Blocks.NETHERRACK.defaultBlockState();
+    }
+
     private static void placeRitualPlatform(
         WorldGenLevel level,
         BoundingBox pieceBox,
         BoundingBox chunkBox,
         BlockPos origin,
+        PortalDungeonVariant variant,
         RandomSource random
     ) {
-        for (int dx = -5; dx <= 5; dx++) {
-            for (int dz = -5; dz <= 5; dz++) {
-                if (dx * dx + dz * dz > 30) {
+        int radius = variant == PortalDungeonVariant.BASALT_CITADEL ? 7 : 5;
+        int radiusSq = radius * radius + radius;
+        for (int dx = -radius; dx <= radius; dx++) {
+            for (int dz = -radius; dz <= radius; dz++) {
+                if (dx * dx + dz * dz > radiusSq) {
                     continue;
                 }
                 BlockPos pos = new BlockPos(origin.getX() + dx, origin.getY(), origin.getZ() + dz);
@@ -940,6 +1028,53 @@ public final class PortalStructureHelper {
     private static void placeAnchor(WorldGenLevel level, BoundingBox pieceBox, BoundingBox chunkBox, BlockPos origin) {
         set(level, pieceBox, chunkBox, origin.offset(4, 1, 0), Blocks.NETHER_BRICK_FENCE.defaultBlockState());
         set(level, pieceBox, chunkBox, origin.offset(4, 1, 1), Blocks.CRIMSON_FENCE_GATE.defaultBlockState());
+    }
+
+    private static void placeBasaltCitadelColumns(
+        WorldGenLevel level,
+        BoundingBox pieceBox,
+        BoundingBox chunkBox,
+        BlockPos origin,
+        PortalFrameSpec frame
+    ) {
+        int left = -frame.width() / 2;
+        int right = left + frame.width() - 1;
+        BlockPos[] columns = new BlockPos[] {
+            origin.offset(left - 2, 1, -4),
+            origin.offset(right + 2, 1, -4),
+            origin.offset(left - 2, 1, 4),
+            origin.offset(right + 2, 1, 4)
+        };
+        for (BlockPos base : columns) {
+            set(level, pieceBox, chunkBox, base.below(), Blocks.POLISHED_BLACKSTONE_BRICKS.defaultBlockState());
+            set(level, pieceBox, chunkBox, base, Blocks.SMOOTH_BASALT.defaultBlockState());
+            placeBasaltColumn(level, pieceBox, chunkBox, base.above(), 8);
+        }
+    }
+
+    private static void placeSunkenSanctumArch(
+        WorldGenLevel level,
+        BoundingBox pieceBox,
+        BoundingBox chunkBox,
+        BlockPos origin
+    ) {
+        BlockPos rim = terrainTopIfColumnInside(level, chunkBox, origin.offset(0, 0, -20));
+        if (rim == null) {
+            return;
+        }
+
+        int baseY = rim.getY() + 1;
+        BlockPos leftBase = new BlockPos(origin.getX() - 2, baseY, origin.getZ() - 20);
+        BlockPos rightBase = new BlockPos(origin.getX() + 2, baseY, origin.getZ() - 20);
+        for (int height = 0; height < 4; height++) {
+            set(level, pieceBox, chunkBox, leftBase.above(height), height == 2 ? Blocks.CRACKED_POLISHED_BLACKSTONE_BRICKS.defaultBlockState() : Blocks.BLACKSTONE.defaultBlockState());
+            set(level, pieceBox, chunkBox, rightBase.above(height), height == 1 ? Blocks.CRACKED_POLISHED_BLACKSTONE_BRICKS.defaultBlockState() : Blocks.BLACKSTONE.defaultBlockState());
+        }
+
+        int capY = baseY + 3;
+        set(level, pieceBox, chunkBox, new BlockPos(origin.getX() - 1, capY, origin.getZ() - 20), Blocks.POLISHED_BLACKSTONE_BRICKS.defaultBlockState());
+        set(level, pieceBox, chunkBox, new BlockPos(origin.getX(), capY, origin.getZ() - 20), Blocks.CRACKED_POLISHED_BLACKSTONE_BRICKS.defaultBlockState());
+        set(level, pieceBox, chunkBox, new BlockPos(origin.getX() + 1, capY, origin.getZ() - 20), Blocks.POLISHED_BLACKSTONE_BRICKS.defaultBlockState());
     }
 
     private static BlockState pickLavaRimBlock(RandomSource random) {
@@ -1145,6 +1280,28 @@ public final class PortalStructureHelper {
             set(level, pieceBox, chunkBox, source, Blocks.LAVA.defaultBlockState());
             set(level, pieceBox, chunkBox, source.above(), Blocks.AIR.defaultBlockState());
             set(level, pieceBox, chunkBox, source.relative(Direction.Plane.HORIZONTAL.getRandomDirection(random)), pickLavaRimBlock(random));
+        }
+    }
+
+    private static void placePitLavaMoat(
+        WorldGenLevel level,
+        BoundingBox pieceBox,
+        BoundingBox chunkBox,
+        BlockPos origin,
+        RandomSource random
+    ) {
+        int moatY = origin.getY() - 10;
+        for (int dx = -12; dx <= 12; dx++) {
+            for (int dz = -12; dz <= 12; dz++) {
+                double distance = Math.sqrt(dx * dx + dz * dz) + random.nextDouble() * 0.4 - 0.2;
+                if (distance < 7.4 || distance > 10.1) {
+                    continue;
+                }
+                BlockPos pos = new BlockPos(origin.getX() + dx, moatY, origin.getZ() + dz);
+                set(level, pieceBox, chunkBox, pos.below(), pickLavaRimBlock(random));
+                set(level, pieceBox, chunkBox, pos, Blocks.LAVA.defaultBlockState());
+                set(level, pieceBox, chunkBox, pos.above(), Blocks.AIR.defaultBlockState());
+            }
         }
     }
 
@@ -1835,6 +1992,10 @@ public final class PortalStructureHelper {
 
     private static double lerp(double start, double end, double delta) {
         return start + (end - start) * delta;
+    }
+
+    private static double clamp01(double value) {
+        return Math.max(0.0, Math.min(1.0, value));
     }
 
     private static long hashColumn(int x, int z) {

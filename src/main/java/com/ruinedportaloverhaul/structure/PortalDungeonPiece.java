@@ -101,10 +101,10 @@ public class PortalDungeonPiece extends StructurePiece {
         BlockPos origin = new BlockPos(this.centerX, this.surfaceY, this.centerZ);
         PortalStructureHelper.PortalFrameSpec frame = PortalStructureHelper.pickFrame(random);
 
-        PortalStructureHelper.buildInnerZone(level, this.boundingBox, chunkBox, origin, frame, random);
-        PortalStructureHelper.buildMiddleZone(level, this.boundingBox, chunkBox, origin, random);
+        PortalStructureHelper.buildInnerZone(level, this.boundingBox, chunkBox, origin, this.variant, frame, random);
+        PortalStructureHelper.buildMiddleZone(level, this.boundingBox, chunkBox, origin, this.variant, random);
         PortalStructureHelper.buildOuterScatter(level, this.boundingBox, chunkBox, origin, this.seed());
-        PortalStructureHelper.UndergroundLayout underground = PortalStructureHelper.buildUnderground(level, this.boundingBox, chunkBox, origin, random);
+        PortalStructureHelper.UndergroundLayout underground = PortalStructureHelper.buildUnderground(level, this.boundingBox, chunkBox, origin, this.variant, random);
 
         PortalStructureHelper.placePortalSpawners(level, this.boundingBox, chunkBox, origin, underground);
         this.placeSurfaceChests(level, chunkBox, random, origin);
