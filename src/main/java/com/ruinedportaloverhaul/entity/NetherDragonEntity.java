@@ -63,6 +63,7 @@ public class NetherDragonEntity extends EnderDragon implements GeoEntity {
     private static final String SLAM_TICKS_KEY = "RpoSlamTicks";
     private static final String SLAM_TARGET_KEY = "RpoSlamTarget";
     private static final Identifier ENRAGED_SPEED_BONUS_ID = ModEntities.id("nether_dragon_enraged_speed");
+    private static final Identifier ENRAGED_FLYING_SPEED_BONUS_ID = ModEntities.id("nether_dragon_enraged_flying_speed");
     private static final float MAX_HEALTH = 300.0f;
     private static final float PHASE_TWO_HEALTH_THRESHOLD = 150.0f;
     private static final float GUARDIAN_SUMMON_HEALTH_THRESHOLD = 120.0f;
@@ -302,16 +303,26 @@ public class NetherDragonEntity extends EnderDragon implements GeoEntity {
     }
 
     private void applyEnragedSpeedBonus() {
-        // Fix: the enraged phase promised a permanent speed increase, so the movement attribute now carries a stable namespaced modifier that survives save/load boundaries.
-        AttributeInstance movementSpeed = this.getAttribute(Attributes.MOVEMENT_SPEED);
-        if (movementSpeed == null || !this.enraged) {
+        // Fix: the enraged phase promised faster flight, but only ground movement was boosted. Both movement and flying speed now receive stable permanent modifiers that survive save/load boundaries.
+        if (!this.enraged) {
             return;
         }
-        movementSpeed.addOrReplacePermanentModifier(new AttributeModifier(
-            ENRAGED_SPEED_BONUS_ID,
-            0.25,
-            AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
-        ));
+        AttributeInstance movementSpeed = this.getAttribute(Attributes.MOVEMENT_SPEED);
+        if (movementSpeed != null) {
+            movementSpeed.addOrReplacePermanentModifier(new AttributeModifier(
+                ENRAGED_SPEED_BONUS_ID,
+                0.25,
+                AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
+            ));
+        }
+        AttributeInstance flyingSpeed = this.getAttribute(Attributes.FLYING_SPEED);
+        if (flyingSpeed != null) {
+            flyingSpeed.addOrReplacePermanentModifier(new AttributeModifier(
+                ENRAGED_FLYING_SPEED_BONUS_ID,
+                0.25,
+                AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
+            ));
+        }
     }
 
     private void summonPhaseTwoGuardians(ServerLevel level) {
