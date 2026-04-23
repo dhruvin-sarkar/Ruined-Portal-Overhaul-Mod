@@ -198,6 +198,11 @@ public class PiglinPillagerEntity extends Pillager implements GeoEntity, Texture
     }
 
     @Override
+    public float getVoicePitch() {
+        return 1.0f + (this.getRandom().nextFloat() - this.getRandom().nextFloat()) * 0.10f;
+    }
+
+    @Override
     public int getTextureVariant() {
         return this.getEntityData().get(TEXTURE_VARIANT);
     }

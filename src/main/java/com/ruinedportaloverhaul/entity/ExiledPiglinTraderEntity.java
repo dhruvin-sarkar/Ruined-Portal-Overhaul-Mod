@@ -168,6 +168,11 @@ public class ExiledPiglinTraderEntity extends WanderingTrader implements GeoEnti
     }
 
     @Override
+    public float getVoicePitch() {
+        return 0.9f + (this.getRandom().nextFloat() - this.getRandom().nextFloat()) * 0.08f;
+    }
+
+    @Override
     protected void addAdditionalSaveData(ValueOutput valueOutput) {
         super.addAdditionalSaveData(valueOutput);
         valueOutput.putLong("SpawnGameTime", this.spawnGameTime);

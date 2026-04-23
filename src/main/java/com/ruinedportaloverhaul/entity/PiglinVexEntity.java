@@ -70,4 +70,9 @@ public class PiglinVexEntity extends Vex implements GeoEntity {
     protected SoundEvent getDeathSound() {
         return ModSounds.ENTITY_PIGLIN_VEX_DEATH;
     }
+
+    @Override
+    public float getVoicePitch() {
+        return 1.3f + (this.getRandom().nextFloat() - this.getRandom().nextFloat()) * 0.12f;
+    }
 }

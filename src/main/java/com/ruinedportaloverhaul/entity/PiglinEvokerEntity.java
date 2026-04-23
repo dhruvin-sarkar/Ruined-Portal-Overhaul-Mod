@@ -186,6 +186,11 @@ public class PiglinEvokerEntity extends Evoker implements GeoEntity, TextureVari
     }
 
     @Override
+    public float getVoicePitch() {
+        return 1.0f + (this.getRandom().nextFloat() - this.getRandom().nextFloat()) * 0.08f;
+    }
+
+    @Override
     public int getTextureVariant() {
         return this.getEntityData().get(TEXTURE_VARIANT);
     }

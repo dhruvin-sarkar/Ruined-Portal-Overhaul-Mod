@@ -138,4 +138,9 @@ public class PiglinRavagerEntity extends Ravager implements GeoEntity {
     protected SoundEvent getDeathSound() {
         return ModSounds.ENTITY_PIGLIN_RAVAGER_DEATH;
     }
+
+    @Override
+    public float getVoicePitch() {
+        return 0.7f + (this.getRandom().nextFloat() - this.getRandom().nextFloat()) * 0.08f;
+    }
 }

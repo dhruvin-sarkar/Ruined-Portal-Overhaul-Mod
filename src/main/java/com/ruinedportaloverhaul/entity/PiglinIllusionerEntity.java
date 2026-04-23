@@ -155,6 +155,11 @@ public class PiglinIllusionerEntity extends Illusioner implements GeoEntity, Tex
     }
 
     @Override
+    public float getVoicePitch() {
+        return 1.05f + (this.getRandom().nextFloat() - this.getRandom().nextFloat()) * 0.10f;
+    }
+
+    @Override
     public int getTextureVariant() {
         return this.getEntityData().get(TEXTURE_VARIANT);
     }

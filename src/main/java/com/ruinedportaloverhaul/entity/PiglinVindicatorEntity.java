@@ -130,6 +130,11 @@ public class PiglinVindicatorEntity extends Vindicator implements GeoEntity, Tex
     }
 
     @Override
+    public float getVoicePitch() {
+        return 0.95f + (this.getRandom().nextFloat() - this.getRandom().nextFloat()) * 0.10f;
+    }
+
+    @Override
     public int getTextureVariant() {
         return this.getEntityData().get(TEXTURE_VARIANT);
     }
