@@ -162,6 +162,7 @@ public final class NetherDragonRituals {
     }
 
     private static void tickBossBars(MinecraftServer server) {
+        // Fix: dragon boss bars previously removed only same-level players who walked out of range, so dimension changes could leave stale viewers attached. Each tick now rebuilds the in-range set and removes every player not currently eligible.
         Iterator<Map.Entry<UUID, ServerBossEvent>> iterator = BOSS_BARS.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<UUID, ServerBossEvent> entry = iterator.next();
@@ -177,10 +178,15 @@ public final class NetherDragonRituals {
             bossBar.setName(dragon.bossBarTitle());
             bossBar.setProgress(Math.max(0.0f, dragon.getHealth() / dragon.getMaxHealth()));
             ServerLevel dragonLevel = (ServerLevel) dragon.level();
+            Set<ServerPlayer> inRangePlayers = new HashSet<>();
             for (ServerPlayer player : dragonLevel.players()) {
                 if (player.blockPosition().distSqr(dragon.portalOrigin()) <= BOSS_BAR_RANGE_SQUARED) {
+                    inRangePlayers.add(player);
                     bossBar.addPlayer(player);
-                } else {
+                }
+            }
+            for (ServerPlayer player : new java.util.ArrayList<>(bossBar.getPlayers())) {
+                if (!inRangePlayers.contains(player)) {
                     bossBar.removePlayer(player);
                 }
             }
