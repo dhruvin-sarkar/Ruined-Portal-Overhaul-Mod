@@ -81,6 +81,7 @@ public final class GoldRaidManager {
     private static final int ANCHORED_GHAST_CAP = 16;
     private static final int GHAST_SPAWN_INTERVAL_TICKS = 25;
     private static final int GHAST_ANCHOR_RADIUS = PortalStructureHelper.OUTER_RADIUS + 32;
+    private static final double GHAST_ANCHOR_RADIUS_SQUARED = GHAST_ANCHOR_RADIUS * GHAST_ANCHOR_RADIUS;
     private static final int GHAST_ANCHOR_TICKS = 20 * 180;
     private static final int INTER_WAVE_PULSE_INTERVAL_TICKS = 60;
     private static final int TERRITORY_BOON_DURATION_TICKS = 260;
@@ -935,15 +936,18 @@ public final class GoldRaidManager {
         BlockPos origin,
         EntityType<? extends LivingEntity> type
     ) {
+        // Fix: underground ambient spawn retries used square-root distance checks in a recurring loop; squared checks now keep the hot path cheaper.
         RandomSource random = level.getRandom();
         int minY = Math.max(level.getMinY() + 4, origin.getY() - PortalStructureHelper.PIT_DEPTH - 8);
         int maxY = origin.getY() - 3;
+        double undergroundLimit = PortalStructureHelper.MIDDLE_RADIUS + 36.0;
+        double undergroundLimitSqr = undergroundLimit * undergroundLimit;
         for (int attempt = 0; attempt < 44; attempt++) {
             double angle = random.nextDouble() * Math.PI * 2.0;
             double radius = 7.0 + random.nextDouble() * 24.0;
             int x = player.blockPosition().getX() + (int) Math.round(Math.cos(angle) * radius);
             int z = player.blockPosition().getZ() + (int) Math.round(Math.sin(angle) * radius);
-            if (horizontalDistance(x, z, origin) > PortalStructureHelper.MIDDLE_RADIUS + 36.0) {
+            if (horizontalDistanceSqr(x, z, origin) > undergroundLimitSqr) {
                 continue;
             }
 
@@ -965,6 +969,7 @@ public final class GoldRaidManager {
         EntityType<? extends LivingEntity> type,
         double playerPortalDistance
     ) {
+        // Fix: surface ambient spawn retries only need radius gates, so candidate filtering now compares squared distances.
         RandomSource random = level.getRandom();
         double minPortalRadius = playerPortalDistance <= PortalStructureHelper.MIDDLE_RADIUS
             ? PortalStructureHelper.INNER_RADIUS + 3.0
@@ -972,14 +977,16 @@ public final class GoldRaidManager {
         double maxPortalRadius = playerPortalDistance <= PortalStructureHelper.MIDDLE_RADIUS
             ? PortalStructureHelper.MIDDLE_RADIUS + 8.0
             : PortalStructureHelper.OUTER_RADIUS - 4.0;
+        double minPortalRadiusSqr = minPortalRadius * minPortalRadius;
+        double maxPortalRadiusSqr = maxPortalRadius * maxPortalRadius;
 
         for (int attempt = 0; attempt < 40; attempt++) {
             double angle = random.nextDouble() * Math.PI * 2.0;
             double playerRadius = 18.0 + random.nextDouble() * 28.0;
             int x = player.blockPosition().getX() + (int) Math.round(Math.cos(angle) * playerRadius);
             int z = player.blockPosition().getZ() + (int) Math.round(Math.sin(angle) * playerRadius);
-            double portalRadius = horizontalDistance(x, z, origin);
-            if (portalRadius < minPortalRadius || portalRadius > maxPortalRadius) {
+            double portalRadiusSqr = horizontalDistanceSqr(x, z, origin);
+            if (portalRadiusSqr < minPortalRadiusSqr || portalRadiusSqr > maxPortalRadiusSqr) {
                 continue;
             }
             if (!level.hasChunk(x >> 4, z >> 4)) {
@@ -997,13 +1004,16 @@ public final class GoldRaidManager {
     }
 
     private static BlockPos findGhastSpawnPosition(ServerLevel level, ServerPlayer player, BlockPos origin) {
+        // Fix: anchored-ghast placement retries used a square root for each candidate, so radius rejection now compares squared values.
         RandomSource random = level.getRandom();
+        double ghastLimit = PortalStructureHelper.OUTER_RADIUS - 12.0;
+        double ghastLimitSqr = ghastLimit * ghastLimit;
         for (int attempt = 0; attempt < 44; attempt++) {
             double angle = random.nextDouble() * Math.PI * 2.0;
             double radius = 18.0 + random.nextDouble() * (PortalStructureHelper.OUTER_RADIUS - 18.0);
             int x = origin.getX() + (int) Math.round(Math.cos(angle) * radius);
             int z = origin.getZ() + (int) Math.round(Math.sin(angle) * radius);
-            if (horizontalDistance(x, z, origin) > PortalStructureHelper.OUTER_RADIUS - 12) {
+            if (horizontalDistanceSqr(x, z, origin) > ghastLimitSqr) {
                 continue;
             }
             if (!level.hasChunk(x >> 4, z >> 4)) {
@@ -1060,20 +1070,23 @@ public final class GoldRaidManager {
     }
 
     private static boolean hasTaggedAmbientOrigin(Mob mob, BlockPos origin) {
+        // Fix: tagged-origin matching runs during ambient mob counts, so compare squared offsets instead of taking square roots per entity.
         return mob.getTags().contains(PORTAL_AMBIENT_TAG)
             && taggedOrigin(mob, PORTAL_AMBIENT_ORIGIN_TAG_PREFIX)
-                .map(taggedOrigin -> horizontalDistance(taggedOrigin, origin) <= 1.0)
+                .map(taggedOrigin -> horizontalDistanceSqr(taggedOrigin, origin) <= 1.0)
                 .orElse(false);
     }
 
     private static int countAnchoredGhasts(ServerLevel level, BlockPos origin) {
+        // Fix: ghast cap checks run repeatedly while players remain in the zone; matching saved origins now uses squared distance.
         AABB zone = new AABB(origin).inflate(GHAST_ANCHOR_RADIUS, 96.0, GHAST_ANCHOR_RADIUS);
         return level.getEntities(EntityType.GHAST, zone, ghast -> ghast.isAlive()
             && ghast.getTags().contains(PORTAL_GHAST_TAG)
-            && taggedGhastOrigin(ghast).map(taggedOrigin -> horizontalDistance(taggedOrigin, origin) <= 1.0).orElse(false)).size();
+            && taggedGhastOrigin(ghast).map(taggedOrigin -> horizontalDistanceSqr(taggedOrigin, origin) <= 1.0).orElse(false)).size();
     }
 
     private static void cleanupAnchoredGhasts(ServerLevel level, long gameTime) {
+        // Fix: recurring anchored-ghast cleanup still used exact horizontal distances, so stale-anchor eviction now stays squared.
         Iterator<Map.Entry<UUID, PortalGhastAnchor>> iterator = ANCHORED_GHASTS.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<UUID, PortalGhastAnchor> entry = iterator.next();
@@ -1084,7 +1097,7 @@ public final class GoldRaidManager {
                 continue;
             }
             if (gameTime > anchor.expireTick()
-                || horizontalDistance(ghast.blockPosition(), anchor.origin()) > GHAST_ANCHOR_RADIUS) {
+                || horizontalDistanceSqr(ghast.blockPosition(), anchor.origin()) > GHAST_ANCHOR_RADIUS_SQUARED) {
                 spawnParticle(level, ParticleTypes.LARGE_SMOKE, ghast.getX(), ghast.getY() + 1.5, ghast.getZ(), 20, 2.0, 2.0, 2.0, 0.02);
                 ghast.discard();
                 iterator.remove();
@@ -1095,7 +1108,7 @@ public final class GoldRaidManager {
             AABB scan = new AABB(player.blockPosition()).inflate(GHAST_ANCHOR_RADIUS, 96.0, GHAST_ANCHOR_RADIUS);
             for (Ghast ghast : level.getEntities(EntityType.GHAST, scan, ghast -> ghast.getTags().contains(PORTAL_GHAST_TAG))) {
                 taggedGhastOrigin(ghast).ifPresent(origin -> {
-                    if (horizontalDistance(ghast.blockPosition(), origin) > GHAST_ANCHOR_RADIUS) {
+                    if (horizontalDistanceSqr(ghast.blockPosition(), origin) > GHAST_ANCHOR_RADIUS_SQUARED) {
                         ghast.discard();
                     }
                 });
@@ -1383,15 +1396,15 @@ public final class GoldRaidManager {
         return Math.sqrt(horizontalDistanceSqr(first, second));
     }
 
-    private static double horizontalDistance(int x, int z, BlockPos origin) {
-        double dx = x - origin.getX();
-        double dz = z - origin.getZ();
-        return Math.sqrt(dx * dx + dz * dz);
-    }
-
     private static double horizontalDistanceSqr(BlockPos first, BlockPos second) {
         double dx = first.getX() - second.getX();
         double dz = first.getZ() - second.getZ();
+        return dx * dx + dz * dz;
+    }
+
+    private static double horizontalDistanceSqr(int x, int z, BlockPos origin) {
+        double dx = x - origin.getX();
+        double dz = z - origin.getZ();
         return dx * dx + dz * dz;
     }
 

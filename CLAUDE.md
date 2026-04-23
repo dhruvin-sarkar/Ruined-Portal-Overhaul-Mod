@@ -284,7 +284,7 @@ The manager class is still named `GoldRaidManager` for compatibility with the ex
 
 `GoldRaidManager` runs from `ServerTickEvents.END_SERVER_TICK`, only in the overworld, and scans players every `10` server ticks.
 
-Recurring raid, boss-bar, ambient, spawn-suppression, and ghast range gates use horizontal squared-distance checks; code only takes square roots when a real distance is needed for intensity curves or spawn band selection.
+Recurring raid, boss-bar, ambient, spawn-suppression, and ghast range gates use horizontal squared-distance checks; code only takes square roots when a real distance is needed for intensity curves or spawn band selection. Ambient ground/underground spawn retries and anchored-ghast cap/cleanup checks must stay squared because those loops can run many candidates per portal tick.
 
 Trigger phases:
 
