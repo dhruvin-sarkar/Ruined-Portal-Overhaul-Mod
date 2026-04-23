@@ -3,6 +3,7 @@ package com.ruinedportaloverhaul.entity;
 import com.ruinedportaloverhaul.network.DragonPhaseFlashPayload;
 import com.ruinedportaloverhaul.raid.NetherDragonRituals;
 import com.ruinedportaloverhaul.sound.ModSounds;
+import java.util.Optional;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -30,6 +31,7 @@ import net.minecraft.world.entity.boss.enderdragon.phases.DragonStrafePlayerPhas
 import net.minecraft.world.entity.boss.enderdragon.phases.EnderDragonPhase;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.SimpleExplosionDamageCalculator;
 import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.dimension.end.EndDragonFight;
 import net.minecraft.world.level.storage.ValueInput;
@@ -78,6 +80,8 @@ public class NetherDragonEntity extends EnderDragon implements GeoEntity {
     private static final double PLAYER_EVENT_RANGE = 96.0;
     private static final double NETHER_SLAM_EXPLOSION_POWER = 8.0;
     private static final double NETHER_SLAM_DAMAGE_RADIUS = 6.0;
+    private static final SimpleExplosionDamageCalculator NETHER_SLAM_VISUAL_EXPLOSION =
+        new SimpleExplosionDamageCalculator(false, false, Optional.of(0.0f), Optional.empty());
     private static final Component BOSS_BAR_TITLE = Component.translatable("bossbar.ruined_portal_overhaul.nether_dragon")
         .withStyle(ChatFormatting.DARK_RED);
     private static final Component ENRAGED_BOSS_BAR_TITLE = Component.translatable("bossbar.ruined_portal_overhaul.nether_dragon_enraged")
@@ -447,11 +451,11 @@ public class NetherDragonEntity extends EnderDragon implements GeoEntity {
     }
 
     private void resolveNetherSlam(ServerLevel level) {
-        // Fix: the slam impact now resolves in one place with explosion, area damage, particles, and phase cleanup so the dragon always returns to normal routing after the dive.
+        // Fix: the slam explosion was visually non-griefing but still dealt vanilla explosion damage before the scripted 15-damage pulse. The explosion is now presentation-only and the explicit radius hit is the single damage path.
         this.netherSlamActive = false;
         this.netherSlamTicksRemaining = 0;
         Vec3 impactCenter = Vec3.atCenterOf(this.netherSlamTarget);
-        level.explode(this, impactCenter.x, impactCenter.y, impactCenter.z, (float) NETHER_SLAM_EXPLOSION_POWER, Level.ExplosionInteraction.NONE);
+        level.explode(this, null, NETHER_SLAM_VISUAL_EXPLOSION, impactCenter, (float) NETHER_SLAM_EXPLOSION_POWER, false, Level.ExplosionInteraction.NONE);
 
         AABB impactBox = new AABB(
             impactCenter.x - NETHER_SLAM_DAMAGE_RADIUS,

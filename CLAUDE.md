@@ -165,6 +165,7 @@ The Nether Crystal ritual is the endgame loop:
 - `PortalRaidState`: persists discovered portal variants, filled ritual pedestals, and active dragon portals.
 - `NetherDragonRituals`: tracks crystal placement, starts the summoning sequence, manages the Nether Dragon boss bar, drops death rewards, and shatters pedestals.
 - `NetherDragonEntity`, `NetherDragonGeoRenderer`, and `NetherDragonGeoModel`: extend vanilla `EnderDragon` for combat semantics, suppress End fight hooks and crystal healing, set 300 HP, delegate custom death rewards to `NetherDragonRituals`, apply permanent movement and flying-speed boosts during phase two, and render through GeckoLib with a vanilla dragon texture, crimson tint, flight loop, phase-two transition trigger, and Nether Slam trigger.
+- Phase two starts at 150 HP. Nether Slam uses a visual-only non-griefing explosion and then applies the intended 15 damage once through the explicit six-block radius hit, so players are not double-hit by vanilla explosion damage plus scripted damage.
 
 Ritual conditions:
 
