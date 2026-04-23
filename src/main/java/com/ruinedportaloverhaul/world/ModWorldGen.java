@@ -1,6 +1,5 @@
 package com.ruinedportaloverhaul.world;
 
-import com.ruinedportaloverhaul.config.ModConfigManager;
 import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
 import net.fabricmc.fabric.api.biome.v1.BiomeSelectionContext;
 import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
@@ -46,10 +45,9 @@ public final class ModWorldGen {
             UNDERGROUND_BLACKSTONE_VEIN
         );
 
-        if (ModConfigManager.enableAmbientNetherSpawns()) {
-            BiomeModifications.addSpawn(AMBIENT_CORRUPTION_SELECTOR, MobCategory.MONSTER, EntityType.ZOMBIFIED_PIGLIN, 1, 1, 2);
-            BiomeModifications.addSpawn(AMBIENT_CORRUPTION_SELECTOR, MobCategory.MONSTER, EntityType.BLAZE, 1, 1, 1);
-        }
+        // Fix: biome spawn entries are load-time data, so they are always registered and the live config gates attempts in NaturalSpawnerSuppressionMixin.
+        BiomeModifications.addSpawn(AMBIENT_CORRUPTION_SELECTOR, MobCategory.MONSTER, EntityType.ZOMBIFIED_PIGLIN, 1, 1, 2);
+        BiomeModifications.addSpawn(AMBIENT_CORRUPTION_SELECTOR, MobCategory.MONSTER, EntityType.BLAZE, 1, 1, 1);
     }
 
     // Fix: Terralith exposes overworld cave biomes under terralith:cave/... and floating skylands via its biome tag, so both are filtered out here before ambient corruption hooks are applied.

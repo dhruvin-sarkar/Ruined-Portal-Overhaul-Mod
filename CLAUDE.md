@@ -56,7 +56,9 @@ src/main/java/com/ruinedportaloverhaul/structure/PortalDungeonPiece.java
 src/main/java/com/ruinedportaloverhaul/structure/PortalDungeonStructure.java
 src/main/java/com/ruinedportaloverhaul/structure/PortalDungeonVariant.java
 src/main/java/com/ruinedportaloverhaul/structure/PortalStructureHelper.java
+src/main/java/com/ruinedportaloverhaul/mixin/NaturalSpawnerSuppressionMixin.java
 src/main/java/com/ruinedportaloverhaul/world/ModStructures.java
+src/main/java/com/ruinedportaloverhaul/world/ModNaturalSpawnGuards.java
 src/main/java/com/ruinedportaloverhaul/world/ModWorldGen.java
 src/main/resources/fabric.mod.json
 src/main/resources/ruined_portal_overhaul.mixins.json
@@ -265,6 +267,8 @@ Runtime structure-local ambient spawning is also owned by `GoldRaidManager`, not
 Completed portal suppression:
 
 - `GoldRaidManager.initialize()` registers a server entity-load hook that discards hostile mobs loaded inside completed portal footprints.
+- `NaturalSpawnerSuppressionMixin` wraps `NaturalSpawner.SpawnPredicate#test(...)` so completed portal territories reject natural spawn attempts before a mob entity is created. This is the authoritative post-raid suppression path; the entity-load hook remains a fallback for already-loaded or externally-created mobs.
+- `ModNaturalSpawnGuards` owns the shared suppression rules. It checks only the overworld, uses horizontal squared distance against `PortalStructureHelper.OUTER_RADIUS`, and honors `ModConfigManager.enablePostRaidSuppression()` at runtime.
 - Suppression intentionally skips the Exiled Piglin trader and mobs requiring persistence so reward/trader behavior is not broken.
 - Runtime ambient portal spawning already ignores completed portals, so completed structures stay quiet.
 
@@ -437,6 +441,8 @@ It also injects rare overworld monster spawns:
 
 - Zombified Piglin, weight 1, group 1-2
 - Blaze, weight 1, group 1
+
+The biome spawn entries are registered at load time because Fabric biome modifications are data-load hooks, not live config switches. `ModNaturalSpawnGuards` now gates those ambient Zombified Piglin/Blaze attempts during natural spawning, so `ModConfigManager.enableAmbientNetherSpawns()` can be changed at runtime without rebuilding biome data.
 
 Global ambient corruption intentionally excludes Terralith skylands and Terralith cave biomes so surface-scar features and ambient Nether spawns stay on grounded overworld terrain. The portal dungeon structure performs the same center-biome compatibility check from `PortalDungeonStructure.findGenerationPoint(...)` after honoring the structure JSON biome predicate, so the full dungeon replacement also avoids floating skylands and underground Terralith cave biomes.
 
