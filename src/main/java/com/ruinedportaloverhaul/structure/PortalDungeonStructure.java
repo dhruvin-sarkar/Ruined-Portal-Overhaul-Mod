@@ -1,6 +1,7 @@
 package com.ruinedportaloverhaul.structure;
 
 import com.mojang.serialization.MapCodec;
+import com.ruinedportaloverhaul.config.ModConfigManager;
 import com.ruinedportaloverhaul.world.ModStructures;
 import com.ruinedportaloverhaul.world.ModWorldGen;
 import java.util.Optional;
@@ -14,6 +15,7 @@ import net.minecraft.world.level.levelgen.structure.StructureType;
 
 public class PortalDungeonStructure extends Structure {
     public static final MapCodec<PortalDungeonStructure> CODEC = simpleCodec(PortalDungeonStructure::new);
+    private static final int MIN_CONFIGURABLE_SPACING = 16;
 
     public PortalDungeonStructure(StructureSettings settings) {
         super(settings);
@@ -22,6 +24,10 @@ public class PortalDungeonStructure extends Structure {
     @Override
     protected Optional<GenerationStub> findGenerationPoint(GenerationContext context) {
         // Fix: generation previously returned a piece without checking the JSON biome predicate, so compat exclusions and vanilla ruined-portal biome tags could be bypassed. The center biome is now sampled first, validated, and then used for deterministic variant placement.
+        if (!passesConfiguredRarity(context)) {
+            return Optional.empty();
+        }
+
         int centerX = context.chunkPos().getMiddleBlockX();
         int centerZ = context.chunkPos().getMiddleBlockZ();
         int surfaceY = context.chunkGenerator()
@@ -44,6 +50,26 @@ public class PortalDungeonStructure extends Structure {
 
         BlockPos center = new BlockPos(centerX, centerY, centerZ);
         return Optional.of(new GenerationStub(center, builder -> builder.addPiece(new PortalDungeonPiece(center, variant))));
+    }
+
+    private static boolean passesConfiguredRarity(GenerationContext context) {
+        // Fix: the config screen exposed structure rarity but the structure set was static JSON, so the value never affected generation. The JSON now supplies the minimum grid and this live deterministic thinning step raises average spacing for new chunks when admins choose rarer portals.
+        int configuredSpacing = ModConfigManager.structureRarity();
+        if (configuredSpacing <= MIN_CONFIGURABLE_SPACING) {
+            return true;
+        }
+
+        double acceptanceChance = (MIN_CONFIGURABLE_SPACING * MIN_CONFIGURABLE_SPACING) / (double) (configuredSpacing * configuredSpacing);
+        long mixed = mixRaritySeed(context.seed(), context.chunkPos().x, context.chunkPos().z);
+        double roll = (mixed >>> 11) * 0x1.0p-53;
+        return roll < acceptanceChance;
+    }
+
+    private static long mixRaritySeed(long seed, int chunkX, int chunkZ) {
+        long value = seed ^ (long) chunkX * 341873128712L ^ (long) chunkZ * 132897987541L;
+        value = (value ^ (value >>> 30)) * 0xBF58476D1CE4E5B9L;
+        value = (value ^ (value >>> 27)) * 0x94D049BB133111EBL;
+        return value ^ (value >>> 31);
     }
 
     @Override

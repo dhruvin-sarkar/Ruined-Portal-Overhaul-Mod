@@ -218,7 +218,7 @@ The generated piece uses a radius-136 surface footprint and a depth-45 undergrou
 
 Pit, chamber, and tunnel carvers replace adjacent overworld stone, deepslate, dirt, and common overworld ore/geology blocks with Nether materials so natural cave intersections read as corrupted Nether geology. Structure-local water encountered in transformed terrain is converted into lava with a bounded 8-block vertical clear. All writes are bounded by both the structure piece box and current chunk box.
 
-Overworld ruined portal structure JSON files are overridden to use `ruined_portal_overhaul:portal_dungeon`. The matching `data/minecraft/worldgen/structure_set/ruined_portals.json` override keeps vanilla spacing `40` and separation `15`, and now adds a four-chunk exclusion zone against `minecraft:villages` so portal dungeons stop crowding village starts.
+Overworld ruined portal structure JSON files are overridden to use `ruined_portal_overhaul:portal_dungeon`. The matching `data/minecraft/worldgen/structure_set/ruined_portals.json` override uses a minimum spacing grid of `16`, separation `8`, and a four-chunk exclusion zone against `minecraft:villages`; `PortalDungeonStructure.findGenerationPoint(...)` then deterministically thins candidate chunks from the live `ModConfigManager.structureRarity()` value so pack authors can tune average rarity without a custom datapack.
 
 ## Entity Presentation
 
@@ -453,9 +453,9 @@ Do not use global biome modifications for structure-local proximity gradients.
 
 Structure rarity note:
 
-- The prompt-level default rarity is 32 chunks. The vanilla ruined portal replacement structure set is data-driven at `data/minecraft/worldgen/structure_set/ruined_portals.json`, and its default `spacing` is aligned to `32`.
+- The prompt-level default rarity is 32 chunks. The vanilla ruined portal replacement structure set is data-driven at `data/minecraft/worldgen/structure_set/ruined_portals.json`, now using minimum `spacing` 16 so the code can support the full 16-64 config range.
 - `ClothRuntimeConfig.validatePostLoad()` normalizes loaded config files into their documented ranges. Runtime getters still clamp values defensively so hand-edited files, reloads, and optional Cloth Config absence all converge on safe gameplay numbers.
-- `ModConfigManager.structureRarity()` exposes the same 16-64 range to Cloth Config so pack authors can see the intended tuning surface, but Minecraft loads structure-set spacing from datapacks. Runtime config changes do not rewrite active structure placement; changing generated spacing still requires a datapack/resource override of the structure set.
+- `ModConfigManager.structureRarity()` is read inside `PortalDungeonStructure.findGenerationPoint(...)` for new candidate chunks. Values above 16 deterministically thin the minimum placement grid using the world seed and chunk position; already-generated chunks are not rewritten.
 - `ModConfigManager.enableOuterZoneScatter()` is read directly by `PortalStructureHelper.buildOuterScatter(...)`. Turning it off suppresses only the sparse radius-52-to-136 netherrack/crying-obsidian outer scatter while preserving the portal core, middle scar, caves, raid, and ritual layout.
 
 ## Metadata
