@@ -52,6 +52,7 @@ src/main/java/com/ruinedportaloverhaul/raid/PortalRaidState.java
 src/main/java/com/ruinedportaloverhaul/structure/NetherConduitChestPlacement.java
 src/main/java/com/ruinedportaloverhaul/structure/PortalDungeonPiece.java
 src/main/java/com/ruinedportaloverhaul/structure/PortalDungeonStructure.java
+src/main/java/com/ruinedportaloverhaul/structure/PortalDungeonVariant.java
 src/main/java/com/ruinedportaloverhaul/structure/PortalStructureHelper.java
 src/main/java/com/ruinedportaloverhaul/world/ModStructures.java
 src/main/java/com/ruinedportaloverhaul/world/ModWorldGen.java
@@ -151,7 +152,7 @@ The Nether Crystal ritual is the endgame loop:
 - `NetherCrystalItem`: places crystals only on `minecraft:netherite_block` or `minecraft:obsidian`, spawns `NetherCrystalEntity`, and calls the ritual tracker.
 - `ModEntities`: registers `nether_crystal` and `nether_dragon`.
 - `PortalStructureHelper`: places four netherite pedestals at offsets north/south/east/west six blocks from the portal center and exposes `ritualPedestalPositions(...)`.
-- `PortalRaidState`: persists filled ritual pedestals and active dragon portals.
+- `PortalRaidState`: persists discovered portal variants, filled ritual pedestals, and active dragon portals.
 - `NetherDragonRituals`: tracks crystal placement, starts the summoning sequence, manages the Nether Dragon boss bar, drops death rewards, and shatters pedestals.
 - `NetherDragonEntity`: extends vanilla `EnderDragon`, suppresses End fight hooks, suppresses crystal healing, sets 300 HP, and delegates custom death rewards to `NetherDragonRituals`.
 
@@ -183,7 +184,15 @@ Recipes live in singular `data/ruined_portal_overhaul/recipe/`.
 
 ## Structure Generation
 
-`PortalDungeonStructure` creates one `PortalDungeonPiece` at the chunk center. `PortalDungeonPiece` owns generation order and delegates block placement to `PortalStructureHelper`.
+`PortalDungeonStructure` creates one `PortalDungeonPiece` at the chunk center. `PortalDungeonPiece` owns generation order, saves a locked `PortalDungeonVariant`, and delegates block placement to `PortalStructureHelper`.
+
+Implemented structure variants:
+
+- `Crimson Throne`: baseline original scar layout.
+- `Sunken Sanctum`: lowers the ritual core four blocks into a bowl, pushes more soul sand and soul soil into the middle zone, and adds a collapsed blackstone arch on the north rim.
+- `Basalt Citadel`: swaps the inner zone to blackstone, widens the ritual platform to a 7-block radius, adds four basalt corner columns around the frame, and places a mid-depth pit lava moat.
+
+Variant selection is deterministic from the structure chunk through `PortalDungeonVariant.selectForChunk(...)`. `GoldRaidManager` caches discovered variants into `PortalRaidState` the first time a portal piece is seen so later raid and ritual hooks can query a portal's form without mutating persistent state during chunk generation.
 
 The generated piece uses a radius-136 surface footprint and a depth-45 underground rupture:
 
@@ -271,6 +280,7 @@ Raid start:
 - Sends title `The Red Storm Breaks` and subtitle `Survive the waves...` to nearby players.
 - Deletes known/scanned pre-raid spawners.
 - Creates a `ServerBossEvent` and spawns wave 1 in an adaptive 14-24 block ring using `Heightmap.Types.MOTION_BLOCKING`.
+- Runtime structure discovery also remembers the portal's `PortalDungeonVariant` in `PortalRaidState`.
 
 Current wave table:
 
@@ -295,13 +305,14 @@ Completion order:
 
 ## Persistence And Multiplayer
 
-- Completed portals, active raids, approach activations, ritual crystal fills, active dragon portals, and known pre-raid spawner positions are tracked per portal `BlockPos`.
+- Completed portals, active raids, approach activations, discovered structure variants, ritual crystal fills, active dragon portals, and known pre-raid spawner positions are tracked per portal `BlockPos`.
 - `PortalRaidState.CODEC` uses save-compatible optional defaults for newer fields.
 - Active wave mobs are stored as UUIDs, never direct entity references.
 - Active raids rehydrate from persistent state after server restart.
 - Active raids pause mob-death evaluation while the portal area is not entity-ticking, so unloaded mobs are not counted as dead.
 - Boss bars track all players horizontally within 48 blocks of the active portal and remove players who leave range or disconnect.
 - Ritual state persists as portal-origin to filled-pedestal sets. Dragon activity is stored separately so placing replacement crystals cannot start duplicate fights while a dragon is active.
+- Older saves that predate `portal_variants` fall back to `PortalDungeonVariant.selectForOrigin(...)`, so variant lookups stay deterministic even before runtime discovery repopulates the saved field.
 
 ## Red Storm And Audio
 
@@ -467,6 +478,7 @@ Do not use global biome modifications for structure-local proximity gradients.
 | 7 combat entities plus Exiled Piglin registration | COMPLETE |
 | GeckoLib entity and block renderer registration | COMPLETE |
 | Synced GeckoLib mob texture variants and generated placeholder sheets | COMPLETE |
+| Deterministic portal dungeon structure variants with runtime persistence | COMPLETE |
 | Structure generation and vanilla ruined portal replacement hooks | COMPLETE |
 | Structure-set village exclusion for ruined portal dungeons | COMPLETE |
 | Calm low-frequency surface height variation around stable ritual core | COMPLETE |

@@ -17,6 +17,9 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
 1. Procedural Portal Dungeon
    - Custom structure replaces vanilla overworld ruined portal pieces with a corrupted surface scar and underground dungeon space.
    - `PortalDungeonPiece` builds roughly radius 136 and depth 45 through `PortalStructureHelper`.
+   - Three deterministic structure variants are implemented: `Crimson Throne`, `Sunken Sanctum`, and `Basalt Citadel`.
+   - `Sunken Sanctum` lowers the ritual core into a bowl with heavier soul-sand corruption and a collapsed north-rim blackstone arch.
+   - `Basalt Citadel` uses a blackstone inner zone, a widened ritual platform, basalt corner columns, and a pit lava moat.
    - The generated portal frame is a valid 4-by-5 or 6-by-7 outer frame.
    - Inner ritual terrain and pit placement are protected; surface height variation is applied only outside the stable core.
    - Surface terrain uses low-frequency deterministic noise clamped to about `-3` to `+3` blocks, so the scar reads as a mostly flat Nether plain with mild organic unevenness.
@@ -102,9 +105,10 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
 1. Approach zone marks the portal as awakened and grants the root advancement.
 2. Raid trigger starts wave 1, grants `No Tribute Required`, deletes pre-raid spawners, and shows the raid title.
 3. Active mobs are tracked by UUID and persisted through `PortalRaidState`.
-4. Active raids rehydrate after server restart and pause mob-death evaluation while the portal area is not entity-ticking.
-5. Wave completion advances through five boss-bar waves.
-6. Final completion grants nearby players the raid-complete trigger, hides the boss bar, plays completion effects, ignites the portal, spawns the boss chest, summons the Exiled Piglin, marks the portal complete, and sends `The portal falls silent.`
+4. Runtime portal discovery also persists the discovered structure variant through `PortalRaidState` without mutating save data during chunk generation.
+5. Active raids rehydrate after server restart and pause mob-death evaluation while the portal area is not entity-ticking.
+6. Wave completion advances through five boss-bar waves.
+7. Final completion grants nearby players the raid-complete trigger, hides the boss bar, plays completion effects, ignites the portal, spawns the boss chest, summons the Exiled Piglin, marks the portal complete, and sends `The portal falls silent.`
 
 ## Compatibility
 
@@ -124,8 +128,9 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
 ## Remaining Work
 
 1. Run a full in-game `runClient` survival smoke test with log review.
-2. Replace generated entity textures with hand-polished art if a future visual pass has time.
-3. Add custom `.ogg` sounds only if a later asset pass wants unique audio; the current release uses vanilla sounds intentionally.
+2. Use `/locate structure minecraft:ruined_portal` across multiple seeds to confirm all three structure variants appear with readable transitions in-game.
+3. Replace generated entity textures with hand-polished art if a future visual pass has time.
+4. Add custom `.ogg` sounds only if a later asset pass wants unique audio; the current release uses vanilla sounds intentionally.
 
 ## Guardrails
 
