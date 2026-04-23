@@ -149,7 +149,7 @@ The Ghast Tear Necklace is a native carried charm:
 - `NetherFireballKeybinds`: client keybind registration, default key `G`, sends the payload only when the server supports it.
 - `RuinedPortalOverhaulClient`: registers the keybind from the client initializer.
 
-Passive effects refresh every 40 ticks with 80-tick duration while the necklace is carried. The fireball ability has a 2400-tick cooldown, spawns a vanilla `SmallFireball` owned by the player, and uses `SoundEvents.GHAST_SHOOT`.
+Passive effects refresh every 40 ticks with 80-tick duration while the necklace is carried. The fireball ability has a 2400-tick cooldown, spawns a vanilla `SmallFireball` owned by the player, and routes audio through `ModSounds.ITEM_GHAST_TEAR_NECKLACE_FIREBALL`.
 
 ## Nether Crystal And Nether Dragon
 
@@ -186,7 +186,7 @@ Death behavior:
 
 Recipes live in singular `data/ruined_portal_overhaul/recipe/`.
 
-- `ghast_tear_necklace.json`: shaped `TST/GTG/TST`, where `T = minecraft:ghast_tear`, `S = minecraft:nether_star`, and `G = minecraft:gold_ingot`. This exact grid uses five ghast tears, two nether stars, and two gold ingots.
+- `ghast_tear_necklace.json`: shaped `TST/G G/TST`, where `T = minecraft:ghast_tear`, `S = minecraft:nether_star`, and `G = minecraft:gold_ingot`. This exact grid uses four ghast tears, two nether stars, and two gold ingots.
 - `nether_crystal.json`: shaped `CSC/SNS/ISI`, where `C = minecraft:crying_obsidian`, `S = minecraft:nether_star`, `N = ruined_portal_overhaul:nether_conduit`, and `I = minecraft:netherite_ingot`.
 
 ## Structure Generation

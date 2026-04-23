@@ -8,7 +8,7 @@
   },
   "pattern": [
     "TST",
-    "GTG",
+    "G G",
     "TST"
   ],
   "result": {
