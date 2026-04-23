@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.UUID;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleOptions;
@@ -52,6 +53,17 @@ public final class NetherDragonRituals {
     public static void initialize() {
         ServerTickEvents.END_SERVER_TICK.register(NetherDragonRituals::tick);
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> clearRuntimeState());
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> detachDisconnectedPlayer(handler.getPlayer()));
+    }
+
+    private static void detachDisconnectedPlayer(ServerPlayer player) {
+        // Fix: dragon boss bar player tracking rebuilt from the live player list each tick, but never explicitly removed disconnecting players, so their ServerPlayer references leaked in the bar's internal set. Disconnect hook now sweeps every active dragon bar.
+        if (player == null) {
+            return;
+        }
+        for (ServerBossEvent bossBar : BOSS_BARS.values()) {
+            bossBar.removePlayer(player);
+        }
     }
 
     public static void onNetherCrystalPlaced(ServerLevel level, BlockPos pedestalPos, NetherCrystalEntity crystal) {

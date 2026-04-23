@@ -21,6 +21,7 @@ import java.util.UUID;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -164,6 +165,19 @@ public final class GoldRaidManager {
         ServerTickEvents.END_SERVER_TICK.register(GoldRaidManager::tick);
         ServerEntityEvents.ENTITY_LOAD.register(GoldRaidManager::suppressCompletedPortalMobLoad);
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> clearRuntimeState());
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> detachDisconnectedPlayer(handler.getPlayer()));
+    }
+
+    private static void detachDisconnectedPlayer(ServerPlayer player) {
+        // Fix: the boss bar tick loop rebuilt tracked players from the live player list, so a disconnecting player's ServerPlayer reference leaked in the bar's internal set. Explicit cleanup on disconnect removes the stale tracking so broadcasts never target a dead connection.
+        if (player == null) {
+            return;
+        }
+        UUID playerId = player.getUUID();
+        for (RaidState state : ACTIVE_RAIDS.values()) {
+            state.bossBar.removePlayer(player);
+            state.trackedPlayers.remove(playerId);
+        }
     }
 
     private static void suppressCompletedPortalMobLoad(Entity entity, ServerLevel level) {
