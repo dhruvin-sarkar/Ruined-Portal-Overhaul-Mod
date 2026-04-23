@@ -466,6 +466,7 @@ Structure rarity note:
 - Client entrypoint: `com.ruinedportaloverhaul.client.RuinedPortalOverhaulClient`
 - Required dependencies: Minecraft, Fabric Loader, Fabric API, and GeckoLib
 - Suggested compatibility mods: Cloth Config, Mod Menu, Roughly Enough Items, Terralith, Biomes O' Plenty, and Regions Unexplored
+- Optional REI integration is isolated behind the `rei_client` entrypoint and an explicit `FabricLoader.isModLoaded("roughlyenoughitems")` guard. The plugin adds progression information pages while normal crafting recipes remain data-driven JSON.
 - Common mixin config: `ruined_portal_overhaul.mixins.json`
 - Client mixin config: `ruined_portal_overhaul.client.mixins.json`
 

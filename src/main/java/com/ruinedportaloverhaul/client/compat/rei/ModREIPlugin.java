@@ -10,6 +10,7 @@ import me.shedaniel.rei.api.common.util.EntryStacks;
 import me.shedaniel.rei.plugin.common.displays.DefaultInformationDisplay;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Items;
 
@@ -17,6 +18,11 @@ import net.minecraft.world.item.Items;
 public final class ModREIPlugin implements REIClientPlugin {
     @Override
     public void registerDisplays(DisplayRegistry registry) {
+        // Fix: the REI entrypoint is normally only invoked by REI, but the extra guard keeps optional compat inert in partial loader/test setups.
+        if (!FabricLoader.getInstance().isModLoaded("roughlyenoughitems")) {
+            return;
+        }
+
         // REI already discovers the normal JSON crafting recipes, so this compat layer only adds the progression details that were previously missing from the recipe viewer.
         registry.add(netherConduitDisplay());
         registry.add(netherCrystalDisplay());
