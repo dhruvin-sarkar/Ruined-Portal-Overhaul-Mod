@@ -159,7 +159,7 @@ Passive effects refresh every 40 ticks with 80-tick duration while the necklace 
 The Nether Crystal ritual is the endgame loop:
 
 - `NetherCrystalEntity`, `NetherCrystalGeoRenderer`, and `NetherCrystalGeoModel`: GeckoLib-powered ritual crystal using the vanilla end-crystal texture, a dark red render tint, and a looping pulse/rotation animation.
-- `NetherCrystalItem`: places crystals only on `minecraft:netherite_block` or `minecraft:obsidian`, spawns `NetherCrystalEntity`, and calls the ritual tracker.
+- `NetherCrystalItem`: places crystals only on `minecraft:netherite_block` or `minecraft:obsidian`, spawns `NetherCrystalEntity`, consumes the stack only from the server side while respecting creative mode, and calls the ritual tracker.
 - `ModEntities`: registers `nether_crystal` and `nether_dragon`.
 - `PortalStructureHelper`: places four netherite pedestals at offsets north/south/east/west six blocks from the portal center and exposes `ritualPedestalPositions(...)`.
 - `PortalRaidState`: persists discovered portal variants, filled ritual pedestals, and active dragon portals.

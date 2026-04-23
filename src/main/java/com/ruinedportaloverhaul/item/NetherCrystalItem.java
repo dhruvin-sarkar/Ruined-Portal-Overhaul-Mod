@@ -28,6 +28,7 @@ public class NetherCrystalItem extends Item {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public void appendHoverText(
         ItemStack stack,
         Item.TooltipContext context,
@@ -45,6 +46,7 @@ public class NetherCrystalItem extends Item {
 
     @Override
     public InteractionResult useOn(UseOnContext context) {
+        // Fix: crystal placement spawned server-side but still shrank the stack on both logical sides. Consumption now happens only on the server and respects creative mode.
         Level level = context.getLevel();
         BlockPos basePos = context.getClickedPos();
         BlockState baseState = level.getBlockState(basePos);
@@ -72,9 +74,11 @@ public class NetherCrystalItem extends Item {
             serverLevel.gameEvent(context.getPlayer(), GameEvent.ENTITY_PLACE, crystalPos);
             serverLevel.playSound(null, crystalPos, ModSounds.RITUAL_CRYSTAL_PLACE, SoundSource.BLOCKS, 0.9f, 1.0f);
             NetherDragonRituals.onNetherCrystalPlaced(serverLevel, basePos, crystal);
+            if (context.getPlayer() == null || !context.getPlayer().getAbilities().instabuild) {
+                context.getItemInHand().shrink(1);
+            }
         }
 
-        context.getItemInHand().shrink(1);
         return InteractionResult.SUCCESS;
     }
 }

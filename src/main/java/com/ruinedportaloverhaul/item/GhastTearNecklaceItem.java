@@ -41,6 +41,7 @@ public class GhastTearNecklaceItem extends Item {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public void appendHoverText(
         ItemStack stack,
         Item.TooltipContext context,
