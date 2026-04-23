@@ -43,12 +43,12 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
 5. Piglin Illager Mob Family
    - Registered combat entities: Piglin Pillager, Piglin Vindicator, Piglin Brute Pillager, Piglin Illusioner, Piglin Evoker, Piglin Ravager, and Piglin Vex.
    - The Exiled Piglin is a post-raid Wandering Trader-based reward entity.
-   - Combat mobs gain +50% max HP and +60% attack damage on Hard through shared stable modifiers.
+   - Combat mobs read live config multipliers at spawn time and compose them with difficulty scaling: Easy/Peaceful 0.75x health and damage, Normal 1.0x, Hard 1.25x health and 1.5x damage.
    - Piglin Illusioner no longer applies Blindness; the red atmosphere is the visual pressure system.
 6. Proximity Raid
    - The manager class remains `GoldRaidManager` for compatibility, but the trigger is not gold armor and no Bad Omen is involved.
    - Approach triggers horizontally within 136 blocks of an uncompleted generated portal.
-   - Raid starts horizontally within 28 blocks of an uncompleted, inactive generated portal.
+   - Raid starts horizontally within the configured trigger radius of an uncompleted, inactive generated portal. The built-in default is 24 blocks and is clamped to 12-48.
    - Horizontal X/Z checks are used for zone membership, so the storm and progression work inside the pit and caves below the frame.
 7. Red Storm And Audio
    - Server sends `PortalAtmospherePayload` every 10 ticks while a player is horizontally inside the portal zone.
@@ -99,6 +99,12 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
 | `The Last Wave Broke` | Challenge custom `raid_completed` |
 | `No Clan, Still Capitalism` | Custom `exiled_trade` from `notifyTrade(...)` |
 | `Paid in Scar Tissue` | `inventory_changed` for netherite ingot |
+| `Nether Bond` | `inventory_changed` for the Nether Conduit |
+| `Fully Awakened` | Challenge custom `nether_conduit_level_2` |
+| `Draped in Sorrow` | Custom `ghast_tear_necklace_equipped` |
+| `Ghost Fire` | Custom `nether_fireball_used` |
+| `The Final Offering` | Challenge custom `nether_crystal_ritual_complete` |
+| `Here Be Dragons` | Challenge custom `nether_dragon_defeated` |
 
 ## Raid Lifecycle
 
@@ -108,7 +114,7 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
 4. Runtime portal discovery also persists the discovered structure variant through `PortalRaidState` without mutating save data during chunk generation.
 5. Active raids rehydrate after server restart and pause mob-death evaluation while the portal area is not entity-ticking.
 6. Wave completion advances through five boss-bar waves.
-7. Final completion grants nearby players the raid-complete trigger, hides the boss bar, plays completion effects, ignites the portal, spawns the boss chest, summons the Exiled Piglin, marks the portal complete, and sends `The portal falls silent.`
+7. Final completion hides and clears the boss bar, lights the portal, spawns the boss chest, summons the Exiled Piglin, marks the portal complete, disables any remaining spawner blocks, then plays completion effects and grants nearby players the raid-complete trigger.
 
 ## Compatibility
 
@@ -123,7 +129,7 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
 ## Validation
 
 - `./gradlew.bat build` succeeds with Java 21 when `JAVA_HOME` points at `C:\Users\dhruv\.codex\jdks\temurin-21`.
-- JSON data files in the advancement and chest loot folders parse successfully.
+- JSON data files in resources parse successfully.
 
 ## Remaining Work
 
