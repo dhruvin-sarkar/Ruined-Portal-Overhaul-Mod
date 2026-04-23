@@ -785,6 +785,10 @@ public final class GoldRaidManager {
 
     private static void tickPortalZoneNaturalSpawns(ServerLevel level, PortalRaidState portalRaidState, long gameTime) {
         // Fix: completed portals only suppress ambient repopulation when the suppression config is enabled, instead of forcing the territory silent forever.
+        if (!ModConfigManager.enableAmbientNetherSpawns()) {
+            return;
+        }
+
         Set<BlockPos> attempted = new HashSet<>();
         for (ServerPlayer player : level.players()) {
             BlockPos portal = findPortalDungeonOrigin(level, player.blockPosition(), PortalStructureHelper.OUTER_RADIUS);
