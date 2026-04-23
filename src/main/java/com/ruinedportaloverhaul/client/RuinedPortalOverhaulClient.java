@@ -2,9 +2,9 @@ package com.ruinedportaloverhaul.client;
 
 import com.ruinedportaloverhaul.block.entity.ModBlockEntities;
 import com.ruinedportaloverhaul.client.atmosphere.PortalAtmosphereClient;
-import com.ruinedportaloverhaul.client.render.NetherCrystalRenderer;
 import com.ruinedportaloverhaul.client.render.geo.ExiledPiglinGeoRenderer;
 import com.ruinedportaloverhaul.client.render.geo.NetherConduitGeoRenderer;
+import com.ruinedportaloverhaul.client.render.geo.NetherCrystalGeoRenderer;
 import com.ruinedportaloverhaul.client.render.geo.PiglinBrutePillagerGeoRenderer;
 import com.ruinedportaloverhaul.client.render.geo.PiglinEvokerGeoRenderer;
 import com.ruinedportaloverhaul.client.render.geo.PiglinIllusionerGeoRenderer;
@@ -62,7 +62,7 @@ public final class RuinedPortalOverhaulClient implements ClientModInitializer {
         );
         EntityRenderers.register(
             ModEntities.NETHER_CRYSTAL,
-            NetherCrystalRenderer::new
+            context -> new NetherCrystalGeoRenderer<>(context)
         );
         EntityRenderers.register(
             ModEntities.NETHER_DRAGON,

@@ -63,7 +63,9 @@ src/main/resources/ruined_portal_overhaul.mixins.json
 src/main/resources/ruined_portal_overhaul.client.mixins.json
 src/main/resources/assets/ruined_portal_overhaul/lang/en_us.json
 src/main/resources/assets/ruined_portal_overhaul/animations/block/*.json
+src/main/resources/assets/ruined_portal_overhaul/animations/entity/*.json
 src/main/resources/assets/ruined_portal_overhaul/geo/block/*.geo.json
+src/main/resources/assets/ruined_portal_overhaul/geo/entity/*.geo.json
 src/main/resources/assets/ruined_portal_overhaul/models/block/*.json
 src/main/resources/assets/ruined_portal_overhaul/models/item/*.json
 src/main/resources/assets/ruined_portal_overhaul/textures/entity/*.png
@@ -153,8 +155,7 @@ Passive effects refresh every 40 ticks with 80-tick duration while the necklace 
 
 The Nether Crystal ritual is the endgame loop:
 
-- `NetherCrystalEntity`: extends vanilla `EndCrystal` and returns the custom crystal item as pick result.
-- `NetherCrystalRenderer`: client renderer using the vanilla end-crystal model/texture with a dark red tint.
+- `NetherCrystalEntity`, `NetherCrystalGeoRenderer`, and `NetherCrystalGeoModel`: GeckoLib-powered ritual crystal using the vanilla end-crystal texture, a dark red render tint, and a looping pulse/rotation animation.
 - `NetherCrystalItem`: places crystals only on `minecraft:netherite_block` or `minecraft:obsidian`, spawns `NetherCrystalEntity`, and calls the ritual tracker.
 - `ModEntities`: registers `nether_crystal` and `nether_dragon`.
 - `PortalStructureHelper`: places four netherite pedestals at offsets north/south/east/west six blocks from the portal center and exposes `ritualPedestalPositions(...)`.
