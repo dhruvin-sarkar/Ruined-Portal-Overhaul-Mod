@@ -18,6 +18,7 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
    - Custom structure replaces vanilla overworld ruined portal pieces with a corrupted surface scar and underground dungeon space.
    - `PortalDungeonPiece` builds roughly radius 136 and depth 45 through `PortalStructureHelper`.
    - Three deterministic structure variants are implemented: `Crimson Throne`, `Sunken Sanctum`, and `Basalt Citadel`.
+   - The middle scar has readable cardinal sectors: soul terrain north, netherrack south, blackstone east, and crimson corruption west.
    - `Sunken Sanctum` lowers the ritual core into a bowl with heavier soul-sand corruption and a collapsed north-rim blackstone arch.
    - `Basalt Citadel` uses a blackstone inner zone, a widened ritual platform, basalt corner columns, and a pit lava moat.
    - The generated portal frame is a valid 4-by-5 or 6-by-7 outer frame.

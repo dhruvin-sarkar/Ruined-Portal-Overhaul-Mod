@@ -208,7 +208,7 @@ Variant selection is deterministic from the structure chunk through `PortalDunge
 The generated piece uses a radius-136 surface footprint and a depth-45 underground rupture:
 
 - Inner zone, radius `0-15`: stable ritual core with netherrack ground, blackstone brick platform, valid 4x5 or 6x7 portal frame, chains, and Exiled Piglin anchor. The ritual platform and frame stay at a consistent readable height.
-- Middle zone, radius `15-52`: netherrack-dominant Nether scar with contained lava pools and grouped basalt pillar formations. The ground now uses deterministic low-frequency height variation outside the ritual core, clamped to roughly `-3` to `+3` blocks, so the surface reads as a mostly flat Nether plain with organic undulation rather than jagged stacked terrain.
+- Middle zone, radius `15-52`: netherrack-dominant Nether scar with readable cardinal material sectors: soul sand/soil to the north, netherrack to the south, blackstone to the east, and crimson nylium patches to the west. The ground uses deterministic low-frequency height variation outside the ritual core, clamped to roughly `-3` to `+3` blocks, so the surface reads as a mostly flat Nether plain with organic undulation rather than jagged stacked terrain.
 - Outer zone, radius `52-136`: lower-density netherrack corruption scatter using the same calm surface sculpting, so outer patches inherit gentle rises and depressions.
 - Underground pit: protected original-style ragged mouth, organic shaft, 12 lower lava seeps, mixed basalt/blackstone/netherrack/soul-soil rim rubble, and Nether material conversion around carved space.
 - Primary chamber: large blackstone/basalt/netherrack cavern with lava lake, vents, glowstone clusters, stalactites, and basalt/blackstone spikes.

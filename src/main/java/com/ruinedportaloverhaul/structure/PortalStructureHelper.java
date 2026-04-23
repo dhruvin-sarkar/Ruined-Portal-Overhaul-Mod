@@ -927,17 +927,34 @@ public final class PortalStructureHelper {
         double distance,
         long seed
     ) {
-        if (variant != PortalDungeonVariant.SUNKEN_SANCTUM) {
+        // Fix: the middle scar had collapsed back to one mostly netherrack material, erasing the intended north/south/east/west navigation language. The selector now restores cardinal material sectors while keeping netherrack as the common fallback and giving Sunken Sanctum its extra soul-sand weight.
+        int dx = x - origin.getX();
+        int dz = z - origin.getZ();
+        double materialRoll = coordinateNoise(seed ^ 0x0B6E29C14AF93D57L, Math.floorDiv(x, 3), Math.floorDiv(z, 3));
+        double detailRoll = coordinateNoise(seed ^ 0x5C92E21D6F3A48B7L, x, z);
+        boolean northOrSouth = Math.abs(dz) >= Math.abs(dx);
+        boolean sunkenSoulBoost = variant == PortalDungeonVariant.SUNKEN_SANCTUM && (distance < INNER_RADIUS + 10.0 || materialRoll < 0.22);
+
+        if (sunkenSoulBoost) {
+            return detailRoll < 0.45 ? Blocks.SOUL_SOIL.defaultBlockState() : Blocks.SOUL_SAND.defaultBlockState();
+        }
+        if (northOrSouth && dz < 0) {
+            if (materialRoll < 0.52) {
+                return detailRoll < 0.58 ? Blocks.SOUL_SAND.defaultBlockState() : Blocks.SOUL_SOIL.defaultBlockState();
+            }
             return Blocks.NETHERRACK.defaultBlockState();
         }
-
-        double soulRoll = coordinateNoise(seed ^ 0x0B6E29C14AF93D57L, Math.floorDiv(x, 3), Math.floorDiv(z, 3));
-        double northBias = z < origin.getZ() ? 0.16 : 0.0;
-        if (distance < INNER_RADIUS + 10.0 || soulRoll < 0.18 + northBias) {
-            return Blocks.SOUL_SOIL.defaultBlockState();
+        if (northOrSouth) {
+            return Blocks.NETHERRACK.defaultBlockState();
         }
-        if (soulRoll < 0.42 + northBias) {
-            return Blocks.SOUL_SAND.defaultBlockState();
+        if (dx > 0) {
+            if (materialRoll < 0.56) {
+                return detailRoll < 0.75 ? Blocks.BLACKSTONE.defaultBlockState() : Blocks.POLISHED_BLACKSTONE.defaultBlockState();
+            }
+            return Blocks.NETHERRACK.defaultBlockState();
+        }
+        if (materialRoll < 0.48) {
+            return Blocks.CRIMSON_NYLIUM.defaultBlockState();
         }
         return Blocks.NETHERRACK.defaultBlockState();
     }
