@@ -3,7 +3,6 @@ package com.ruinedportaloverhaul.network;
 import com.ruinedportaloverhaul.advancement.ModAdvancementTriggers;
 import com.ruinedportaloverhaul.component.ModDataComponents;
 import com.ruinedportaloverhaul.item.GhastTearNecklaceItem;
-import com.ruinedportaloverhaul.item.ModItems;
 import com.ruinedportaloverhaul.sound.ModSounds;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
