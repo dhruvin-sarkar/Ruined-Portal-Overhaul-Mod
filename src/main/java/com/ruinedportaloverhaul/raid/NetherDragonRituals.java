@@ -34,6 +34,7 @@ import net.minecraft.world.entity.boss.enderdragon.EndCrystal;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.phys.AABB;
 
 public final class NetherDragonRituals {
@@ -68,12 +69,14 @@ public final class NetherDragonRituals {
     }
 
     public static void onNetherDragonDeath(ServerLevel level, NetherDragonEntity dragon) {
-        // Fix: rewards used to appear before the ritual collapse, so the finale now shatters the pedestals before the victory sting and loot burst.
+        // Fix: rewards used to appear before the ritual collapse and ignored doMobLoot. The finale now shatters first, then only drops items when vanilla mob loot is enabled.
         BlockPos portalOrigin = dragon.portalOrigin();
         shatterPedestals(level, portalOrigin);
         level.playSound(null, portalOrigin, ModSounds.RITUAL_VICTORY, SoundSource.HOSTILE, 1.2f, 0.9f);
-        dragon.spawnAtLocation(level, new ItemStack(Items.NETHER_STAR, 2));
-        dragon.spawnAtLocation(level, new ItemStack(Items.ANCIENT_DEBRIS, 1 + level.getRandom().nextInt(3)));
+        if (level.getGameRules().get(GameRules.MOB_DROPS)) {
+            dragon.spawnAtLocation(level, new ItemStack(Items.NETHER_STAR, 2));
+            dragon.spawnAtLocation(level, new ItemStack(Items.ANCIENT_DEBRIS, 1 + level.getRandom().nextInt(3)));
+        }
         triggerNearby(level, portalOrigin, ModAdvancementTriggers.NETHER_DRAGON_DEFEATED);
         PortalRaidState.get(level.getServer()).clearRitual(portalOrigin);
 
