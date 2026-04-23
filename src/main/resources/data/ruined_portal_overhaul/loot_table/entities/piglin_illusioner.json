@@ -66,13 +66,33 @@
               }
             },
             {
-              "function": "minecraft:set_components",
-              "components": {
-                "minecraft:custom_name": "{\"text\":\"Voidash Powder\",\"italic\":false}",
-                "minecraft:lore": [
-                  "{\"text\":\"Used in dark illager rituals\",\"italic\":false,\"color\":\"gray\"}"
-                ]
+              "function": "minecraft:set_name",
+              "name": {
+                "translate": "loot.ruined_portal_overhaul.artifact.voidash_powder.name",
+                "italic": false,
+                "color": "dark_purple"
               }
+            },
+            {
+              "function": "minecraft:set_lore",
+              "mode": "replace_all",
+              "lore": [
+                {
+                  "translate": "loot.ruined_portal_overhaul.artifact.voidash_powder.line1",
+                  "italic": false,
+                  "color": "gray"
+                },
+                {
+                  "translate": "loot.ruined_portal_overhaul.artifact.voidash_powder.line2",
+                  "italic": false,
+                  "color": "dark_purple"
+                },
+                {
+                  "translate": "loot.ruined_portal_overhaul.artifact.voidash_powder.line3",
+                  "italic": false,
+                  "color": "dark_gray"
+                }
+              ]
             }
           ]
         }

@@ -179,13 +179,33 @@
           "name": "minecraft:book",
           "functions": [
             {
-              "function": "minecraft:set_components",
-              "components": {
-                "minecraft:custom_name": "{\"text\":\"Embered Grimoire\",\"italic\":false}",
-                "minecraft:lore": [
-                  "{\"text\":\"The spells within feel hot to the touch.\",\"italic\":false,\"color\":\"gray\"}"
-                ]
+              "function": "minecraft:set_name",
+              "name": {
+                "translate": "loot.ruined_portal_overhaul.artifact.embered_grimoire.name",
+                "italic": false,
+                "color": "gold"
               }
+            },
+            {
+              "function": "minecraft:set_lore",
+              "mode": "replace_all",
+              "lore": [
+                {
+                  "translate": "loot.ruined_portal_overhaul.artifact.embered_grimoire.line1",
+                  "italic": false,
+                  "color": "gray"
+                },
+                {
+                  "translate": "loot.ruined_portal_overhaul.artifact.embered_grimoire.line2",
+                  "italic": false,
+                  "color": "dark_red"
+                },
+                {
+                  "translate": "loot.ruined_portal_overhaul.artifact.embered_grimoire.line3",
+                  "italic": false,
+                  "color": "dark_gray"
+                }
+              ]
             }
           ]
         }

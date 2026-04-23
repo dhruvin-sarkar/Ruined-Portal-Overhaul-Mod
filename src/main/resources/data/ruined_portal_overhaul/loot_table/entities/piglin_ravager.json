@@ -70,13 +70,33 @@
               }
             },
             {
-              "function": "minecraft:set_components",
-              "components": {
-                "minecraft:custom_name": "{\"text\":\"Corrupted Ravager Hide\",\"italic\":false}",
-                "minecraft:lore": [
-                  "{\"text\":\"Still warm. Still dangerous.\",\"italic\":false,\"color\":\"gray\"}"
-                ]
+              "function": "minecraft:set_name",
+              "name": {
+                "translate": "loot.ruined_portal_overhaul.artifact.corrupted_ravager_hide.name",
+                "italic": false,
+                "color": "dark_red"
               }
+            },
+            {
+              "function": "minecraft:set_lore",
+              "mode": "replace_all",
+              "lore": [
+                {
+                  "translate": "loot.ruined_portal_overhaul.artifact.corrupted_ravager_hide.line1",
+                  "italic": false,
+                  "color": "gray"
+                },
+                {
+                  "translate": "loot.ruined_portal_overhaul.artifact.corrupted_ravager_hide.line2",
+                  "italic": false,
+                  "color": "dark_red"
+                },
+                {
+                  "translate": "loot.ruined_portal_overhaul.artifact.corrupted_ravager_hide.line3",
+                  "italic": false,
+                  "color": "dark_gray"
+                }
+              ]
             }
           ]
         }

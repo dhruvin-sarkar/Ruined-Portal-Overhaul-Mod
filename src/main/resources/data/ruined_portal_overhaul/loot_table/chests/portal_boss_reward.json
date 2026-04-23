@@ -221,14 +221,33 @@
           "weight": 4,
           "functions": [
             {
-              "function": "minecraft:set_components",
-              "components": {
-                "minecraft:custom_name": "{\"text\":\"Corrupted Portal Key\",\"italic\":false,\"color\":\"red\"}",
-                "minecraft:lore": [
-                  "{\"text\":\"It hums. You don't know why yet.\",\"italic\":false,\"color\":\"gray\"}",
-                  "{\"text\":\"The storm recognizes this shape.\",\"italic\":false,\"color\":\"dark_red\"}"
-                ]
+              "function": "minecraft:set_name",
+              "name": {
+                "translate": "loot.ruined_portal_overhaul.artifact.corrupted_portal_key.name",
+                "italic": false,
+                "color": "red"
               }
+            },
+            {
+              "function": "minecraft:set_lore",
+              "mode": "replace_all",
+              "lore": [
+                {
+                  "translate": "loot.ruined_portal_overhaul.artifact.corrupted_portal_key.line1",
+                  "italic": false,
+                  "color": "gray"
+                },
+                {
+                  "translate": "loot.ruined_portal_overhaul.artifact.corrupted_portal_key.line2",
+                  "italic": false,
+                  "color": "dark_red"
+                },
+                {
+                  "translate": "loot.ruined_portal_overhaul.artifact.corrupted_portal_key.line3",
+                  "italic": false,
+                  "color": "dark_gray"
+                }
+              ]
             }
           ]
         }
@@ -267,14 +286,33 @@
           "name": "minecraft:echo_shard",
           "functions": [
             {
-              "function": "minecraft:set_components",
-              "components": {
-                "minecraft:custom_name": "{\"text\":\"Shard of the Nether\",\"italic\":false,\"color\":\"gold\"}",
-                "minecraft:lore": [
-                  "{\"text\":\"A fragment of nether energy, still warm to the touch.\",\"italic\":false,\"color\":\"gray\"}",
-                  "{\"text\":\"It rang when the final wave fell.\",\"italic\":false,\"color\":\"dark_red\"}"
-                ]
+              "function": "minecraft:set_name",
+              "name": {
+                "translate": "loot.ruined_portal_overhaul.artifact.shard_of_the_nether.name",
+                "italic": false,
+                "color": "gold"
               }
+            },
+            {
+              "function": "minecraft:set_lore",
+              "mode": "replace_all",
+              "lore": [
+                {
+                  "translate": "loot.ruined_portal_overhaul.artifact.shard_of_the_nether.line1",
+                  "italic": false,
+                  "color": "gray"
+                },
+                {
+                  "translate": "loot.ruined_portal_overhaul.artifact.shard_of_the_nether.line2",
+                  "italic": false,
+                  "color": "dark_red"
+                },
+                {
+                  "translate": "loot.ruined_portal_overhaul.artifact.shard_of_the_nether.line3",
+                  "italic": false,
+                  "color": "dark_purple"
+                }
+              ]
             }
           ]
         }
