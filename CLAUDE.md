@@ -1,6 +1,6 @@
 # Ruined Portal Overhaul - Canonical Project Context
 
-Last reconciled: 2026-04-22. Current build status: `./gradlew build` succeeds with Java 21 when `JAVA_HOME` points at `C:\Users\dhruv\.codex\jdks\temurin-21`.
+Last reconciled: 2026-04-23. Current build status: `./gradlew build` succeeds with Java 21 when `JAVA_HOME` points at `C:\Users\dhruv\.codex\jdks\temurin-21`.
 
 This file is the single source of truth for the project. `SPEC.md` is the concise companion and must stay aligned with this file.
 
@@ -31,6 +31,8 @@ src/main/java/com/ruinedportaloverhaul/client/mixin/FogRendererMixin.java
 src/main/java/com/ruinedportaloverhaul/client/mixin/SkyRendererMixin.java
 src/main/java/com/ruinedportaloverhaul/client/mixin/WeatherEffectRendererMixin.java
 src/main/java/com/ruinedportaloverhaul/client/render/*.java
+src/main/java/com/ruinedportaloverhaul/client/render/geo/*.java
+src/main/java/com/ruinedportaloverhaul/client/render/geo/model/*.java
 src/main/java/com/ruinedportaloverhaul/client/render/geo/RuinedPortalGeoRenderData.java
 src/main/java/com/ruinedportaloverhaul/advancement/*.java
 src/main/java/com/ruinedportaloverhaul/block/*.java
@@ -60,6 +62,8 @@ src/main/resources/fabric.mod.json
 src/main/resources/ruined_portal_overhaul.mixins.json
 src/main/resources/ruined_portal_overhaul.client.mixins.json
 src/main/resources/assets/ruined_portal_overhaul/lang/en_us.json
+src/main/resources/assets/ruined_portal_overhaul/animations/block/*.json
+src/main/resources/assets/ruined_portal_overhaul/geo/block/*.geo.json
 src/main/resources/assets/ruined_portal_overhaul/models/block/*.json
 src/main/resources/assets/ruined_portal_overhaul/models/item/*.json
 src/main/resources/assets/ruined_portal_overhaul/textures/entity/*.png
@@ -106,6 +110,7 @@ The Nether Conduit is a custom block/block entity pair:
 - `NetherConduitBlockItem`: documents levels/effects in the item tooltip.
 - `ModBlockEntities`: registers the block entity type.
 - `NetherConduitBlockEntity`: owns activation, level state, player effects, action-bar status, nether mob attacks, and NBT persistence.
+- `RuinedPortalOverhaulClient`, `NetherConduitGeoRenderer`, and `NetherConduitGeoModel`: register and render the GeckoLib conduit block entity animation on the client.
 - `NetherConduitPowerTracker`: short-lived per-player lava movement boost state used by the lava movement mixin and cleared on server stop so integrated-server world swaps cannot inherit stale conduit boosts.
 - `NetherConduitEvents`: allows sleeping in Nether-like dimensions when an active conduit is within 16 blocks.
 - `LivingEntityLavaMovementMixin`: reduces lava movement drag/acceleration penalties while `NetherConduitPowerTracker` is active.
@@ -115,6 +120,7 @@ The Nether Conduit is a custom block/block entity pair:
 Activation and levels:
 
 - Active frame requires at least 12 regular `minecraft:nether_bricks` blocks in the conduit-frame positions.
+- `NetherConduitBlock.ACTIVE` is mirrored into blockstate whenever the frame scan changes so GeckoLib can swap between idle and active spin loops from synced state instead of stale client memory.
 - Level 0: Fire Resistance I, Haste I, Regeneration I, 16-block support radius, 4 conduit damage.
 - Level 1: Fire Resistance II, 20-block attack radius, 6 conduit damage.
 - Level 2: Haste II, Regeneration II, 24-block attack radius, 8 conduit damage, near-zero lava movement penalty.

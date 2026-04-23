@@ -17,22 +17,27 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class NetherConduitBlock extends BaseEntityBlock {
     public static final MapCodec<NetherConduitBlock> CODEC = BlockBehaviour.simpleCodec(NetherConduitBlock::new);
+    public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
     private static final VoxelShape SHAPE = box(5.0, 5.0, 5.0, 11.0, 11.0, 11.0);
 
     public NetherConduitBlock(BlockBehaviour.Properties properties) {
         super(properties);
+        this.registerDefaultState(this.stateDefinition.any().setValue(ACTIVE, Boolean.FALSE));
     }
 
     @Override
@@ -60,6 +65,13 @@ public class NetherConduitBlock extends BaseEntityBlock {
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return SHAPE;
+    }
+
+    @Override
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+        // Fix: the conduit renderer previously had no synced active flag to read, so any future client animation would drift from the server's real frame state. The block now exposes that state through block properties.
+        super.createBlockStateDefinition(builder);
+        builder.add(ACTIVE);
     }
 
     @Override

@@ -1,6 +1,9 @@
 {
   "variants": {
-    "": {
+    "active=false": {
+      "model": "ruined_portal_overhaul:block/nether_conduit"
+    },
+    "active=true": {
       "model": "ruined_portal_overhaul:block/nether_conduit"
     }
   }

@@ -1,8 +1,10 @@
 package com.ruinedportaloverhaul.client;
 
+import com.ruinedportaloverhaul.block.entity.ModBlockEntities;
 import com.ruinedportaloverhaul.client.atmosphere.PortalAtmosphereClient;
 import com.ruinedportaloverhaul.client.render.NetherCrystalRenderer;
 import com.ruinedportaloverhaul.client.render.geo.ExiledPiglinGeoRenderer;
+import com.ruinedportaloverhaul.client.render.geo.NetherConduitGeoRenderer;
 import com.ruinedportaloverhaul.client.render.geo.PiglinBrutePillagerGeoRenderer;
 import com.ruinedportaloverhaul.client.render.geo.PiglinEvokerGeoRenderer;
 import com.ruinedportaloverhaul.client.render.geo.PiglinIllusionerGeoRenderer;
@@ -12,15 +14,20 @@ import com.ruinedportaloverhaul.client.render.geo.PiglinVexGeoRenderer;
 import com.ruinedportaloverhaul.client.render.geo.PiglinVindicatorGeoRenderer;
 import com.ruinedportaloverhaul.entity.ModEntities;
 import net.fabricmc.api.ClientModInitializer;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.minecraft.client.renderer.entity.EnderDragonRenderer;
 import net.minecraft.client.renderer.entity.EntityRenderers;
 
 public final class RuinedPortalOverhaulClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
-        // Fix: the custom dragon entity had no client renderer registration, so the summon now resolves to Minecraft's dragon renderer instead of rendering nothing.
+        // Fix: block animations were missing a block-entity renderer hookup, so the conduit could never use GeckoLib on the client even after the animatable logic existed. The client bootstrap now registers the conduit renderer beside the mob renderers.
         PortalAtmosphereClient.initialize();
         NetherFireballKeybinds.initialize();
+        BlockEntityRenderers.register(
+            ModBlockEntities.NETHER_CONDUIT,
+            context -> new NetherConduitGeoRenderer()
+        );
         EntityRenderers.register(
             ModEntities.PIGLIN_PILLAGER,
             context -> new PiglinPillagerGeoRenderer<>(context)

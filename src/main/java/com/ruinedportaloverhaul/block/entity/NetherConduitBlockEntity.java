@@ -1,5 +1,6 @@
 package com.ruinedportaloverhaul.block.entity;
 
+import com.ruinedportaloverhaul.block.NetherConduitBlock;
 import com.ruinedportaloverhaul.damage.ModDamageTypes;
 import com.ruinedportaloverhaul.entity.ModEntities;
 import com.ruinedportaloverhaul.sound.ModSounds;
@@ -22,8 +23,14 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
+import software.bernie.geckolib.animatable.GeoBlockEntity;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animatable.manager.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
-public class NetherConduitBlockEntity extends BlockEntity {
+public class NetherConduitBlockEntity extends BlockEntity implements GeoBlockEntity {
     private static final String CONDUIT_LEVEL_TAG = "conduit_level";
     private static final int ACTIVATION_SCAN_INTERVAL_TICKS = 20;
     private static final int ATTACK_INTERVAL_TICKS = 30;
@@ -32,7 +39,11 @@ public class NetherConduitBlockEntity extends BlockEntity {
     private static final int STATUS_RADIUS = 8;
     private static final int EFFECT_DURATION_TICKS = 40;
     private static final int MAX_CONDUIT_LEVEL = 2;
+    private static final String ROTATION_CONTROLLER = "Rotation";
+    private static final RawAnimation INACTIVE_ROTATION = RawAnimation.begin().thenLoop("misc.inactive");
+    private static final RawAnimation ACTIVE_ROTATION = RawAnimation.begin().thenLoop("misc.active");
 
+    private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
     private boolean active;
     private int frameBlockCount;
     private int conduitLevel;
@@ -42,6 +53,7 @@ public class NetherConduitBlockEntity extends BlockEntity {
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, NetherConduitBlockEntity blockEntity) {
+        // Fix: conduit activation used to live only in server memory, which meant client renderers had no authoritative state to animate against. The scan now mirrors active/inactive changes into blockstate updates alongside the server logic.
         long gameTime = level.getGameTime();
 
         if (gameTime % ACTIVATION_SCAN_INTERVAL_TICKS == 0) {
@@ -51,6 +63,10 @@ public class NetherConduitBlockEntity extends BlockEntity {
             if (blockEntity.active != active || blockEntity.frameBlockCount != frameBlocks) {
                 blockEntity.active = active;
                 blockEntity.frameBlockCount = frameBlocks;
+                if (state.getValue(NetherConduitBlock.ACTIVE) != active) {
+                    level.setBlock(pos, state.setValue(NetherConduitBlock.ACTIVE, active), 3);
+                    state = level.getBlockState(pos);
+                }
                 blockEntity.setChanged();
                 if (level instanceof ServerLevel serverLevel) {
                     if (active && !wasActive) {
@@ -87,8 +103,23 @@ public class NetherConduitBlockEntity extends BlockEntity {
         output.putInt(CONDUIT_LEVEL_TAG, this.conduitLevel);
     }
 
+    @Override
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        // Fix: the first pass used GeckoLib 4-style controller imports and constructor overloads, which do not exist in the 1.21.11 GeckoLib 5 runtime. The conduit now uses the current callback form so the renderer can compile and still swap loops from synced blockstate.
+        controllers.add(new AnimationController<>(ROTATION_CONTROLLER, 0, state -> state.setAndContinue(this.isActiveClientSide() ? ACTIVE_ROTATION : INACTIVE_ROTATION)));
+    }
+
+    @Override
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return this.geoCache;
+    }
+
     public boolean isActive() {
         return this.active;
+    }
+
+    public boolean isActiveClientSide() {
+        return this.getBlockState().hasProperty(NetherConduitBlock.ACTIVE) && this.getBlockState().getValue(NetherConduitBlock.ACTIVE);
     }
 
     public int conduitLevel() {
