@@ -8,8 +8,6 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.TagKey;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
@@ -30,7 +28,7 @@ public final class ModWorldGen {
     }
 
     public static void initialize() {
-        // Fix: the ambient corruption pass previously targeted every overworld biome, so Terralith sky islands and cave biomes could inherit surface corruption. The shared selector now keeps these additions on compatible surface biomes only.
+        // Fix: biome modifications are now limited to terrain corruption features; global mob-spawn injections were bleeding portal enemies into unrelated overworld biomes, so ambient combat pressure stays structure-local inside GoldRaidManager.
         BiomeModifications.addFeature(
             AMBIENT_CORRUPTION_SELECTOR,
             GenerationStep.Decoration.UNDERGROUND_ORES,
@@ -46,10 +44,6 @@ public final class ModWorldGen {
             GenerationStep.Decoration.UNDERGROUND_ORES,
             UNDERGROUND_BLACKSTONE_VEIN
         );
-
-        // Fix: biome spawn entries are load-time data, so they are always registered and the live config gates attempts in NaturalSpawnerSuppressionMixin.
-        BiomeModifications.addSpawn(AMBIENT_CORRUPTION_SELECTOR, MobCategory.MONSTER, EntityType.ZOMBIFIED_PIGLIN, 1, 1, 2);
-        BiomeModifications.addSpawn(AMBIENT_CORRUPTION_SELECTOR, MobCategory.MONSTER, EntityType.BLAZE, 1, 1, 1);
     }
 
     // Fix: Terralith exposes skyland and cave biome groups through tags that changed across releases, so all known tag names plus id fallbacks are filtered before ambient corruption hooks are applied.

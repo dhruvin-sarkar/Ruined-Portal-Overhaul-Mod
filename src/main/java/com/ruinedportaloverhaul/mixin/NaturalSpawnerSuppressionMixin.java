@@ -32,8 +32,8 @@ abstract class NaturalSpawnerSuppressionMixin {
         NaturalSpawner.SpawnPredicate categoryPredicate,
         NaturalSpawner.AfterSpawnCallback afterSpawnCallback
     ) {
-        // Fix: Fabric exposes load callbacks but not a cancellable natural-spawn predicate here, so the vanilla predicate is now wrapped with portal territory rules.
-        if (ModNaturalSpawnGuards.shouldSuppressNaturalSpawn(level, entityType, spawnPos)) {
+        // Fix: this wrapper now enforces only completed-portal suppression. Portal ambience is spawned manually by the raid manager, so the natural-spawn hook must not become a global mob-toggle for unrelated overworld terrain.
+        if (ModNaturalSpawnGuards.shouldSuppressNaturalSpawn(level, spawnPos)) {
             return false;
         }
         return predicate.test(entityType, spawnPos, spawnChunk);

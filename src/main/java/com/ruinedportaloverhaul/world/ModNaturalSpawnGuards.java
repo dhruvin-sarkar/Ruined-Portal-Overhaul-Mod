@@ -1,11 +1,9 @@
 package com.ruinedportaloverhaul.world;
 
-import com.ruinedportaloverhaul.config.ModConfigManager;
 import com.ruinedportaloverhaul.raid.PortalRaidState;
 import com.ruinedportaloverhaul.structure.PortalStructureHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
 
 public final class ModNaturalSpawnGuards {
@@ -16,17 +14,9 @@ public final class ModNaturalSpawnGuards {
     private ModNaturalSpawnGuards() {
     }
 
-    public static boolean shouldSuppressNaturalSpawn(ServerLevel level, EntityType<?> entityType, BlockPos spawnPos) {
-        // Fix: post-raid cleanup used to discard mobs only after they loaded, so natural spawn attempts are now rejected before entity creation.
+    public static boolean shouldSuppressNaturalSpawn(ServerLevel level, BlockPos spawnPos) {
+        // Fix: portal ambient pressure is now owned entirely by the structure-local raid manager, so this guard only blocks new natural spawns inside completed portal territory instead of globally interfering with blaze or piglin spawns elsewhere in the overworld.
         if (!Level.OVERWORLD.equals(level.dimension())) {
-            return false;
-        }
-
-        if (isAmbientNetherSpawn(entityType) && !ModConfigManager.enableAmbientNetherSpawns()) {
-            return true;
-        }
-
-        if (!ModConfigManager.enablePostRaidSuppression()) {
             return false;
         }
 
@@ -37,10 +27,6 @@ public final class ModNaturalSpawnGuards {
             }
         }
         return false;
-    }
-
-    private static boolean isAmbientNetherSpawn(EntityType<?> entityType) {
-        return entityType == EntityType.ZOMBIFIED_PIGLIN || entityType == EntityType.BLAZE;
     }
 
     private static boolean isInsideCompletedPortalSuppressionArea(BlockPos spawnPos, BlockPos portalOrigin) {
