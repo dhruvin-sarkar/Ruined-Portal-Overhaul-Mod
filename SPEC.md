@@ -125,7 +125,7 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
 - Java `21`
 - Mojang mappings
 - Resource paths use modern singular names such as `loot_table/` and `advancement/`.
-- Accessories is intentionally not required for the Lunar-compatible build. Re-verified Wisp Maven metadata still has no `1.21.11` Accessories build as of 2026-04-22, and the available `1.21.10` jar crashes Lunar Client `1.21.11` inventory screen mixins, so the Ghast Tear Necklace is implemented as a native carried item.
+- Accessories is intentionally not required for the Lunar-compatible build. Re-verified Wisp Maven metadata still has no `1.21.11` Accessories build as of 2026-04-23, and the newest public `1.4.3-beta+1.21.10` jar still declares `"minecraft": "~1.21.10"` in its own `fabric.mod.json`, so the Ghast Tear Necklace stays implemented as a native carried item on this `1.21.11` branch.
 
 ## Validation
 

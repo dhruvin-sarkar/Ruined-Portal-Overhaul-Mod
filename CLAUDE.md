@@ -18,7 +18,7 @@ This file is the single source of truth for the project. `SPEC.md` is the concis
 
 Lunar compatibility note:
 
-The original expansion targeted Accessories API, but the official Wisp Maven metadata still has no `1.21.11` Accessories build as of 2026-04-22. The newest available line remains `1.4.3-beta+1.21.10`, and that jar crashes Lunar Client `1.21.11` while applying `accessories-common.mixins.json:client.InventoryScreenMixin` to `net.minecraft.class_490`. Keep this project free of the Accessories dependency until a matching `1.21.11` build has been verified in Lunar.
+The original expansion targeted Accessories API, but the official Wisp Maven metadata still has no `1.21.11` Accessories build as of 2026-04-23. The newest available line remains `1.4.3-beta+1.21.10`, and that published jar still declares `"minecraft": "~1.21.10"` plus `"owo": ">=0.12.24+1.21.9"` inside its own `fabric.mod.json`. That is not a truthful dependency match for this `1.21.11` branch, and the same jar also crashes Lunar Client `1.21.11` while applying `accessories-common.mixins.json:client.InventoryScreenMixin` to `net.minecraft.class_490`. Keep this project free of the Accessories dependency until a matching `1.21.11` build has been verified in Lunar.
 
 ## Source Layout
 
