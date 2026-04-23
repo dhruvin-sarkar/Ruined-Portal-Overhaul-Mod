@@ -438,7 +438,7 @@ It also injects rare overworld monster spawns:
 - Zombified Piglin, weight 1, group 1-2
 - Blaze, weight 1, group 1
 
-Global ambient corruption intentionally excludes Terralith skylands and Terralith cave biomes so surface-scar features and ambient Nether spawns stay on grounded overworld terrain.
+Global ambient corruption intentionally excludes Terralith skylands and Terralith cave biomes so surface-scar features and ambient Nether spawns stay on grounded overworld terrain. The portal dungeon structure performs the same center-biome compatibility check from `PortalDungeonStructure.findGenerationPoint(...)` after honoring the structure JSON biome predicate, so the full dungeon replacement also avoids floating skylands and underground Terralith cave biomes.
 
 Do not use global biome modifications for structure-local proximity gradients.
 

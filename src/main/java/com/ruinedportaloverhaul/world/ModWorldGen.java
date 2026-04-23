@@ -4,6 +4,7 @@ import com.ruinedportaloverhaul.config.ModConfigManager;
 import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
 import net.fabricmc.fabric.api.biome.v1.BiomeSelectionContext;
 import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
+import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
@@ -53,9 +54,16 @@ public final class ModWorldGen {
 
     // Fix: Terralith exposes overworld cave biomes under terralith:cave/... and floating skylands via its biome tag, so both are filtered out here before ambient corruption hooks are applied.
     private static boolean isCompatExcludedBiome(BiomeSelectionContext context) {
-        Identifier biomeId = context.getBiomeKey().identifier();
-        return context.hasTag(TERRALITH_SKYLANDS)
-            || "terralith".equals(biomeId.getNamespace())
+        return context.hasTag(TERRALITH_SKYLANDS) || isExcludedBiomeId(context.getBiomeKey().identifier());
+    }
+
+    public static boolean isCompatExcludedBiome(Holder<Biome> biome) {
+        return biome.is(TERRALITH_SKYLANDS)
+            || biome.unwrapKey().map(ResourceKey::identifier).map(ModWorldGen::isExcludedBiomeId).orElse(false);
+    }
+
+    private static boolean isExcludedBiomeId(Identifier biomeId) {
+        return "terralith".equals(biomeId.getNamespace())
             && (biomeId.getPath().startsWith("skylands") || biomeId.getPath().startsWith("cave/"));
     }
 
