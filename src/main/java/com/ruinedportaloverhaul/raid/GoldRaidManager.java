@@ -583,7 +583,7 @@ public final class GoldRaidManager {
     }
 
     private static void finishRaid(RaidState state) {
-        // Fix: completion side effects had drifted out of the required order. The portal now clears the bar, lights, spawns rewards, spawns the trader, and marks persistent completion before post-completion cleanup/fanfare runs.
+        // Fix: completion side effects had drifted out of the required order, and trader timestamp persistence ran before portal completion. The portal now clears the bar, lights, spawns rewards/trader, marks completion, then records follow-up trader timing.
         List<ServerPlayer> nearbyPlayers = state.level.getPlayers(player -> horizontalDistanceSqr(player.blockPosition(), state.origin) < 1600.0);
         List<BlockPos> completionSpawners = knownOrScannedPreRaidSpawners(state.level, state.portalRaidState, state.origin);
         state.bossBar.removeAllPlayers();
@@ -591,8 +591,11 @@ public final class GoldRaidManager {
         state.bossBar.setVisible(false);
         ignitePortal(state.level, state.origin);
         spawnBossChest(state.level, state.origin);
-        spawnExiledTrader(state.level, state.origin);
+        long exiledSpawnGameTime = spawnExiledTrader(state.level, state.origin);
         state.portalRaidState.markCompleted(state.origin);
+        if (exiledSpawnGameTime >= 0L) {
+            state.portalRaidState.rememberExiledPiglinSpawn(state.origin, exiledSpawnGameTime);
+        }
         disableSpawnerBlocks(state.level, completionSpawners);
         playCompletionFanfare(state.level, state.origin);
 
@@ -629,8 +632,8 @@ public final class GoldRaidManager {
         }
     }
 
-    private static void spawnExiledTrader(ServerLevel level, BlockPos origin) {
-        // Fix: the raid reward trader now keeps both entity-local and portal-owned spawn timestamps so restart recovery can reason about its lifetime.
+    private static long spawnExiledTrader(ServerLevel level, BlockPos origin) {
+        // Fix: this method used to mutate saved portal state while spawning the trader. It now only performs the entity/block spawn and returns the timestamp for ordered persistence by finishRaid().
         level.setBlock(origin.offset(4, 1, 0), Blocks.NETHER_BRICK_FENCE.defaultBlockState(), 3);
         level.setBlock(origin.offset(4, 1, 1), Blocks.CRIMSON_FENCE_GATE.defaultBlockState(), 3);
         ExiledPiglinTraderEntity trader = ModEntities.EXILED_PIGLIN.spawn(
@@ -639,12 +642,14 @@ public final class GoldRaidManager {
             EntitySpawnReason.EVENT
         );
         if (trader != null) {
+            long spawnGameTime = level.getGameTime();
             trader.setCustomName(Component.translatable("entity.ruined_portal_overhaul.exiled_piglin"));
             trader.setCustomNameVisible(true);
-            trader.rememberSpawnTime(level.getGameTime());
-            PortalRaidState.get(level.getServer()).rememberExiledPiglinSpawn(origin, level.getGameTime());
+            trader.rememberSpawnTime(spawnGameTime);
             playExiledPiglinSpawnEffects(level, trader.blockPosition());
+            return spawnGameTime;
         }
+        return -1L;
     }
 
     private static void tickPortalZoneAtmosphere(ServerLevel level, PortalRaidState portalRaidState, long gameTime) {
