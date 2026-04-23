@@ -304,8 +304,8 @@ Current wave table:
 | 1 | `The Red Storm Breaks` | 12x PiglinPillager, 8x PiglinVindicator |
 | 2 | `They Grow Bolder` | 14x PiglinPillager, 8x PiglinVindicator, 5x PiglinBrutePillager |
 | 3 | `The Brutes Arrive` | 12x PiglinPillager, 9x PiglinVindicator, 8x PiglinBrutePillager, 5x PiglinIllusioner |
-| 4 | `Chaos Unleashed` | 8x PiglinPillager, 10x PiglinBrutePillager, 8x PiglinIllusioner, 10x PiglinVindicator, 1x PiglinRavager with mounted PiglinVindicator, 2x PiglinEvoker |
-| 5 | `The Evoker Awakens` | 14x PiglinPillager, 12x PiglinVindicator, 10x PiglinBrutePillager, 7x PiglinIllusioner, 3x PiglinRavager, 4x PiglinEvoker |
+| 4 | `Chaos Unleashed` | 6x PiglinPillager, 8x PiglinBrutePillager, 6x PiglinIllusioner, 8x PiglinVindicator, 1x PiglinRavager with mounted PiglinVindicator, 1x PiglinEvoker |
+| 5 | `The Evoker Awakens` | 10x PiglinPillager, 9x PiglinVindicator, 8x PiglinBrutePillager, 5x PiglinIllusioner, 2x PiglinRavager, 3x PiglinEvoker |
 
 Completion order:
 
