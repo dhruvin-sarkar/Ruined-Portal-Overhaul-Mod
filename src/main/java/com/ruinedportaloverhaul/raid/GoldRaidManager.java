@@ -604,8 +604,8 @@ public final class GoldRaidManager {
     }
 
     private static void finishRaid(RaidState state) {
-        // Fix: completion side effects had drifted out of the required order, and trader timestamp persistence ran before portal completion. The portal now clears the bar, lights, spawns rewards/trader, marks completion, then records follow-up trader timing.
-        List<ServerPlayer> nearbyPlayers = state.level.getPlayers(player -> horizontalDistanceSqr(player.blockPosition(), state.origin) < 1600.0);
+        // Fix: completion side effects had drifted out of order, and players still inside the 48-block boss-bar ring could miss the final trigger because completion used a smaller hardcoded radius. The portal now keeps the required reward order and grants the completion handoff to the same participant footprint that stayed on the raid bar.
+        List<ServerPlayer> nearbyPlayers = state.level.getPlayers(player -> horizontalDistanceSqr(player.blockPosition(), state.origin) <= BOSS_BAR_PLAYER_RANGE_SQUARED);
         List<BlockPos> completionSpawners = knownOrScannedPreRaidSpawners(state.level, state.portalRaidState, state.origin);
         state.bossBar.removeAllPlayers();
         state.trackedPlayers.clear();

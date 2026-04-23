@@ -323,7 +323,7 @@ Completion order:
 5. Mark the portal completed in persistent state.
 6. Disable any remaining known/scanned pre-raid spawner blocks without re-adding spawner positions to persistent state.
 7. Play completion fanfare.
-8. Grant nearby players the raid-complete custom advancement trigger and send action-bar feedback: `The tribute is over. The scar remains.`
+8. Grant players who are still within the 48-block boss-bar radius the raid-complete custom advancement trigger and action-bar feedback: `The tribute is over. The scar remains.`
 
 ## Persistence And Multiplayer
 
