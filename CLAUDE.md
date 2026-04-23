@@ -51,7 +51,7 @@ src/main/java/com/ruinedportaloverhaul/network/NetherFireballHandler.java
 src/main/java/com/ruinedportaloverhaul/raid/GoldRaidManager.java
 src/main/java/com/ruinedportaloverhaul/raid/NetherDragonRituals.java
 src/main/java/com/ruinedportaloverhaul/raid/PortalRaidState.java
-src/main/java/com/ruinedportaloverhaul/structure/NetherConduitChestPlacement.java
+src/main/java/com/ruinedportaloverhaul/block/NetherConduitChestPlacement.java
 src/main/java/com/ruinedportaloverhaul/structure/PortalDungeonPiece.java
 src/main/java/com/ruinedportaloverhaul/structure/PortalDungeonStructure.java
 src/main/java/com/ruinedportaloverhaul/structure/PortalDungeonVariant.java
