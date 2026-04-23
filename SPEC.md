@@ -80,6 +80,7 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
    - Four generated netherite pedestals around a completed portal track crystal placement in persistent raid state.
    - Ritual state is reconciled from the loaded pedestal crystals; broken crystals clear saved progress, interrupted summoning only resumes when all four crystals are still present, and the persistent dragon-active flag means a live dragon rather than a queued summon.
    - Completing the ritual summons the Nether Dragon, which suppresses End-only behavior, drops Nether rewards, and shatters the pedestals on death.
+   - Ritual summon titles, dragon-progression triggers, boss-bar viewers, and the phase-two flash all use horizontal portal distance so players in the pit or cave stack remain included in the fight cues.
 
 ## Advancement Tree
 

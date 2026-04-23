@@ -282,7 +282,7 @@ public class NetherDragonEntity extends EnderDragon implements GeoEntity {
     }
 
     private void activatePhaseTwo(ServerLevel level) {
-        // Fix: phase two had no authoritative transition, so the dragon now flips into an enraged state once, notifies nearby players, applies its permanent speed boost immediately, and keeps both transition cues inside the mod sound registry.
+        // Fix: phase-two audience checks used full 3D distance, so players still fighting inside the portal footprint from the pit or cave stack could miss the transition flash. The enraged cue now follows horizontal portal distance like the ritual titles and boss bar.
         this.enraged = true;
         this.strafeCooldown = Math.min(this.strafeCooldown, STRAFE_INTERVAL_TICKS / 2);
         this.slamCooldown = Math.min(this.slamCooldown, 30);
@@ -297,7 +297,7 @@ public class NetherDragonEntity extends EnderDragon implements GeoEntity {
 
         double maxDistanceSqr = PLAYER_EVENT_RANGE * PLAYER_EVENT_RANGE;
         for (ServerPlayer player : level.players()) {
-            if (player.distanceToSqr(this) > maxDistanceSqr) {
+            if (horizontalDistanceSqr(player.blockPosition(), this.portalOrigin) > maxDistanceSqr) {
                 continue;
             }
             if (ServerPlayNetworking.canSend(player, DragonPhaseFlashPayload.TYPE)) {
@@ -474,5 +474,11 @@ public class NetherDragonEntity extends EnderDragon implements GeoEntity {
         level.sendParticles(ParticleTypes.FLAME, impactCenter.x, impactCenter.y + 0.5, impactCenter.z, 30, 1.1, 0.4, 1.1, 0.02);
         this.setDeltaMovement(Vec3.ZERO);
         this.getPhaseManager().setPhase(EnderDragonPhase.HOLDING_PATTERN);
+    }
+
+    private static double horizontalDistanceSqr(BlockPos first, BlockPos second) {
+        double dx = first.getX() - second.getX();
+        double dz = first.getZ() - second.getZ();
+        return dx * dx + dz * dz;
     }
 }

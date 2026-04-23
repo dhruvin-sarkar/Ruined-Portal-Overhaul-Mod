@@ -106,7 +106,8 @@ public final class NetherDragonRituals {
     }
 
     private static void triggerNearby(ServerLevel level, BlockPos origin, PortalEventTrigger trigger) {
-        for (ServerPlayer player : level.getPlayers(player -> player.blockPosition().distSqr(origin) <= RITUAL_MESSAGE_RANGE_SQUARED)) {
+        // Fix: ritual progression checks used full 3D distance, so players directly below the portal in the pit or caves could miss summon/death progression despite staying inside the dungeon footprint. Portal-centered ritual cues now follow horizontal X/Z distance like the raid and storm systems.
+        for (ServerPlayer player : level.getPlayers(player -> horizontalDistanceSqr(player.blockPosition(), origin) <= RITUAL_MESSAGE_RANGE_SQUARED)) {
             ModAdvancementTriggers.trigger(trigger, player);
         }
     }
@@ -174,7 +175,7 @@ public final class NetherDragonRituals {
     }
 
     private static void tickBossBars(MinecraftServer server) {
-        // Fix: dragon boss bars previously removed only same-level players who walked out of range, so dimension changes could leave stale viewers attached. Each tick now rebuilds the in-range set and removes every player not currently eligible.
+        // Fix: dragon boss bars used vertical-aware distance, so players fighting from the pit or cave stack could drop off the bar despite staying inside the portal arena. Each tick now rebuilds the viewer set from horizontal portal distance and still removes every player not currently eligible.
         Iterator<Map.Entry<UUID, ServerBossEvent>> iterator = BOSS_BARS.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<UUID, ServerBossEvent> entry = iterator.next();
@@ -192,7 +193,7 @@ public final class NetherDragonRituals {
             ServerLevel dragonLevel = (ServerLevel) dragon.level();
             Set<ServerPlayer> inRangePlayers = new HashSet<>();
             for (ServerPlayer player : dragonLevel.players()) {
-                if (player.blockPosition().distSqr(dragon.portalOrigin()) <= BOSS_BAR_RANGE_SQUARED) {
+                if (horizontalDistanceSqr(player.blockPosition(), dragon.portalOrigin()) <= BOSS_BAR_RANGE_SQUARED) {
                     inRangePlayers.add(player);
                     bossBar.addPlayer(player);
                 }
@@ -212,8 +213,8 @@ public final class NetherDragonRituals {
     }
 
     private static void broadcastTitle(ServerLevel level, BlockPos origin) {
-        // Fix: the ritual title card now uses translation keys so the dragon summon announcement follows the selected language.
-        for (ServerPlayer player : level.getPlayers(player -> player.blockPosition().distSqr(origin) <= RITUAL_MESSAGE_RANGE_SQUARED)) {
+        // Fix: the ritual summon title used full 3D distance, so nearby players directly beneath the portal could miss the warning. The localized title card now respects the same horizontal portal footprint as the rest of the dungeon flow.
+        for (ServerPlayer player : level.getPlayers(player -> horizontalDistanceSqr(player.blockPosition(), origin) <= RITUAL_MESSAGE_RANGE_SQUARED)) {
             player.connection.send(new ClientboundSetTitlesAnimationPacket(10, 50, 20));
             player.connection.send(new ClientboundSetTitleTextPacket(Component.translatable("title.ruined_portal_overhaul.ritual.dragon_awakens").withStyle(ChatFormatting.DARK_RED)));
             player.connection.send(new ClientboundSetSubtitleTextPacket(Component.translatable("subtitle.ruined_portal_overhaul.ritual.dragon_awakens").withStyle(ChatFormatting.RED)));
@@ -325,6 +326,12 @@ public final class NetherDragonRituals {
             level.sendParticles(ParticleTypes.LARGE_SMOKE, pedestal.getX() + 0.5, pedestal.getY() + 0.5, pedestal.getZ() + 0.5, 12, 0.45, 0.45, 0.45, 0.01);
         }
         level.playSound(null, origin, ModSounds.RITUAL_PEDESTAL_SHATTER, SoundSource.BLOCKS, 1.4f, 0.7f);
+    }
+
+    private static double horizontalDistanceSqr(BlockPos first, BlockPos second) {
+        double dx = first.getX() - second.getX();
+        double dz = first.getZ() - second.getZ();
+        return dx * dx + dz * dz;
     }
 
     private static void spawnSphericalBurst(
