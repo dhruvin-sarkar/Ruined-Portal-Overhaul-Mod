@@ -10,6 +10,7 @@ import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
@@ -69,6 +70,16 @@ public class PiglinRavagerEntity extends Ravager implements GeoEntity {
             damageAmount *= 0.5f;
         }
         return super.hurtServer(serverLevel, damageSource, damageAmount);
+    }
+
+    @Override
+    public boolean doHurtTarget(ServerLevel serverLevel, Entity target) {
+        // Fix: ravager bites and body slams previously relied on vanilla movement only, so successful melee impacts now trigger the GeckoLib slam animation.
+        boolean damaged = super.doHurtTarget(serverLevel, target);
+        if (damaged) {
+            this.triggerAnim(RuinedPortalGeoAnimations.ACTION_CONTROLLER, RuinedPortalGeoAnimations.ATTACK_SLAM);
+        }
+        return damaged;
     }
 
     @Override

@@ -221,7 +221,7 @@ Overworld ruined portal structure JSON files are overridden to use `ruined_porta
 
 ## Entity Presentation
 
-GeckoLib now renders all combat mobs, the Exiled Piglin, the Nether Crystal, the Nether Conduit block entity, and the Nether Dragon. The Dragon no longer uses the vanilla `EnderDragonRenderer`; its placeholder model lives at `assets/ruined_portal_overhaul/geo/entity/nether_dragon.geo.json`, and its flight, phase-two, and slam animations live at `assets/ruined_portal_overhaul/animations/entity/nether_dragon.animation.json`. Piglin Ravager Hard wall-impact roars now trigger the matching GeckoLib `action.roar` animation in addition to the custom roar sound and Slowness II pulse.
+GeckoLib now renders all combat mobs, the Exiled Piglin, the Nether Crystal, the Nether Conduit block entity, and the Nether Dragon. The Dragon no longer uses the vanilla `EnderDragonRenderer`; its placeholder model lives at `assets/ruined_portal_overhaul/geo/entity/nether_dragon.geo.json`, and its flight, phase-two, and slam animations live at `assets/ruined_portal_overhaul/animations/entity/nether_dragon.animation.json`. Piglin Vindicator, Brute Pillager melee fallback, Piglin Vex, and Piglin Ravager successful melee hits now trigger their GeckoLib attack clips, while Piglin Ravager Hard wall-impact roars trigger the matching `action.roar` animation in addition to the custom roar sound and Slowness II pulse.
 
 Visual variant support is active for:
 
@@ -356,12 +356,12 @@ Incomplete portal territories now give players a protective red-aether boon whil
 | Entity ID | Class | Base | Behavior |
 |---|---|---|---|
 | `piglin_pillager` | `PiglinPillagerEntity` | Pillager | Fire immune, Quick Charge III crossbow with Piercing II or Multishot variation, 44 HP, 9.5 arrow damage |
-| `piglin_vindicator` | `PiglinVindicatorEntity` | Vindicator | Fire immune, golden axe/sword, guaranteed Sharpness III-V, chance of Fire Aspect and Knockback, 58 HP, 16.5 attack |
-| `piglin_brute_pillager` | `PiglinBrutePillagerEntity` | Pillager | Fire immune, mostly melee golden axe/sword loadouts with Sharpness IV-V, rare Multishot + Quick Charge II crossbow variant, close-range melee fallback for crossbow brutes, 88 HP, 20 attack, 11 arrow damage |
+| `piglin_vindicator` | `PiglinVindicatorEntity` | Vindicator | Fire immune, golden axe/sword, guaranteed Sharpness III-V, chance of Fire Aspect and Knockback, successful melee hits trigger `attack.swing`, 58 HP, 16.5 attack |
+| `piglin_brute_pillager` | `PiglinBrutePillagerEntity` | Pillager | Fire immune, mostly melee golden axe/sword loadouts with Sharpness IV-V, rare Multishot + Quick Charge II crossbow variant, close-range melee fallback for crossbow brutes, successful melee hits trigger `attack.swing`, 88 HP, 20 attack, 11 arrow damage |
 | `piglin_illusioner` | `PiglinIllusionerEntity` | Illusioner | Fire immune, Flame + Power III bow with Punch I variation, 54 HP, 8 arrow damage, and Nether combat sounds for arrows |
 | `piglin_evoker` | `PiglinEvokerEntity` | Evoker | Fire immune, 70 HP, 10-fang Magma Eruption with blaze/lava cue every 160 ticks, ignites targets, summons 4 Piglin Vexes every 220 ticks, summons 2 desperation Piglin Vexes below 50% HP with NBT persistence |
-| `piglin_ravager` | `PiglinRavagerEntity` | Ravager | Fire immune, 210 HP, 24 attack, half projectile damage, Hoglin sound set, Slowness roar, wave-4 rider owned by `GoldRaidManager`, Hard wall/obsidian charge roar applying Slowness II for 60 ticks and triggering `action.roar` |
-| `piglin_vex` | `PiglinVexEntity` | Vex | Fire immune, 28 HP, 10 attack, limited life of 1400 ticks, summoned by Piglin Evoker |
+| `piglin_ravager` | `PiglinRavagerEntity` | Ravager | Fire immune, 210 HP, 24 attack, half projectile damage, Hoglin sound set, Slowness roar, wave-4 rider owned by `GoldRaidManager`, successful melee hits trigger `attack.slam`, Hard wall/obsidian charge roar applying Slowness II for 60 ticks and triggering `action.roar` |
+| `piglin_vex` | `PiglinVexEntity` | Vex | Fire immune, 28 HP, 10 attack, successful strikes trigger `attack.flying_attack`, limited life of 1400 ticks, summoned by Piglin Evoker |
 | `exiled_piglin` | `ExiledPiglinTraderEntity` | Wandering Trader | Invulnerable reward trader with Piglin sounds, one customer at a time, action-bar messages, restock every 40000 ticks, despawn after 72000 world ticks |
 
 All seven combat mobs call `PiglinDifficultyScaler.applySpawnScaling(...)` from their 1.21.11 spawn initialization hook. The scaler reads `ModConfigManager` at spawn time and composes config multipliers with world difficulty: Easy/Peaceful uses 0.75x health and damage, Normal uses 1.0x, and Hard uses 1.25x health plus 1.5x damage when the attack attribute exists.

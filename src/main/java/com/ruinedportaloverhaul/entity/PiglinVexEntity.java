@@ -1,10 +1,12 @@
 package com.ruinedportaloverhaul.entity;
 
 import com.ruinedportaloverhaul.sound.ModSounds;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.SpawnGroupData;
@@ -50,6 +52,16 @@ public class PiglinVexEntity extends Vex implements GeoEntity {
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return this.geoCache;
+    }
+
+    @Override
+    public boolean doHurtTarget(ServerLevel serverLevel, Entity target) {
+        // Fix: Piglin Vex dives previously used only vanilla hit feedback, so successful strikes now trigger the flying attack animation declared in its GeckoLib assets.
+        boolean damaged = super.doHurtTarget(serverLevel, target);
+        if (damaged) {
+            this.triggerAnim(RuinedPortalGeoAnimations.ACTION_CONTROLLER, RuinedPortalGeoAnimations.ATTACK_FLYING);
+        }
+        return damaged;
     }
 
     @Override

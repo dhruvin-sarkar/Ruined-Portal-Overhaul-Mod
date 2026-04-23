@@ -8,6 +8,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -105,6 +106,16 @@ public class PiglinBrutePillagerEntity extends Pillager implements GeoEntity, Te
     private boolean isTargetWithinMeleeFallbackRange() {
         LivingEntity target = this.getTarget();
         return target != null && this.distanceToSqr(target) <= 9.0;
+    }
+
+    @Override
+    public boolean doHurtTarget(ServerLevel serverLevel, Entity target) {
+        // Fix: brute melee fallback and axe loadouts previously skipped their GeckoLib swing trigger, so successful close-range hits now animate like the ranged shot path.
+        boolean damaged = super.doHurtTarget(serverLevel, target);
+        if (damaged) {
+            this.triggerAnim(RuinedPortalGeoAnimations.ACTION_CONTROLLER, RuinedPortalGeoAnimations.ATTACK_SWING);
+        }
+        return damaged;
     }
 
     @Override
