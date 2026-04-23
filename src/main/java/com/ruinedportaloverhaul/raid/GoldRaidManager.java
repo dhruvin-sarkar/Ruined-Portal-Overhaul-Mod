@@ -75,6 +75,7 @@ public final class GoldRaidManager {
     private static final int ATMOSPHERE_PACKET_INTERVAL_TICKS = 10;
     private static final int AMBIENT_PARTICLE_INTERVAL_TICKS = 40;
     private static final int AMBIENT_SPAWN_INTERVAL_TICKS = 10;
+    private static final int BOSS_BAR_SYNC_INTERVAL_TICKS = 20;
     private static final int AMBIENT_BURST_MIN = 8;
     private static final int AMBIENT_BURST_RANDOM = 5;
     private static final int ANCHORED_GHAST_CAP = 16;
@@ -351,8 +352,10 @@ public final class GoldRaidManager {
     }
 
     private static boolean tickRaid(RaidState state) {
-        // Fix: wave pacing now respects the configured delay while the inter-wave countdown and boss-bar labels stay fully localizable.
-        syncBossBarPlayers(state);
+        // Fix: boss-bar membership tracking used to run every raid tick. It now updates on a 20-tick cadence while progress and wave pacing stay responsive.
+        if (state.level.getGameTime() % BOSS_BAR_SYNC_INTERVAL_TICKS == 0L) {
+            syncBossBarPlayers(state);
+        }
 
         if (!state.activeMobs.isEmpty() && !state.level.isPositionEntityTicking(state.origin)) {
             // Do not count unloaded wave mobs as dead; pause until the portal area is ticking entities again.
@@ -451,6 +454,7 @@ public final class GoldRaidManager {
         broadcastRaidStartTitle(level, origin);
         disablePreRaidSpawners(level, portalRaidState, origin);
         spawnWave(state);
+        syncBossBarPlayers(state);
         state.delayTicks = ModConfigManager.interWaveDelayTicks();
         state.persistWaveState();
     }
