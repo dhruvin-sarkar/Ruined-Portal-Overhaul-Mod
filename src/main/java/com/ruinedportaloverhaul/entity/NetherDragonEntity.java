@@ -306,6 +306,7 @@ public class NetherDragonEntity extends EnderDragon {
         if (!this.enraged) {
             return;
         }
+        this.tickEnragedBreathAura(level);
         if (this.netherSlamActive) {
             this.tickNetherSlam(level);
             return;
@@ -322,6 +323,22 @@ public class NetherDragonEntity extends EnderDragon {
         }
         if (this.slamCooldown <= 0) {
             this.beginNetherSlam(level);
+        }
+    }
+
+    private void tickEnragedBreathAura(ServerLevel level) {
+        // Fix: the enraged phase promised a deeper-red breath read, but vanilla dragon_breath particles are purple. Layering soul-fire and flame particles from the head while enraged shifts the visual signature to corrupted Nether red without needing to override vanilla breath particles.
+        if (this.tickCount % 4 != 0) {
+            return;
+        }
+        EnderDragonPart head = this.head;
+        double headX = head.getX();
+        double headY = head.getY() + 0.25;
+        double headZ = head.getZ();
+        level.sendParticles(ParticleTypes.SOUL_FIRE_FLAME, headX, headY, headZ, 3, 0.35, 0.25, 0.35, 0.015);
+        level.sendParticles(ParticleTypes.FLAME, headX, headY, headZ, 2, 0.3, 0.2, 0.3, 0.01);
+        if (this.tickCount % 20 == 0) {
+            level.sendParticles(ParticleTypes.LARGE_SMOKE, headX, headY, headZ, 4, 0.5, 0.3, 0.5, 0.01);
         }
     }
 
