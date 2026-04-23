@@ -220,7 +220,9 @@ The generated piece uses a radius-136 surface footprint and a depth-45 undergrou
 
 Pit, chamber, and tunnel carvers replace adjacent overworld stone, deepslate, dirt, and common overworld ore/geology blocks with Nether materials so natural cave intersections read as corrupted Nether geology. Structure-local water encountered in transformed terrain is converted into lava with a bounded 8-block vertical clear. All writes are bounded by both the structure piece box and current chunk box.
 
-Overworld ruined portal structure JSON files are overridden to use `ruined_portal_overhaul:portal_dungeon`. The matching `data/minecraft/worldgen/structure_set/ruined_portals.json` override uses a minimum spacing grid of `16`, separation `8`, and a four-chunk exclusion zone against `minecraft:villages`; `PortalDungeonStructure.findGenerationPoint(...)` then deterministically thins candidate chunks from the live `ModConfigManager.structureRarity()` value so pack authors can tune average rarity without a custom datapack.
+Overworld ruined portal structure JSON files are overridden to use `ruined_portal_overhaul:portal_dungeon`. The matching `data/minecraft/worldgen/structure_set/ruined_portals.json` override now contains only the six overworld ruined portal variants, uses a minimum spacing grid of `16`, separation `8`, and a four-chunk exclusion zone against `minecraft:villages`; `PortalDungeonStructure.findGenerationPoint(...)` then deterministically thins candidate chunks from the live `ModConfigManager.structureRarity()` value so pack authors can tune average rarity without a custom datapack.
+
+Vanilla Nether ruined portals are preserved through `data/minecraft/worldgen/structure_set/ruined_portals_nether.json`, which keeps `minecraft:ruined_portal_nether` on Mojang's original `spacing = 40`, `separation = 15`, and `salt = 34222645` placement. This avoids accidentally applying the overworld dungeon spacing/exclusion tuning to Nether generation while still letting `/locate structure minecraft:ruined_portal_nether` behave like vanilla.
 
 ## Entity Presentation
 

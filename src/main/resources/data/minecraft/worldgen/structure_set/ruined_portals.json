@@ -33,10 +33,6 @@
     {
       "structure": "minecraft:ruined_portal_ocean",
       "weight": 1
-    },
-    {
-      "structure": "minecraft:ruined_portal_nether",
-      "weight": 1
     }
   ]
 }
