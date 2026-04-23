@@ -26,7 +26,7 @@ public final class RuinedPortalOverhaulClient implements ClientModInitializer {
         NetherFireballKeybinds.initialize();
         BlockEntityRenderers.register(
             ModBlockEntities.NETHER_CONDUIT,
-            context -> new NetherConduitGeoRenderer()
+            context -> new NetherConduitGeoRenderer<>()
         );
         EntityRenderers.register(
             ModEntities.PIGLIN_PILLAGER,

@@ -25,6 +25,7 @@ public class NetherConduitBlockItem extends BlockItem {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public void appendHoverText(
         ItemStack stack,
         Item.TooltipContext context,
