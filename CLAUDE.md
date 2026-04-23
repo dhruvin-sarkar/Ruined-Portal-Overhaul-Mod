@@ -123,7 +123,7 @@ The Nether Conduit is a custom block/block entity pair:
 
 Activation and levels:
 
-- Active frame requires at least 12 regular `minecraft:nether_bricks` blocks in the conduit-frame positions.
+- Active frame requires all 12 regular `minecraft:nether_bricks` blocks in the flat horizontal ring two blocks out from the conduit; random 3D nether-brick rubble no longer powers the block.
 - `NetherConduitBlock.ACTIVE` is mirrored into blockstate whenever the frame scan changes so GeckoLib can swap between idle and active spin loops from synced state instead of stale client memory.
 - The conduit uses vanilla obsidian for the main placeholder model, vanilla netherrack for the emissive inner-core overlay, grey inactive tint, and warmer active tint by upgrade level. `RuinedPortalGeoRenderData.CONDUIT_ACTIVE` and `CONDUIT_LEVEL` bridge block-entity state into the GeckoLib render layer.
 - Level 0: Fire Resistance I, Haste I, Regeneration I, 16-block support radius, 4 conduit damage.

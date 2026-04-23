@@ -35,6 +35,12 @@ public class NetherConduitBlockEntity extends BlockEntity implements GeoBlockEnt
     private static final int ACTIVATION_SCAN_INTERVAL_TICKS = 20;
     private static final int ATTACK_INTERVAL_TICKS = 30;
     private static final int ACTIVATION_REQUIRED_FRAME_BLOCKS = 12;
+    private static final int[][] ACTIVATION_FRAME_OFFSETS = {
+        {-2, 0, -1}, {-2, 0, 0}, {-2, 0, 1},
+        {-1, 0, -2}, {0, 0, -2}, {1, 0, -2},
+        {2, 0, -1}, {2, 0, 0}, {2, 0, 1},
+        {-1, 0, 2}, {0, 0, 2}, {1, 0, 2}
+    };
     private static final int EFFECT_RADIUS = 16;
     private static final int STATUS_RADIUS = 8;
     private static final int EFFECT_DURATION_TICKS = 40;
@@ -150,20 +156,14 @@ public class NetherConduitBlockEntity extends BlockEntity implements GeoBlockEnt
     }
 
     private static int countFrameBlocks(Level level, BlockPos pos) {
+        // Fix: activation previously accepted any 12 blocks on a broad 3D cube shell, so random nether-brick ruins could power the conduit. Only the intended flat twelve-block ring now counts.
         int count = 0;
         BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
 
-        for (int dx = -2; dx <= 2; dx++) {
-            for (int dy = -2; dy <= 2; dy++) {
-                for (int dz = -2; dz <= 2; dz++) {
-                    if (!isFrameEdge(dx, dy, dz)) {
-                        continue;
-                    }
-                    cursor.set(pos.getX() + dx, pos.getY() + dy, pos.getZ() + dz);
-                    if (level.getBlockState(cursor).is(Blocks.NETHER_BRICKS)) {
-                        count++;
-                    }
-                }
+        for (int[] offset : ACTIVATION_FRAME_OFFSETS) {
+            cursor.set(pos.getX() + offset[0], pos.getY() + offset[1], pos.getZ() + offset[2]);
+            if (level.getBlockState(cursor).is(Blocks.NETHER_BRICKS)) {
+                count++;
             }
         }
 
@@ -292,17 +292,4 @@ public class NetherConduitBlockEntity extends BlockEntity implements GeoBlockEnt
             || type == ModEntities.PIGLIN_VEX;
     }
 
-    private static boolean isFrameEdge(int dx, int dy, int dz) {
-        int outerAxes = 0;
-        if (Math.abs(dx) == 2) {
-            outerAxes++;
-        }
-        if (Math.abs(dy) == 2) {
-            outerAxes++;
-        }
-        if (Math.abs(dz) == 2) {
-            outerAxes++;
-        }
-        return outerAxes == 2;
-    }
 }
