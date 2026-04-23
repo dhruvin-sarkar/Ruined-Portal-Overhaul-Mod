@@ -114,7 +114,7 @@ The Nether Conduit is a custom block/block entity pair:
 - `NetherConduitBlockItem`: documents levels/effects in the item tooltip.
 - `ModBlockEntities`: registers the block entity type.
 - `NetherConduitBlockEntity`: owns activation, level state, player effects, action-bar status, nether mob attacks, and NBT persistence.
-- `RuinedPortalOverhaulClient`, `NetherConduitGeoRenderer`, and `NetherConduitGeoModel`: register and render the GeckoLib conduit block entity animation on the client.
+- `RuinedPortalOverhaulClient`, `NetherConduitGeoRenderer`, `NetherConduitInnerGlowLayer`, and `NetherConduitGeoModel`: register and render the GeckoLib conduit block entity animation on the client.
 - `NetherConduitPowerTracker`: short-lived per-player lava movement boost state used by the lava movement mixin and cleared on server stop so integrated-server world swaps cannot inherit stale conduit boosts.
 - `NetherConduitEvents`: allows sleeping in Nether-like dimensions when an active conduit is within 16 blocks.
 - `LivingEntityLavaMovementMixin`: reduces lava movement drag/acceleration penalties while `NetherConduitPowerTracker` is active.
@@ -125,6 +125,7 @@ Activation and levels:
 
 - Active frame requires at least 12 regular `minecraft:nether_bricks` blocks in the conduit-frame positions.
 - `NetherConduitBlock.ACTIVE` is mirrored into blockstate whenever the frame scan changes so GeckoLib can swap between idle and active spin loops from synced state instead of stale client memory.
+- The conduit uses vanilla obsidian for the main placeholder model, vanilla netherrack for the emissive inner-core overlay, grey inactive tint, and warmer active tint by upgrade level. `RuinedPortalGeoRenderData.CONDUIT_ACTIVE` and `CONDUIT_LEVEL` bridge block-entity state into the GeckoLib render layer.
 - Level 0: Fire Resistance I, Haste I, Regeneration I, 16-block support radius, 4 conduit damage.
 - Level 1: Fire Resistance II, 20-block attack radius, 6 conduit damage.
 - Level 2: Haste II, Regeneration II, 24-block attack radius, 8 conduit damage, near-zero lava movement penalty.
@@ -221,7 +222,7 @@ Overworld ruined portal structure JSON files are overridden to use `ruined_porta
 
 ## Entity Presentation
 
-GeckoLib now renders all combat mobs, the Exiled Piglin, the Nether Crystal, the Nether Conduit block entity, and the Nether Dragon. The Dragon no longer uses the vanilla `EnderDragonRenderer`; its placeholder model lives at `assets/ruined_portal_overhaul/geo/entity/nether_dragon.geo.json`, and its flight, phase-two, and slam animations live at `assets/ruined_portal_overhaul/animations/entity/nether_dragon.animation.json`. Piglin Vindicator, Brute Pillager melee fallback, Piglin Vex, and Piglin Ravager successful melee hits now trigger their GeckoLib attack clips, while Piglin Ravager Hard wall-impact roars trigger the matching `action.roar` animation in addition to the custom roar sound and Slowness II pulse.
+GeckoLib now renders all combat mobs, the Exiled Piglin, the Nether Crystal, the Nether Conduit block entity, and the Nether Dragon. The Nether Conduit swaps slow/fast inner-core spin loops from synced blockstate and adds an active-only emissive inner-core render layer. The Dragon no longer uses the vanilla `EnderDragonRenderer`; its placeholder model lives at `assets/ruined_portal_overhaul/geo/entity/nether_dragon.geo.json`, and its flight, phase-two, and slam animations live at `assets/ruined_portal_overhaul/animations/entity/nether_dragon.animation.json`. Piglin Vindicator, Brute Pillager melee fallback, Piglin Vex, and Piglin Ravager successful melee hits now trigger their GeckoLib attack clips, while Piglin Ravager Hard wall-impact roars trigger the matching `action.roar` animation in addition to the custom roar sound and Slowness II pulse.
 
 Visual variant support is active for:
 
@@ -236,6 +237,7 @@ Implementation notes:
 - Each eligible mob uses synced entity data plus save data under `Variant`, so the chosen texture survives saves and renders consistently on clients.
 - Variant selection is deterministic from the entity UUID through `TextureVariantHelper`.
 - GeckoLib texture selection is driven through `RuinedPortalGeoRenderData.TEXTURE_VARIANT`, captured during model state compilation.
+- Nether Conduit glow state is driven through `RuinedPortalGeoRenderData.CONDUIT_ACTIVE` and `CONDUIT_LEVEL`, captured during block-entity render compilation.
 - Placeholder `_0/_1/_2` PNGs are generated derivatives of the base texture sheets and are safe for later artist replacement.
 
 ## Spawners And Spawn Pressure
