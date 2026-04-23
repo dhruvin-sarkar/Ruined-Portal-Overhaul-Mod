@@ -454,6 +454,7 @@ Do not use global biome modifications for structure-local proximity gradients.
 Structure rarity note:
 
 - The prompt-level default rarity is 32 chunks. The vanilla ruined portal replacement structure set is data-driven at `data/minecraft/worldgen/structure_set/ruined_portals.json`, now using minimum `spacing` 16 so the code can support the full 16-64 config range.
+- `ClothRuntimeConfig` groups the ModMenu/AutoConfig screen into `world_generation`, `raid`, `atmosphere`, `difficulty`, and `rewards` categories, with English category keys in `assets/ruined_portal_overhaul/lang/en_us.json`.
 - `ClothRuntimeConfig.validatePostLoad()` normalizes loaded config files into their documented ranges. Runtime getters still clamp values defensively so hand-edited files, reloads, and optional Cloth Config absence all converge on safe gameplay numbers.
 - `ModConfigManager.structureRarity()` is read inside `PortalDungeonStructure.findGenerationPoint(...)` for new candidate chunks. Values above 16 deterministically thin the minimum placement grid using the world seed and chunk position; already-generated chunks are not rewritten.
 - `ModConfigManager.enableOuterZoneScatter()` is read directly by `PortalStructureHelper.buildOuterScatter(...)`. Turning it off suppresses only the sparse radius-52-to-136 netherrack/crying-obsidian outer scatter while preserving the portal core, middle scar, caves, raid, and ritual layout.

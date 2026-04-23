@@ -8,32 +8,52 @@ import me.shedaniel.autoconfig.annotation.ConfigEntry;
 
 @Config(name = RuinedPortalOverhaul.MOD_ID)
 public final class ClothRuntimeConfig implements ConfigData, ModConfigAccess {
+    // Fix: the config screen originally exposed every value in one flat list, so options are now grouped by gameplay system for pack-author tuning.
+    @ConfigEntry.Category("world_generation")
     @ConfigEntry.BoundedDiscrete(min = 16, max = 64)
     public int structureRarity = 32;
 
+    @ConfigEntry.Category("world_generation")
     public boolean enableAmbientNetherSpawns = true;
+    @ConfigEntry.Category("world_generation")
     public boolean enableOuterZoneScatter = true;
+
+    @ConfigEntry.Category("raid")
     public double raidTriggerRadius = 24.0;
+    @ConfigEntry.Category("raid")
     public double waveCountMultiplier = 1.0;
 
+    @ConfigEntry.Category("raid")
     @ConfigEntry.BoundedDiscrete(min = 100, max = 600)
     public int interWaveDelayTicks = 300;
 
+    @ConfigEntry.Category("raid")
     public boolean enableBossBar = true;
+
+    @ConfigEntry.Category("atmosphere")
     public boolean enableRedStorm = true;
+    @ConfigEntry.Category("atmosphere")
     public double stormIntensity = 0.6;
 
+    @ConfigEntry.Category("atmosphere")
     @ConfigEntry.BoundedDiscrete(min = 40, max = 200)
     public int thunderFrequency = 80;
 
+    @ConfigEntry.Category("difficulty")
     public double mobHealthMultiplier = 1.0;
+    @ConfigEntry.Category("difficulty")
     public double mobDamageMultiplier = 1.0;
 
+    @ConfigEntry.Category("difficulty")
     @ConfigEntry.BoundedDiscrete(min = 50, max = 400)
     public int ambientMobCap = 180;
 
+    @ConfigEntry.Category("difficulty")
     public boolean enablePostRaidSuppression = true;
+
+    @ConfigEntry.Category("rewards")
     public double netherStarDropRate = 1.0;
+    @ConfigEntry.Category("rewards")
     public boolean enableNetherDragon = true;
 
     @Override
