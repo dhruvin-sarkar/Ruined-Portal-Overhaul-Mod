@@ -16,9 +16,6 @@
     "announce_to_chat": true,
     "hidden": false
   },
-  "rewards": {
-    "experience": 500
-  },
   "criteria": {
     "dragon_defeated": {
       "trigger": "ruined_portal_overhaul:nether_dragon_defeated"
