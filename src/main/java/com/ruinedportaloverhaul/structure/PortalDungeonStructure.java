@@ -17,6 +17,7 @@ public class PortalDungeonStructure extends Structure {
 
     @Override
     protected Optional<GenerationStub> findGenerationPoint(GenerationContext context) {
+        // Fix: portal dungeons previously had no stable structure-variant identity, so later expansion geometry could not be selected deterministically. Generation now locks a variant from the chunk and persists the adjusted center into the piece.
         int centerX = context.chunkPos().getMiddleBlockX();
         int centerZ = context.chunkPos().getMiddleBlockZ();
         int surfaceY = context.chunkGenerator()
@@ -24,9 +25,11 @@ public class PortalDungeonStructure extends Structure {
         int oceanFloorY = context.chunkGenerator()
             .getFirstOccupiedHeight(centerX, centerZ, Heightmap.Types.OCEAN_FLOOR_WG, context.heightAccessor(), context.randomState()) - 1;
         int baseY = surfaceY - oceanFloorY > 1 ? oceanFloorY : surfaceY;
+        PortalDungeonVariant variant = PortalDungeonVariant.selectForChunk(context.chunkPos());
+        int centerY = baseY + variant.centerYOffset();
 
-        BlockPos center = new BlockPos(centerX, baseY, centerZ);
-        return Optional.of(new GenerationStub(center, builder -> builder.addPiece(new PortalDungeonPiece(center))));
+        BlockPos center = new BlockPos(centerX, centerY, centerZ);
+        return Optional.of(new GenerationStub(center, builder -> builder.addPiece(new PortalDungeonPiece(center, variant))));
     }
 
     @Override

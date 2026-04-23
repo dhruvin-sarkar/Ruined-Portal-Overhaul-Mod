@@ -36,8 +36,13 @@ public class PortalDungeonPiece extends StructurePiece {
     private final int centerX;
     private final int surfaceY;
     private final int centerZ;
+    private final PortalDungeonVariant variant;
 
     public PortalDungeonPiece(BlockPos center) {
+        this(center, PortalDungeonVariant.CRIMSON_THRONE);
+    }
+
+    public PortalDungeonPiece(BlockPos center, PortalDungeonVariant variant) {
         super(
             ModStructures.PORTAL_DUNGEON_PIECE,
             0,
@@ -53,6 +58,7 @@ public class PortalDungeonPiece extends StructurePiece {
         this.centerX = center.getX();
         this.surfaceY = center.getY();
         this.centerZ = center.getZ();
+        this.variant = variant;
     }
 
     public PortalDungeonPiece(CompoundTag tag) {
@@ -60,17 +66,24 @@ public class PortalDungeonPiece extends StructurePiece {
         this.centerX = tag.getIntOr("CenterX", 0);
         this.surfaceY = tag.getIntOr("SurfaceY", 0);
         this.centerZ = tag.getIntOr("CenterZ", 0);
+        this.variant = PortalDungeonVariant.byId(tag.getIntOr("Variant", 0));
     }
 
     @Override
     protected void addAdditionalSaveData(StructurePieceSerializationContext context, CompoundTag tag) {
+        // Fix: structure pieces previously forgot which portal variant they represented, so reloads could not preserve variant-specific geometry choices. The piece now writes the locked variant alongside its origin.
         tag.putInt("CenterX", this.centerX);
         tag.putInt("SurfaceY", this.surfaceY);
         tag.putInt("CenterZ", this.centerZ);
+        tag.putInt("Variant", this.variant.id());
     }
 
     public BlockPos portalOrigin() {
         return new BlockPos(this.centerX, this.surfaceY, this.centerZ);
+    }
+
+    public PortalDungeonVariant variant() {
+        return this.variant;
     }
 
     @Override
@@ -83,6 +96,7 @@ public class PortalDungeonPiece extends StructurePiece {
         ChunkPos chunkPos,
         BlockPos pivot
     ) {
+        // Fix: the generation pass previously assumed one hardcoded structure shape. The piece now exposes its locked variant to the helper pipeline so later slices can add geometry without touching lookup logic again.
         RandomSource random = RandomSource.create(this.seed());
         BlockPos origin = new BlockPos(this.centerX, this.surfaceY, this.centerZ);
         PortalStructureHelper.PortalFrameSpec frame = PortalStructureHelper.pickFrame(random);
