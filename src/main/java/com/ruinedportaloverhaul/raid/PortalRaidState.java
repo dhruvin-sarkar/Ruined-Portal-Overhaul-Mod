@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.UUIDUtil;
@@ -27,6 +28,7 @@ public final class PortalRaidState extends SavedData {
     private static final String PORTAL_VARIANTS_KEY = "portal_variants";
     private static final String RITUAL_CRYSTALS_KEY = "ritual_crystals";
     private static final String ACTIVE_DRAGON_PORTALS_KEY = "active_dragon_portals";
+    private static final String EXILED_PIGLIN_SPAWNS_KEY = "exiled_piglin_spawns";
 
     public static final Codec<PortalRaidState> CODEC = RecordCodecBuilder.create(instance -> instance.group(
         BlockPos.CODEC.listOf()
@@ -49,7 +51,10 @@ public final class PortalRaidState extends SavedData {
             .forGetter(PortalRaidState::snapshotRitualCrystals),
         BlockPos.CODEC.listOf()
             .optionalFieldOf(ACTIVE_DRAGON_PORTALS_KEY, List.of())
-            .forGetter(state -> new ArrayList<>(state.activeDragonPortals))
+            .forGetter(state -> new ArrayList<>(state.activeDragonPortals)),
+        ExiledPiglinSpawnData.CODEC.listOf()
+            .optionalFieldOf(EXILED_PIGLIN_SPAWNS_KEY, List.of())
+            .forGetter(PortalRaidState::snapshotExiledPiglinSpawns)
     ).apply(instance, PortalRaidState::new));
 
     private static final SavedDataType<PortalRaidState> TYPE = new SavedDataType<>(
@@ -69,6 +74,7 @@ public final class PortalRaidState extends SavedData {
     private final Map<BlockPos, Long> waveEndTimeTicks = new HashMap<>();
     private final Map<BlockPos, Set<BlockPos>> ritualCrystals = new HashMap<>();
     private final Set<BlockPos> activeDragonPortals = new HashSet<>();
+    private final Map<BlockPos, Long> exiledPiglinSpawnTimes = new HashMap<>();
 
     public PortalRaidState() {
     }
@@ -80,7 +86,8 @@ public final class PortalRaidState extends SavedData {
         List<PortalSpawnerData> portalSpawners,
         List<PortalVariantData> portalVariants,
         List<RitualData> ritualCrystals,
-        List<BlockPos> activeDragonPortals
+        List<BlockPos> activeDragonPortals,
+        List<ExiledPiglinSpawnData> exiledPiglinSpawns
     ) {
         this.completedPortals.addAll(completedPortals);
         this.activatedPortals.addAll(activatedPortals);
@@ -100,6 +107,9 @@ public final class PortalRaidState extends SavedData {
         }
         for (RitualData ritualData : ritualCrystals) {
             this.ritualCrystals.put(ritualData.portalOrigin().immutable(), new HashSet<>(immutablePositions(ritualData.filledPedestals())));
+        }
+        for (ExiledPiglinSpawnData spawnData : exiledPiglinSpawns) {
+            this.exiledPiglinSpawnTimes.put(spawnData.portalOrigin().immutable(), spawnData.spawnGameTime());
         }
     }
 
@@ -157,6 +167,20 @@ public final class PortalRaidState extends SavedData {
         BlockPos origin = portalOrigin.immutable();
         int variantId = this.portalVariants.getOrDefault(origin, PortalDungeonVariant.selectForOrigin(origin).id());
         return PortalDungeonVariant.byId(variantId);
+    }
+
+    public void rememberExiledPiglinSpawn(BlockPos portalOrigin, long spawnGameTime) {
+        // Fix: Exiled Piglin timing used to live only on the entity NBT, so portal-owned saved data could not audit or recover trader lifetime state after a restart.
+        BlockPos origin = portalOrigin.immutable();
+        Long previous = this.exiledPiglinSpawnTimes.put(origin, spawnGameTime);
+        if (previous == null || previous.longValue() != spawnGameTime) {
+            this.setDirty();
+        }
+    }
+
+    public OptionalLong exiledPiglinSpawnTime(BlockPos portalOrigin) {
+        Long spawnGameTime = this.exiledPiglinSpawnTimes.get(portalOrigin.immutable());
+        return spawnGameTime == null ? OptionalLong.empty() : OptionalLong.of(spawnGameTime);
     }
 
     public Optional<BlockPos> completedPortalForPedestal(BlockPos pedestalPos) {
@@ -344,6 +368,14 @@ public final class PortalRaidState extends SavedData {
         return crystals;
     }
 
+    private List<ExiledPiglinSpawnData> snapshotExiledPiglinSpawns() {
+        List<ExiledPiglinSpawnData> spawns = new ArrayList<>();
+        for (Map.Entry<BlockPos, Long> entry : this.exiledPiglinSpawnTimes.entrySet()) {
+            spawns.add(new ExiledPiglinSpawnData(entry.getKey(), entry.getValue()));
+        }
+        return spawns;
+    }
+
     private static List<BlockPos> immutablePositions(List<BlockPos> positions) {
         List<BlockPos> immutable = new ArrayList<>();
         for (BlockPos pos : positions) {
@@ -385,6 +417,13 @@ public final class PortalRaidState extends SavedData {
             BlockPos.CODEC.fieldOf("portal_origin").forGetter(RitualData::portalOrigin),
             BlockPos.CODEC.listOf().fieldOf("filled_pedestals").forGetter(RitualData::filledPedestals)
         ).apply(instance, RitualData::new));
+    }
+
+    private record ExiledPiglinSpawnData(BlockPos portalOrigin, long spawnGameTime) {
+        private static final Codec<ExiledPiglinSpawnData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            BlockPos.CODEC.fieldOf("portal_origin").forGetter(ExiledPiglinSpawnData::portalOrigin),
+            Codec.LONG.fieldOf("spawn_game_time").forGetter(ExiledPiglinSpawnData::spawnGameTime)
+        ).apply(instance, ExiledPiglinSpawnData::new));
     }
 
     public record ActiveRaidSnapshot(

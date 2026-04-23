@@ -626,7 +626,7 @@ public final class GoldRaidManager {
     }
 
     private static void spawnExiledTrader(ServerLevel level, BlockPos origin) {
-        // Fix: the raid reward trader now keeps a translated display name while still spawning from the raid completion lifecycle.
+        // Fix: the raid reward trader now keeps both entity-local and portal-owned spawn timestamps so restart recovery can reason about its lifetime.
         level.setBlock(origin.offset(4, 1, 0), Blocks.NETHER_BRICK_FENCE.defaultBlockState(), 3);
         level.setBlock(origin.offset(4, 1, 1), Blocks.CRIMSON_FENCE_GATE.defaultBlockState(), 3);
         ExiledPiglinTraderEntity trader = ModEntities.EXILED_PIGLIN.spawn(
@@ -638,6 +638,7 @@ public final class GoldRaidManager {
             trader.setCustomName(Component.translatable("entity.ruined_portal_overhaul.exiled_piglin"));
             trader.setCustomNameVisible(true);
             trader.rememberSpawnTime(level.getGameTime());
+            PortalRaidState.get(level.getServer()).rememberExiledPiglinSpawn(origin, level.getGameTime());
             playExiledPiglinSpawnEffects(level, trader.blockPosition());
         }
     }

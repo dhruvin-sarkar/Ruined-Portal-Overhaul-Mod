@@ -319,13 +319,13 @@ Completion order:
 
 ## Persistence And Multiplayer
 
-- Completed portals, active raids, approach activations, discovered structure variants, ritual crystal fills, active dragon portals, and known pre-raid spawner positions are tracked per portal `BlockPos`.
+- Completed portals, active raids, approach activations, discovered structure variants, ritual crystal fills, active dragon portals, known pre-raid spawner positions, and Exiled Piglin trader spawn game times are tracked per portal `BlockPos`.
 - `PortalRaidState.CODEC` uses save-compatible optional defaults for newer fields.
 - Active wave mobs are stored as UUIDs, never direct entity references.
 - Active raids rehydrate from persistent state after server restart.
 - Active raids pause mob-death evaluation while the portal area is not entity-ticking, so unloaded mobs are not counted as dead.
 - Boss bars track all players horizontally within 48 blocks of the active portal and remove players who leave range or disconnect.
-- Ritual state persists as portal-origin to filled-pedestal sets. Dragon activity is stored separately so placing replacement crystals cannot start duplicate fights while a dragon is active.
+- Ritual state persists as portal-origin to filled-pedestal sets. Dragon activity is stored separately so placing replacement crystals cannot start duplicate fights while a dragon is active. Exiled Piglin lifetime still lives on the entity NBT for actual despawn behavior, while `PortalRaidState` now mirrors the spawn game time for portal-owned audit and recovery hooks.
 - Older saves that predate `portal_variants` fall back to `PortalDungeonVariant.selectForOrigin(...)`, so variant lookups stay deterministic even before runtime discovery repopulates the saved field.
 
 ## Red Storm And Audio
