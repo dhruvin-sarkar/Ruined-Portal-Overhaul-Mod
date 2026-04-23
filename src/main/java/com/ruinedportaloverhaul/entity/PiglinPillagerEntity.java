@@ -84,7 +84,7 @@ public class PiglinPillagerEntity extends Pillager implements GeoEntity, Texture
         // Fix: every pillager used the same texture because spawn initialization never picked a persistent visual variant. The UUID now seeds the synced variant before the first render packet is sent.
         SpawnGroupData result = super.finalizeSpawn(level, difficulty, reason, spawnData);
         this.getEntityData().set(TEXTURE_VARIANT, TextureVariantHelper.selectVariant(this.getUUID(), TEXTURE_VARIANT_COUNT));
-        return PiglinDifficultyScaler.applyHardHealth(this, level, result);
+        return PiglinDifficultyScaler.applySpawnScaling(this, level, result);
     }
 
     @Override

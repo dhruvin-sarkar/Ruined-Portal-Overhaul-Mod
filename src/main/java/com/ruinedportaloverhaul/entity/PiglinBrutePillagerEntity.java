@@ -65,7 +65,7 @@ public class PiglinBrutePillagerEntity extends Pillager implements GeoEntity, Te
         // Fix: brute pillager spawning used to randomize only equipment, leaving visuals identical. The UUID now deterministically seeds a persistent texture variant during initialization.
         SpawnGroupData result = super.finalizeSpawn(level, difficulty, reason, spawnData);
         this.getEntityData().set(TEXTURE_VARIANT, TextureVariantHelper.selectVariant(this.getUUID(), TEXTURE_VARIANT_COUNT));
-        return PiglinDifficultyScaler.applyHardHealth(this, level, result);
+        return PiglinDifficultyScaler.applySpawnScaling(this, level, result);
     }
 
     @Override

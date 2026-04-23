@@ -9,14 +9,14 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.level.ServerLevelAccessor;
 
 public final class PiglinDifficultyScaler {
-    private static final net.minecraft.resources.Identifier HARD_HEALTH_BONUS_ID = ModEntities.id("hard_health_bonus");
-    private static final net.minecraft.resources.Identifier HARD_ATTACK_BONUS_ID = ModEntities.id("hard_attack_bonus");
+    private static final net.minecraft.resources.Identifier SPAWN_HEALTH_SCALE_ID = ModEntities.id("hard_health_bonus");
+    private static final net.minecraft.resources.Identifier SPAWN_ATTACK_SCALE_ID = ModEntities.id("hard_attack_bonus");
 
     private PiglinDifficultyScaler() {
     }
 
-    public static SpawnGroupData applyHardHealth(Mob mob, ServerLevelAccessor level, SpawnGroupData spawnData) {
-        // Fix: this scaler used to hardcode a Hard-only bonus, so the historic entrypoint now applies full config-aware Easy/Normal/Hard scaling every spawn.
+    public static SpawnGroupData applySpawnScaling(Mob mob, ServerLevelAccessor level, SpawnGroupData spawnData) {
+        // Fix: this scaler used to hardcode a Hard-only bonus; it now composes live config multipliers with Easy/Normal/Hard scaling while preserving the original modifier ids for existing saves.
         double healthMultiplier = switch (level.getDifficulty()) {
             case EASY, PEACEFUL -> 0.75;
             case NORMAL -> 1.0;
@@ -30,9 +30,9 @@ public final class PiglinDifficultyScaler {
         } * ModConfigManager.mobDamageMultiplier();
 
         AttributeInstance maxHealth = mob.getAttribute(Attributes.MAX_HEALTH);
-        if (maxHealth != null && !maxHealth.hasModifier(HARD_HEALTH_BONUS_ID)) {
+        if (maxHealth != null && !maxHealth.hasModifier(SPAWN_HEALTH_SCALE_ID)) {
             maxHealth.addOrReplacePermanentModifier(new AttributeModifier(
-                HARD_HEALTH_BONUS_ID,
+                SPAWN_HEALTH_SCALE_ID,
                 maxHealth.getBaseValue() * (healthMultiplier - 1.0),
                 AttributeModifier.Operation.ADD_VALUE
             ));
@@ -40,9 +40,9 @@ public final class PiglinDifficultyScaler {
         }
 
         AttributeInstance attackDamage = mob.getAttribute(Attributes.ATTACK_DAMAGE);
-        if (attackDamage != null && !attackDamage.hasModifier(HARD_ATTACK_BONUS_ID)) {
+        if (attackDamage != null && !attackDamage.hasModifier(SPAWN_ATTACK_SCALE_ID)) {
             attackDamage.addOrReplacePermanentModifier(new AttributeModifier(
-                HARD_ATTACK_BONUS_ID,
+                SPAWN_ATTACK_SCALE_ID,
                 attackDamage.getBaseValue() * (damageMultiplier - 1.0),
                 AttributeModifier.Operation.ADD_VALUE
             ));

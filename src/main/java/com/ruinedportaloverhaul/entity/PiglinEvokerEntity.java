@@ -62,7 +62,7 @@ public class PiglinEvokerEntity extends Evoker implements GeoEntity, TextureVari
         // Fix: evoker spawn setup previously handled only stats, leaving every caster visually identical. The UUID now seeds a deterministic variant before any client render occurs.
         SpawnGroupData result = super.finalizeSpawn(level, difficulty, reason, spawnData);
         this.getEntityData().set(TEXTURE_VARIANT, TextureVariantHelper.selectVariant(this.getUUID(), TEXTURE_VARIANT_COUNT));
-        return PiglinDifficultyScaler.applyHardHealth(this, level, result);
+        return PiglinDifficultyScaler.applySpawnScaling(this, level, result);
     }
 
     @Override

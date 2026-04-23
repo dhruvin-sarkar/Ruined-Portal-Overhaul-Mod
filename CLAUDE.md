@@ -360,7 +360,7 @@ Incomplete portal territories now give players a protective red-aether boon whil
 | `piglin_vex` | `PiglinVexEntity` | Vex | Fire immune, 28 HP, 10 attack, limited life of 1400 ticks, summoned by Piglin Evoker |
 | `exiled_piglin` | `ExiledPiglinTraderEntity` | Wandering Trader | Invulnerable reward trader with Piglin sounds, one customer at a time, action-bar messages, restock every 40000 ticks, despawn after 72000 world ticks |
 
-All seven combat mobs call `PiglinDifficultyScaler.applyHardHealth(...)` from their 1.21.11 spawn initialization hook. On Hard, they receive +50% max health and +60% attack damage when the attack attribute exists.
+All seven combat mobs call `PiglinDifficultyScaler.applySpawnScaling(...)` from their 1.21.11 spawn initialization hook. The scaler reads `ModConfigManager` at spawn time and composes config multipliers with world difficulty: Easy/Peaceful uses 0.75x health and damage, Normal uses 1.0x, and Hard uses 1.25x health plus 1.5x damage when the attack attribute exists.
 
 ## Loot Tables
 Loot table files contain `_comment` fields documenting reward intent.

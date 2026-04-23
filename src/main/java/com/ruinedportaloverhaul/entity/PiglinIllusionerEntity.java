@@ -63,7 +63,7 @@ public class PiglinIllusionerEntity extends Illusioner implements GeoEntity, Tex
         // Fix: illusioner spawns previously stopped after stat scaling, leaving no persistent visual identity. The UUID now seeds a deterministic texture variant on spawn.
         SpawnGroupData result = super.finalizeSpawn(level, difficulty, reason, spawnData);
         this.getEntityData().set(TEXTURE_VARIANT, TextureVariantHelper.selectVariant(this.getUUID(), TEXTURE_VARIANT_COUNT));
-        return PiglinDifficultyScaler.applyHardHealth(this, level, result);
+        return PiglinDifficultyScaler.applySpawnScaling(this, level, result);
     }
 
     @Override

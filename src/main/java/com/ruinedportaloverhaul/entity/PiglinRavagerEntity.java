@@ -46,7 +46,7 @@ public class PiglinRavagerEntity extends Ravager implements GeoEntity {
     @Override
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, EntitySpawnReason reason, SpawnGroupData spawnData) {
         SpawnGroupData result = super.finalizeSpawn(level, difficulty, reason, spawnData);
-        return PiglinDifficultyScaler.applyHardHealth(this, level, result);
+        return PiglinDifficultyScaler.applySpawnScaling(this, level, result);
     }
 
     @Override

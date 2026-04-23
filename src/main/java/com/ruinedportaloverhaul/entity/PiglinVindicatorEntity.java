@@ -58,7 +58,7 @@ public class PiglinVindicatorEntity extends Vindicator implements GeoEntity, Tex
         // Fix: spawn initialization used to stop at stats and gear, so every vindicator rendered identically. The UUID now seeds a deterministic visual variant before the mob enters play.
         SpawnGroupData result = super.finalizeSpawn(level, difficulty, reason, spawnData);
         this.getEntityData().set(TEXTURE_VARIANT, TextureVariantHelper.selectVariant(this.getUUID(), TEXTURE_VARIANT_COUNT));
-        return PiglinDifficultyScaler.applyHardHealth(this, level, result);
+        return PiglinDifficultyScaler.applySpawnScaling(this, level, result);
     }
 
     @Override
