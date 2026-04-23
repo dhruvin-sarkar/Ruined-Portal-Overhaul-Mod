@@ -333,7 +333,7 @@ Completion order:
 
 The red storm is a client-side visual/audio system driven by server proximity packets:
 
-- `GoldRaidManager` sends `PortalAtmospherePayload` every `10` ticks while a player is horizontally inside the radius-136 zone, including after raid completion so the claimed portal remains visibly corrupted.
+- `GoldRaidManager` sends `PortalAtmospherePayload` every `20` ticks while a player is horizontally inside the radius-136 zone, including after raid completion so the claimed portal remains visibly corrupted.
 - Packet intensity uses horizontal distance and never falls below `0.22` while in-zone.
 - Packet descent uses how far the player is below the portal frame, making pit and cave atmosphere tighter and more intense.
 - `PortalAtmosphereClient` eases target intensity/descent, fades when packets stop, applies a 4.2-second breathing pulse, and renders the HUD tint. Current tint strength is about 15-20% more pronounced than the earlier storm pass.
@@ -351,7 +351,7 @@ Server-side atmosphere remains active too: ash, crimson spores, smoke, lava drip
 
 Incomplete portal territories now give players a protective red-aether boon while they remain horizontally inside the radius-136 zone:
 
-- Regeneration II, Resistance I, Fire Resistance I, and Absorption IV are reapplied every 10 server ticks with a 260-tick duration, matching the functional protection profile of an enchanted golden apple for as long as the player stays in the territory.
+- Regeneration II, Resistance I, Fire Resistance I, and Absorption IV are reapplied every 20 server ticks with a 260-tick duration, matching the functional protection profile of an enchanted golden apple for as long as the player stays in the territory.
 - The effect is tied to the same horizontal portal-zone logic as the atmosphere, so it applies on the surface, in the pit, and throughout the caves below the portal.
 - The first time each player enters a specific uncompleted portal territory, the portal grants one Totem of Undying. This is protected by the per-player entity tag `rpo_totem_granted_<portalOriginLong>` so each portal gives each player one starter totem, not an infinite farm.
 - The boon fires the `aether_boon` custom advancement trigger, and the starter totem fires the `territory_totem` custom advancement trigger.

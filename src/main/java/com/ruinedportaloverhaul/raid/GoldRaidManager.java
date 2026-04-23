@@ -72,7 +72,7 @@ public final class GoldRaidManager {
     private static final int BOSS_BAR_PLAYER_RANGE = 48;
     private static final int PRE_RAID_SPAWNER_SCAN_RADIUS = Math.max(80, PortalStructureHelper.MIDDLE_RADIUS + 28);
     private static final int RAID_SCAN_INTERVAL_TICKS = 10;
-    private static final int ATMOSPHERE_PACKET_INTERVAL_TICKS = 10;
+    private static final int ATMOSPHERE_PACKET_INTERVAL_TICKS = 20;
     private static final int AMBIENT_PARTICLE_INTERVAL_TICKS = 40;
     private static final int AMBIENT_SPAWN_INTERVAL_TICKS = 10;
     private static final int BOSS_BAR_SYNC_INTERVAL_TICKS = 20;
@@ -195,7 +195,7 @@ public final class GoldRaidManager {
     }
 
     private static void tickLevel(ServerLevel level) {
-        // Fix: raid activation and ambient caps were hardcoded, so the main raid tick now reads the live config instead of one baked combat profile.
+        // Fix: raid activation, atmosphere/boon cadence, and ambient caps were hardcoded, so the main raid tick now uses throttled live-config slices instead of one baked combat profile.
         if (!level.getServer().isRunning()) {
             return;
         }

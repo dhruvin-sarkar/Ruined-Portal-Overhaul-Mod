@@ -51,12 +51,12 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
    - Raid starts horizontally within the configured trigger radius of an uncompleted, inactive generated portal. The built-in default is 24 blocks and is clamped to 12-48.
    - Horizontal X/Z checks are used for zone membership, so the storm and progression work inside the pit and caves below the frame.
 7. Red Storm And Audio
-   - Server sends `PortalAtmospherePayload` every 10 ticks while a player is horizontally inside the portal zone.
+   - Server sends `PortalAtmospherePayload` every 20 ticks while a player is horizontally inside the portal zone.
    - Client overlay is about 15-20% stronger than the previous storm pass.
    - Red thunder is roughly twice as frequent and uses a brief 2-3 tick deep-red HUD flash instead of the vanilla white sky flash.
    - Sky, rain, weather state, and fog are handled through client mixins; `ClientLevelStormMixin` only affects real `ClientLevel` instances so fake storm weather does not leak into integrated-server logic, and fog is tighter underground through descent-scaled intensity.
 8. Territory Boon
-   - While a portal is incomplete, players horizontally inside its radius-136 territory receive Regeneration II, Resistance I, Fire Resistance I, and Absorption IV every 10 ticks with a 260-tick duration.
+   - While a portal is incomplete, players horizontally inside its radius-136 territory receive Regeneration II, Resistance I, Fire Resistance I, and Absorption IV every 20 ticks with a 260-tick duration.
    - The boon uses the same horizontal zone logic as the atmosphere, so it works on the surface, in the pit, and throughout the caves.
    - Each player receives one Totem of Undying per portal territory on first entry, guarded by the entity tag `rpo_totem_granted_<portalOriginLong>`.
 9. Loot
