@@ -12,6 +12,7 @@ import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.monster.Vex;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
@@ -33,6 +34,13 @@ public class PiglinVexEntity extends Vex implements GeoEntity {
         return Vex.createAttributes()
             .add(Attributes.MAX_HEALTH, 28.0)
             .add(Attributes.ATTACK_DAMAGE, 10.0);
+    }
+
+    @Override
+    protected void registerGoals() {
+        // Fix: even the flying summon can be pushed into fluids during chaotic raids, so keep a priority-1 float goal ahead of attack behavior.
+        super.registerGoals();
+        this.goalSelector.addGoal(1, new FloatGoal(this));
     }
 
     @Override

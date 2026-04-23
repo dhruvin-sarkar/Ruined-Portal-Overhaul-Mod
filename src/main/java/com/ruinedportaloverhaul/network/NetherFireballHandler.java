@@ -19,7 +19,11 @@ public final class NetherFireballHandler {
     }
 
     public static void handle(ServerPlayer player) {
+        // Fix: the handler previously trusted any C2S packet from a connected player, so dead/spectator players could still invoke the fireball. Packet handlers must never trust the client; reject non-alive or spectator players silently before touching state.
         if (!(player.level() instanceof ServerLevel serverLevel)) {
+            return;
+        }
+        if (!player.isAlive() || player.isSpectator()) {
             return;
         }
 

@@ -18,6 +18,7 @@ import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.monster.Ravager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -42,6 +43,13 @@ public class PiglinRavagerEntity extends Ravager implements GeoEntity {
             .add(Attributes.MAX_HEALTH, 210.0)
             .add(Attributes.MOVEMENT_SPEED, 0.32)
             .add(Attributes.ATTACK_DAMAGE, 24.0);
+    }
+
+    @Override
+    protected void registerGoals() {
+        // Fix: the ravager's heavy wall-break behavior should never trap it in fluid, so it declares the same priority-1 float escape goal as the humanoid raid mobs.
+        super.registerGoals();
+        this.goalSelector.addGoal(1, new FloatGoal(this));
     }
 
     @Override

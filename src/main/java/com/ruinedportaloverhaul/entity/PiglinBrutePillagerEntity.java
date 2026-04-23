@@ -16,6 +16,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.monster.illager.Pillager;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
@@ -85,8 +86,10 @@ public class PiglinBrutePillagerEntity extends Pillager implements GeoEntity, Te
 
     @Override
     protected void registerGoals() {
+        // Fix: the brute's custom close-range fallback made fluid escape depend on inherited ordering, so a priority-1 float goal is pinned explicitly.
         super.registerGoals();
         // Fix: the close-range fallback used priority 1, which could compete with inherited swimming/float behavior. Keep fallback combat below the survival movement lane.
+        this.goalSelector.addGoal(1, new FloatGoal(this));
         this.goalSelector.addGoal(2, new CloseRangeMeleeGoal());
     }
 

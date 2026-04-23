@@ -17,6 +17,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.monster.illager.Evoker;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
@@ -47,6 +48,13 @@ public class PiglinEvokerEntity extends Evoker implements GeoEntity, TextureVari
         return Evoker.createAttributes()
             .add(Attributes.MAX_HEALTH, 70.0)
             .add(Attributes.MOVEMENT_SPEED, 0.27);
+    }
+
+    @Override
+    protected void registerGoals() {
+        // Fix: custom magma/vex pressure should not block fluid escape; declare the float goal at priority 1 before spell AI runs.
+        super.registerGoals();
+        this.goalSelector.addGoal(1, new FloatGoal(this));
     }
 
     @Override

@@ -18,6 +18,7 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.monster.illager.Vindicator;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -46,6 +47,13 @@ public class PiglinVindicatorEntity extends Vindicator implements GeoEntity, Tex
             .add(Attributes.MAX_HEALTH, 58.0)
             .add(Attributes.MOVEMENT_SPEED, 0.37)
             .add(Attributes.ATTACK_DAMAGE, 16.5);
+    }
+
+    @Override
+    protected void registerGoals() {
+        // Fix: the custom vindicator used only inherited swim behavior; an explicit priority-1 float goal keeps fluid escape ahead of melee pressure.
+        super.registerGoals();
+        this.goalSelector.addGoal(1, new FloatGoal(this));
     }
 
     @Override

@@ -19,6 +19,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.monster.illager.Illusioner;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
@@ -49,6 +50,13 @@ public class PiglinIllusionerEntity extends Illusioner implements GeoEntity, Tex
         return Illusioner.createAttributes()
             .add(Attributes.MAX_HEALTH, 54.0)
             .add(Attributes.MOVEMENT_SPEED, 0.31);
+    }
+
+    @Override
+    protected void registerGoals() {
+        // Fix: illusioner casting/ranged goals should never outrank basic fluid escape, so a priority-1 float goal is declared explicitly.
+        super.registerGoals();
+        this.goalSelector.addGoal(1, new FloatGoal(this));
     }
 
     @Override

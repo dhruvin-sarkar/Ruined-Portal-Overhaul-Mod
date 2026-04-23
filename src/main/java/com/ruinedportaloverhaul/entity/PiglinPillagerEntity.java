@@ -15,6 +15,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.monster.illager.Pillager;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
@@ -62,7 +63,9 @@ public class PiglinPillagerEntity extends Pillager implements GeoEntity, Texture
 
     @Override
     protected void registerGoals() {
+        // Fix: water/lava escape was inherited implicitly, so the custom raid mob now pins an explicit float goal at the requested top priority.
         super.registerGoals();
+        this.goalSelector.addGoal(1, new FloatGoal(this));
         this.goalSelector.addGoal(2, new MeleeAttackGoal(this, 1.08, false));
     }
 
