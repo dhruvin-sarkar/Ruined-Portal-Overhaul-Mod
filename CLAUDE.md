@@ -370,7 +370,7 @@ Loot table files contain `_comment` fields documenting reward intent.
 - `chests/portal_boss_reward`: `16-20` rolls plus a two-roll high-weight totem/enchanted-golden-apple bonus pool, a guaranteed Nether Star pool, and a guaranteed named `Shard of the Nether`. Includes 2-5 netherite ingots, larger netherite scrap and ancient debris stacks, multiple upgrade templates, enchanted golden apples, common totems, diamonds, gold blocks, high-tier books, enchanted diamond gear, and a weighted named `Corrupted Portal Key`.
 - Entity loot tables are under `data/ruined_portal_overhaul/loot_table/entities/`. All custom combat mob drops are now richer, with more gold, food, ammunition, gear, potion ingredients, books, totems from high-threat mobs, and rare netherite/debris drops from deeper wave threats.
 - Named reward artifacts now use translated `set_name` plus `set_lore` loot functions with `mode: "replace_all"` instead of raw `minecraft:custom_name` strings, so the boss key, Nether shard, ravager hide, embered grimoire, and voidash powder all localize cleanly and carry multi-line atmospheric lore.
-- Nether Star entity drops: Piglin Evoker has a 5% killed-by-player chance, Piglin Ravager has 3%, and Piglin Illusioner has 1%.
+- Nether Star entity drops: `ModLootEvents` adds runtime-configured killed-by-player Nether Star rolls after entity loot generation. Base odds remain Piglin Evoker 5%, Piglin Ravager 3%, and Piglin Illusioner 1%, multiplied by `ModConfigManager.netherStarDropRate()` so ModMenu/Cloth changes can reduce or boost the economy without editing data packs.
 - Nether Conduit entity drops: all seven custom combat mobs have a 2% killed-by-player chance.
 
 ## Advancements

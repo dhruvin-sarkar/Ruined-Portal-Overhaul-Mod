@@ -9,6 +9,7 @@ import com.ruinedportaloverhaul.entity.ModEntities;
 import com.ruinedportaloverhaul.item.GhastTearNecklaceEvents;
 import com.ruinedportaloverhaul.advancement.ModAdvancementTriggers;
 import com.ruinedportaloverhaul.item.ModItems;
+import com.ruinedportaloverhaul.loot.ModLootEvents;
 import com.ruinedportaloverhaul.network.ModNetworking;
 import com.ruinedportaloverhaul.raid.GoldRaidManager;
 import com.ruinedportaloverhaul.raid.NetherDragonRituals;
@@ -36,6 +37,7 @@ public class RuinedPortalOverhaul implements ModInitializer {
         ModBlockEntities.initialize();
         NetherConduitEvents.initialize();
         ModEntities.initialize();
+        ModLootEvents.initialize();
         ModAdvancementTriggers.initialize();
         ModStructures.initialize();
         ModWorldGen.initialize();
