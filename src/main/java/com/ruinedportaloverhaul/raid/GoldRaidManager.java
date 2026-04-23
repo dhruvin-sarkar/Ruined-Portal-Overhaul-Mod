@@ -85,6 +85,8 @@ public final class GoldRaidManager {
     private static final int INTER_WAVE_PULSE_INTERVAL_TICKS = 60;
     private static final int TERRITORY_BOON_DURATION_TICKS = 260;
     private static final float MIN_PORTAL_ATMOSPHERE_INTENSITY = 0.22f;
+    private static final double AMBIENT_PARTICLE_RANGE_SQUARED = AMBIENT_PARTICLE_RANGE * AMBIENT_PARTICLE_RANGE;
+    private static final double OUTER_RADIUS_SQUARED = PortalStructureHelper.OUTER_RADIUS * PortalStructureHelper.OUTER_RADIUS;
     private static final double BOSS_BAR_PLAYER_RANGE_SQUARED = BOSS_BAR_PLAYER_RANGE * BOSS_BAR_PLAYER_RANGE;
     private static final String PORTAL_AMBIENT_TAG = "rpo_portal_ambient";
     private static final String PORTAL_AMBIENT_ORIGIN_TAG_PREFIX = "rpo_ambient_origin_";
@@ -734,10 +736,11 @@ public final class GoldRaidManager {
 
     private static void spawnPlayerAtmosphere(ServerLevel level, ServerPlayer player, BlockPos origin, long gameTime) {
         // Fix: portal territory ambience previously used raw vanilla sounds, which meant storm packs could not own the whole soundscape. The close-range lava hiss now routes through a mod sound id.
-        double distance = horizontalDistance(player.blockPosition(), origin);
-        if (distance > PortalStructureHelper.OUTER_RADIUS) {
+        double distanceSquared = horizontalDistanceSqr(player.blockPosition(), origin);
+        if (distanceSquared > AMBIENT_PARTICLE_RANGE_SQUARED) {
             return;
         }
+        double distance = Math.sqrt(distanceSquared);
         double intensity = 1.0 - Math.min(1.0, distance / PortalStructureHelper.OUTER_RADIUS);
         double y = player.getY() + 5.0 + intensity * 4.0;
         int ashCount = 10 + (int) Math.round(intensity * 32.0);
@@ -836,8 +839,8 @@ public final class GoldRaidManager {
     }
 
     private static void trySpawnAnchoredGhast(ServerLevel level, ServerPlayer player, BlockPos origin, long key, long gameTime) {
-        // Fix: anchored ghast reveals previously bypassed the mod sound table, which made the ambient spawn layer partly unskinnable. The reveal cry now routes through the portal ghast event.
-        if (horizontalDistance(player.blockPosition(), origin) > PortalStructureHelper.OUTER_RADIUS
+        // Fix: anchored ghast reveals previously used a square root for the recurring range gate and bypassed the mod sound table. The hot gate now stays squared while the reveal cry routes through the portal ghast event.
+        if (horizontalDistanceSqr(player.blockPosition(), origin) > OUTER_RADIUS_SQUARED
             || gameTime < NEXT_GHAST_SPAWN_TICK.getOrDefault(key, 0L)
             || countAnchoredGhasts(level, origin) >= ANCHORED_GHAST_CAP) {
             return;
