@@ -25,7 +25,8 @@ public class PiglinVexEntity extends Vex implements GeoEntity {
 
     public PiglinVexEntity(EntityType<? extends PiglinVexEntity> entityType, Level level) {
         super(entityType, level);
-        this.setLimitedLife(70 * 20);
+        // Fix: the vex correctly used vanilla limited-life handling, but the duration drifted above the intended 1200 ticks. Keep summons dangerous without letting wave cleanup linger.
+        this.setLimitedLife(1200);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
