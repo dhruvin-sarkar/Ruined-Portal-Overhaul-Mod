@@ -315,10 +315,15 @@ public final class GoldRaidManager {
 
     private static void disablePreRaidSpawners(ServerLevel level, PortalRaidState portalRaidState, BlockPos origin) {
         persistKnownSpawners(level, portalRaidState, origin);
+        disableSpawnerBlocks(level, knownOrScannedPreRaidSpawners(level, portalRaidState, origin));
+    }
+
+    private static List<BlockPos> knownOrScannedPreRaidSpawners(ServerLevel level, PortalRaidState portalRaidState, BlockPos origin) {
         List<BlockPos> spawners = portalRaidState.portalSpawners(origin);
-        if (spawners.isEmpty()) {
-            spawners = scanPreRaidSpawners(level, origin);
-        }
+        return spawners.isEmpty() ? scanPreRaidSpawners(level, origin) : spawners;
+    }
+
+    private static void disableSpawnerBlocks(ServerLevel level, List<BlockPos> spawners) {
         for (BlockPos spawner : spawners) {
             if (level.isLoaded(spawner) && level.getBlockState(spawner).is(Blocks.SPAWNER)) {
                 level.setBlock(spawner, Blocks.AIR.defaultBlockState(), 3);
@@ -578,23 +583,22 @@ public final class GoldRaidManager {
     }
 
     private static void finishRaid(RaidState state) {
-        // Fix: the claimed-portal stinger now uses a translation key so the raid completion message localizes with the rest of the flow.
+        // Fix: completion side effects had drifted out of the required order. The portal now clears the bar, lights, spawns rewards, spawns the trader, and marks persistent completion before post-completion cleanup/fanfare runs.
         List<ServerPlayer> nearbyPlayers = state.level.getPlayers(player -> horizontalDistanceSqr(player.blockPosition(), state.origin) < 1600.0);
-        for (ServerPlayer player : nearbyPlayers) {
-            ModAdvancementTriggers.trigger(ModAdvancementTriggers.RAID_COMPLETED, player);
-        }
+        List<BlockPos> completionSpawners = knownOrScannedPreRaidSpawners(state.level, state.portalRaidState, state.origin);
         state.bossBar.removeAllPlayers();
         state.trackedPlayers.clear();
         state.bossBar.setVisible(false);
-        playCompletionFanfare(state.level, state.origin);
         ignitePortal(state.level, state.origin);
         spawnBossChest(state.level, state.origin);
         spawnExiledTrader(state.level, state.origin);
-        disablePreRaidSpawners(state.level, state.portalRaidState, state.origin);
         state.portalRaidState.markCompleted(state.origin);
+        disableSpawnerBlocks(state.level, completionSpawners);
+        playCompletionFanfare(state.level, state.origin);
 
         Component message = Component.translatable("message.ruined_portal_overhaul.raid.complete");
         for (ServerPlayer player : nearbyPlayers) {
+            ModAdvancementTriggers.trigger(ModAdvancementTriggers.RAID_COMPLETED, player);
             player.displayClientMessage(message, true);
         }
     }

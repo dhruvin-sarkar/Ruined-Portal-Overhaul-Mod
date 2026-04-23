@@ -309,14 +309,14 @@ Current wave table:
 
 Completion order:
 
-1. Grant nearby players the raid-complete custom advancement trigger.
-2. Remove all boss-bar players and hide the bar.
-3. Play completion fanfare.
-4. Ignite the portal.
-5. Spawn the boss reward chest.
-6. Spawn the Exiled Piglin trader at the anchor.
-7. Mark the portal completed in persistent state.
-8. Send nearby action-bar feedback: `The portal falls silent.`
+1. Remove all boss-bar players and hide the bar.
+2. Ignite the portal.
+3. Spawn the boss reward chest.
+4. Spawn the Exiled Piglin trader at the anchor.
+5. Mark the portal completed in persistent state.
+6. Disable any remaining known/scanned pre-raid spawner blocks without re-adding spawner positions to persistent state.
+7. Play completion fanfare.
+8. Grant nearby players the raid-complete custom advancement trigger and send action-bar feedback: `The portal falls silent.`
 
 ## Persistence And Multiplayer
 
