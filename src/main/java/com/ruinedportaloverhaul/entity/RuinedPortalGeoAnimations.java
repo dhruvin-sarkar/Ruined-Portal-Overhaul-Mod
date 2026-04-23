@@ -24,7 +24,8 @@ public final class RuinedPortalGeoAnimations {
     }
 
     public static <T extends GeoAnimatable> AnimationController<T> flyIdleController() {
-        return DefaultAnimations.genericFlyIdleController();
+        // Fix: GeckoLib's stock fly-idle helper falls back to `misc.idle`, but the Vex asset intentionally defines `misc.idle.flying`. This controller keeps flying movement on `move.fly` and true hover idle on `misc.idle.flying`.
+        return new AnimationController<>("Fly/Idle", state -> state.setAndContinue(state.isMoving() ? DefaultAnimations.FLY : DefaultAnimations.IDLE_FLYING));
     }
 
     public static <T extends LivingEntity & GeoAnimatable> AnimationController<T> deathController() {

@@ -238,6 +238,7 @@ Implementation notes:
 - Variant selection is deterministic from the entity UUID through `TextureVariantHelper`.
 - GeckoLib texture selection is driven through `RuinedPortalGeoRenderData.TEXTURE_VARIANT`, captured during model state compilation.
 - Nether Conduit glow state is driven through `RuinedPortalGeoRenderData.CONDUIT_ACTIVE` and `CONDUIT_LEVEL`, captured during block-entity render compilation.
+- Piglin Vex uses `move.fly` while moving and `misc.idle.flying` while hovering; the shared `flyIdleController()` is intentionally custom because GeckoLib's stock helper falls back to `misc.idle`.
 - Placeholder `_0/_1/_2` PNGs are generated derivatives of the base texture sheets and are safe for later artist replacement.
 
 ## Spawners And Spawn Pressure
