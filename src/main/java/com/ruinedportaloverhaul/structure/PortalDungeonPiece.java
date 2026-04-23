@@ -133,9 +133,8 @@ public class PortalDungeonPiece extends StructurePiece {
     }
 
     private void placeDeepChests(WorldGenLevel level, BoundingBox chunkBox, RandomSource random, BlockPos origin, List<BlockPos> chests) {
-        BlockPos conduitChest = NetherConduitChestPlacement.useBossChest(origin)
-            ? null
-            : NetherConduitChestPlacement.pickDeepChest(origin, chests);
+        // Fix: direct conduit placement previously skipped generated chests whenever the post-raid boss chest was selected. Generation now always chooses one deep structure chest so the conduit discovery chain exists before combat completion.
+        BlockPos conduitChest = NetherConduitChestPlacement.pickDeepChest(origin, chests);
         for (BlockPos chestPos : chests) {
             if (!this.boundingBox.isInside(chestPos) || !chunkBox.isInside(chestPos)) {
                 continue;

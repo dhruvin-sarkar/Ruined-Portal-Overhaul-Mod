@@ -7,17 +7,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.RandomizableContainerBlockEntity;
 
 public final class NetherConduitChestPlacement {
-    private static final long BOSS_CHEST_CHOICE_SALT = 0x6E7CE0F9A5D1B33DL;
     private static final long DEEP_CHEST_CHOICE_SALT = 0x1F2D3C4B5A697887L;
 
     private NetherConduitChestPlacement() {
     }
 
-    public static boolean useBossChest(BlockPos portalOrigin) {
-        return RandomSource.create(portalOrigin.asLong() ^ BOSS_CHEST_CHOICE_SALT).nextBoolean();
-    }
-
     public static BlockPos pickDeepChest(BlockPos portalOrigin, List<BlockPos> deepChests) {
+        // Fix: the guaranteed conduit used to be split between generated deep chests and the later post-raid boss chest, leaving some structures with no conduit during exploration. The selector now always targets a generated deep chest so each dungeon contains exactly one direct-insert conduit before raid completion.
         if (deepChests.isEmpty()) {
             return null;
         }

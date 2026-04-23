@@ -625,14 +625,12 @@ public final class GoldRaidManager {
     }
 
     private static void spawnBossChest(ServerLevel level, BlockPos origin) {
+        // Fix: the boss chest used to share the guaranteed conduit selector with generation, which made half of structures hide their only conduit until after the raid. Boss rewards now stay loot-table driven while generated deep chests carry the guaranteed conduit.
         BlockPos chestPos = origin.offset(3, 1, 0);
         level.setBlock(chestPos, Blocks.CHEST.defaultBlockState(), 2);
         if (level.getBlockEntity(chestPos) instanceof RandomizableContainerBlockEntity chest) {
             chest.setLootTable(BOSS_REWARD_LOOT);
             chest.setLootTableSeed(level.getRandom().nextLong());
-            if (NetherConduitChestPlacement.useBossChest(origin)) {
-                NetherConduitChestPlacement.addNetherConduit(chest);
-            }
         }
     }
 
