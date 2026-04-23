@@ -64,13 +64,13 @@ public class NetherConduitBlockItem extends BlockItem {
             tooltip.accept(
                 Component.translatable(
                     "item.ruined_portal_overhaul.nether_conduit.tooltip.details.haste",
-                    conduitLevel >= 2 ? 2 : 1
+                    conduitLevel >= 1 ? 2 : 1
                 ).withStyle(ChatFormatting.GRAY)
             );
             tooltip.accept(
                 Component.translatable(
                     "item.ruined_portal_overhaul.nether_conduit.tooltip.details.regeneration",
-                    conduitLevel >= 2 ? 2 : 1
+                    conduitLevel >= 1 ? 2 : 1
                 ).withStyle(ChatFormatting.GRAY)
             );
             tooltip.accept(
@@ -104,10 +104,11 @@ public class NetherConduitBlockItem extends BlockItem {
     }
 
     private static int attackRadius(int conduitLevel) {
+        // Fix: the tooltip mirrored an oversized 16/20/24 combat radius. Keep player-facing numbers tied to the corrected 8/12/16 tier progression.
         return switch (conduitLevel) {
-            case 1 -> 20;
-            case 2 -> 24;
-            default -> 16;
+            case 1 -> 12;
+            case 2 -> 16;
+            default -> 8;
         };
     }
 

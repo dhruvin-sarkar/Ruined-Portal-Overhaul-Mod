@@ -126,9 +126,9 @@ Activation and levels:
 - Active frame requires all 12 regular `minecraft:nether_bricks` blocks in the flat horizontal ring two blocks out from the conduit; random 3D nether-brick rubble no longer powers the block.
 - `NetherConduitBlock.ACTIVE` is mirrored into blockstate whenever the frame scan changes so GeckoLib can swap between idle and active spin loops from synced state instead of stale client memory.
 - The conduit uses vanilla obsidian for the main placeholder model, vanilla netherrack for the emissive inner-core overlay, grey inactive tint, and warmer active tint by upgrade level. `RuinedPortalGeoRenderData.CONDUIT_ACTIVE` and `CONDUIT_LEVEL` bridge block-entity state into the GeckoLib render layer.
-- Level 0: Fire Resistance I, Haste I, Regeneration I, 16-block support radius, 4 conduit damage.
-- Level 1: Fire Resistance II, 20-block attack radius, 6 conduit damage.
-- Level 2: Haste II, Regeneration II, 24-block attack radius, 8 conduit damage, near-zero lava movement penalty.
+- Level 0: Fire Resistance I, Haste I, Regeneration I, 8-block support/attack radius, 4 conduit damage.
+- Level 1: Fire Resistance II, Haste II, Regeneration II, 12-block support/attack radius, 6 conduit damage.
+- Level 2: Fire Resistance II, Haste II, Regeneration II, 16-block support/attack radius, 8 conduit damage, near-zero lava movement penalty.
 - Upgrades consume ancient debris: 1 for level 0 to 1, 2 for level 1 to 2.
 - Effects refresh every 20 ticks with 40-tick duration. Mob attacks scan every 30 ticks and emit `ParticleTypes.ELECTRIC_SPARK`.
 - Attack targets include Zombie Piglin, Piglin, Piglin Brute, Blaze, Wither Skeleton, Ghast, Hoglin, Magma Cube, and all seven custom combat mobs.

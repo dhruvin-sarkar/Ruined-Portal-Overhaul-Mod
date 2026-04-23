@@ -41,7 +41,6 @@ public class NetherConduitBlockEntity extends BlockEntity implements GeoBlockEnt
         {2, 0, -1}, {2, 0, 0}, {2, 0, 1},
         {-1, 0, 2}, {0, 0, 2}, {1, 0, 2}
     };
-    private static final int EFFECT_RADIUS = 16;
     private static final int STATUS_RADIUS = 8;
     private static final int EFFECT_DURATION_TICKS = 40;
     private static final int MAX_CONDUIT_LEVEL = 2;
@@ -171,8 +170,10 @@ public class NetherConduitBlockEntity extends BlockEntity implements GeoBlockEnt
     }
 
     private void applyActiveEffects(ServerLevel level, BlockPos pos) {
-        AABB range = new AABB(pos).inflate(EFFECT_RADIUS);
-        double radiusSqr = EFFECT_RADIUS * EFFECT_RADIUS;
+        // Fix: the conduit support aura had drifted to a flat 16-block range at every tier. It now follows the intended 8/12/16 progression shared with the mob strike.
+        int supportRadius = activeRadius(this.conduitLevel);
+        AABB range = new AABB(pos).inflate(supportRadius);
+        double radiusSqr = supportRadius * supportRadius;
         for (ServerPlayer player : level.getPlayers(player -> range.contains(player.position()) && player.distanceToSqr(pos.getCenter()) <= radiusSqr)) {
             NetherConduitPowerTracker.grant(player, level.getGameTime(), this.conduitLevel);
             player.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, EFFECT_DURATION_TICKS, fireResistanceAmplifier(this.conduitLevel), true, false, true));
@@ -242,18 +243,23 @@ public class NetherConduitBlockEntity extends BlockEntity implements GeoBlockEnt
     }
 
     private static int hasteAmplifier(int conduitLevel) {
-        return conduitLevel >= 2 ? 1 : 0;
+        return conduitLevel >= 1 ? 1 : 0;
     }
 
     private static int regenerationAmplifier(int conduitLevel) {
-        return conduitLevel >= 2 ? 1 : 0;
+        return conduitLevel >= 1 ? 1 : 0;
+    }
+
+    private static int activeRadius(int conduitLevel) {
+        // Fix: older tuning made the conduit cover 16/20/24 blocks, which overreached the requested 8/12/16 endgame utility footprint.
+        return attackRadius(conduitLevel);
     }
 
     private static int attackRadius(int conduitLevel) {
         return switch (conduitLevel) {
-            case 1 -> 20;
-            case 2 -> 24;
-            default -> 16;
+            case 1 -> 12;
+            case 2 -> 16;
+            default -> 8;
         };
     }
 
