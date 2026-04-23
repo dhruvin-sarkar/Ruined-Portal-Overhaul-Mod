@@ -181,8 +181,8 @@ Summoning sequence:
 
 Death behavior:
 
-- Drops 2 Nether Stars, 1-3 Ancient Debris, and 500 XP through the advancement reward.
-- Removes the four Nether Crystals and replaces the four netherite pedestals with air.
+- After the 60-tick death cinematic, removes the four Nether Crystals, shatters the four netherite pedestals, plays the ritual victory sting, then drops 2 Nether Stars and 1-3 Ancient Debris.
+- Awards a 1500 XP burst from `NetherDragonEntity.tickDeath()`.
 - Does not spawn an End portal and does not use End-crystal healing.
 
 ## Recipes

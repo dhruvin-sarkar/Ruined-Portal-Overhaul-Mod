@@ -68,13 +68,13 @@ public final class NetherDragonRituals {
     }
 
     public static void onNetherDragonDeath(ServerLevel level, NetherDragonEntity dragon) {
-        // Fix: the death reward sequence now lands after the dragon's short cinematic, and its victory sting routes through the mod sound table so packs can replace the finale cleanly.
+        // Fix: rewards used to appear before the ritual collapse, so the finale now shatters the pedestals before the victory sting and loot burst.
         BlockPos portalOrigin = dragon.portalOrigin();
+        shatterPedestals(level, portalOrigin);
+        level.playSound(null, portalOrigin, ModSounds.RITUAL_VICTORY, SoundSource.HOSTILE, 1.2f, 0.9f);
         dragon.spawnAtLocation(level, new ItemStack(Items.NETHER_STAR, 2));
         dragon.spawnAtLocation(level, new ItemStack(Items.ANCIENT_DEBRIS, 1 + level.getRandom().nextInt(3)));
-        level.playSound(null, portalOrigin, ModSounds.RITUAL_VICTORY, SoundSource.HOSTILE, 1.2f, 0.9f);
         triggerNearby(level, portalOrigin, ModAdvancementTriggers.NETHER_DRAGON_DEFEATED);
-        shatterPedestals(level, portalOrigin);
         PortalRaidState.get(level.getServer()).clearRitual(portalOrigin);
 
         ServerBossEvent bossBar = BOSS_BARS.remove(dragon.getUUID());
