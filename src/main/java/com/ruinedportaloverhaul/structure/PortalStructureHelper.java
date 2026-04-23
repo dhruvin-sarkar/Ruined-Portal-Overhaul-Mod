@@ -1,5 +1,6 @@
 package com.ruinedportaloverhaul.structure;
 
+import com.ruinedportaloverhaul.config.ModConfigManager;
 import com.ruinedportaloverhaul.entity.ModEntities;
 import com.ruinedportaloverhaul.world.ModStructures;
 import java.util.ArrayList;
@@ -138,6 +139,11 @@ public final class PortalStructureHelper {
         BlockPos origin,
         long seed
     ) {
+        // Fix: the Cloth Config toggle existed but generation ignored it, so pack authors could not disable the far outer scatter without removing the whole structure. This gate now leaves the dungeon intact while suppressing only sparse radius-52-to-136 corruption patches.
+        if (!ModConfigManager.enableOuterZoneScatter()) {
+            return;
+        }
+
         int minX = Math.max(pieceBox.minX(), chunkBox.minX());
         int maxX = Math.min(pieceBox.maxX(), chunkBox.maxX());
         int minZ = Math.max(pieceBox.minZ(), chunkBox.minZ());

@@ -446,6 +446,7 @@ Structure rarity note:
 
 - The prompt-level default rarity is 32 chunks. The vanilla ruined portal replacement structure set is data-driven at `data/minecraft/worldgen/structure_set/ruined_portals.json`, and its default `spacing` is aligned to `32`.
 - `ModConfigManager.structureRarity()` exposes the same 16-64 range to Cloth Config so pack authors can see the intended tuning surface, but Minecraft loads structure-set spacing from datapacks. Runtime config changes do not rewrite active structure placement; changing generated spacing still requires a datapack/resource override of the structure set.
+- `ModConfigManager.enableOuterZoneScatter()` is read directly by `PortalStructureHelper.buildOuterScatter(...)`. Turning it off suppresses only the sparse radius-52-to-136 netherrack/crying-obsidian outer scatter while preserving the portal core, middle scar, caves, raid, and ritual layout.
 
 ## Metadata
 
