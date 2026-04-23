@@ -326,10 +326,10 @@ The red storm is a client-side visual/audio system driven by server proximity pa
 - `WeatherEffectRendererMixin` forces red rain visuals.
 - `SkyRendererMixin` tints the sky toward a dark red storm color and dims rain brightness.
 - `FogRendererMixin` tints fog red and tightens fog distance, especially underground.
-- Red thunder is generated on a client-side storm timer that is roughly twice as frequent as the earlier storm pass. Thunder uses a 2-3 tick deep-red HUD flash instead of the vanilla white sky flash, layered with vanilla lightning thunder, low-volume wither spawn, and portal trigger sounds. It does not rely on real world weather.
-- Storm music starts when storm intensity rises: `SoundEvents.MUSIC_BIOME_BASALT_DELTAS` is played through the client `MusicManager`, then stopped when the player leaves the zone or the raid completes and packets fade.
+- Red thunder is generated on a client-side storm timer that is roughly twice as frequent as the earlier storm pass. Thunder uses a 2-3 tick deep-red HUD flash and now routes all layered thunder accents through `ModSounds`, so packs can replace the storm stack without touching logic. It does not rely on real world weather.
+- Storm music starts when storm intensity rises through the custom `weather.red_storm.music` event and is stopped when the player leaves the zone or the raid completes and packets fade.
 
-Server-side atmosphere remains active too: ash, crimson spores, smoke, lava drips, frame particles, lava ambience, raid start bursts, inter-wave pulses, completion particles, and mob spawn sounds are all server-side effects.
+Server-side atmosphere remains active too: ash, crimson spores, smoke, lava drips, frame particles, lava ambience, raid start bursts, inter-wave pulses, completion particles, mob spawn sounds, ritual breaks, dragon victory cues, and necklace fireball launches are all routed through server-side effects and mod-owned sound ids.
 
 ## Territory Boon
 

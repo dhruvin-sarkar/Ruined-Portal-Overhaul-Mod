@@ -27,7 +27,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.BossEvent;
@@ -69,11 +68,11 @@ public final class NetherDragonRituals {
     }
 
     public static void onNetherDragonDeath(ServerLevel level, NetherDragonEntity dragon) {
-        // Fix: the death reward sequence now lands after the dragon's short cinematic, so loot, pedestal shattering, boss-bar cleanup, and the toast stinger resolve together.
+        // Fix: the death reward sequence now lands after the dragon's short cinematic, and its victory sting routes through the mod sound table so packs can replace the finale cleanly.
         BlockPos portalOrigin = dragon.portalOrigin();
         dragon.spawnAtLocation(level, new ItemStack(Items.NETHER_STAR, 2));
         dragon.spawnAtLocation(level, new ItemStack(Items.ANCIENT_DEBRIS, 1 + level.getRandom().nextInt(3)));
-        level.playSound(null, portalOrigin, SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundSource.HOSTILE, 1.2f, 0.9f);
+        level.playSound(null, portalOrigin, ModSounds.RITUAL_VICTORY, SoundSource.HOSTILE, 1.2f, 0.9f);
         triggerNearby(level, portalOrigin, ModAdvancementTriggers.NETHER_DRAGON_DEFEATED);
         shatterPedestals(level, portalOrigin);
         PortalRaidState.get(level.getServer()).clearRitual(portalOrigin);
@@ -289,6 +288,7 @@ public final class NetherDragonRituals {
     }
 
     private static void shatterPedestals(ServerLevel level, BlockPos origin) {
+        // Fix: pedestal shattering previously played a raw explode event, which left the ritual finale partly outside the mod sound registry. The break pulse now uses a replaceable ritual sound id.
         for (BlockPos pedestal : PortalStructureHelper.ritualPedestalPositions(origin)) {
             AABB crystalBox = new AABB(pedestal.above()).inflate(0.75, 1.5, 0.75);
             for (EndCrystal crystal : level.getEntitiesOfClass(EndCrystal.class, crystalBox)) {
@@ -301,7 +301,7 @@ public final class NetherDragonRituals {
             level.sendParticles(ParticleTypes.EXPLOSION, pedestal.getX() + 0.5, pedestal.getY() + 0.5, pedestal.getZ() + 0.5, 8, 0.35, 0.35, 0.35, 0.02);
             level.sendParticles(ParticleTypes.LARGE_SMOKE, pedestal.getX() + 0.5, pedestal.getY() + 0.5, pedestal.getZ() + 0.5, 12, 0.45, 0.45, 0.45, 0.01);
         }
-        level.playSound(null, origin, SoundEvents.GENERIC_EXPLODE.value(), SoundSource.BLOCKS, 1.4f, 0.7f);
+        level.playSound(null, origin, ModSounds.RITUAL_PEDESTAL_SHATTER, SoundSource.BLOCKS, 1.4f, 0.7f);
     }
 
     private static void spawnSphericalBurst(

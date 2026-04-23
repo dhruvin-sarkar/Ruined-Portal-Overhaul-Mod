@@ -4,22 +4,23 @@ import com.ruinedportaloverhaul.RuinedPortalOverhaul;
 import com.ruinedportaloverhaul.config.ModConfigManager;
 import com.ruinedportaloverhaul.network.DragonPhaseFlashPayload;
 import com.ruinedportaloverhaul.network.PortalAtmospherePayload;
+import com.ruinedportaloverhaul.sound.ModSounds;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.Music;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 
 public final class PortalAtmosphereClient {
     private static final Identifier OVERLAY_ID = Identifier.fromNamespaceAndPath(RuinedPortalOverhaul.MOD_ID, "portal_atmosphere_overlay");
-    private static final Music RED_STORM_MUSIC = new Music(SoundEvents.MUSIC_BIOME_BASALT_DELTAS, 0, 0, true);
+    private static final Music RED_STORM_MUSIC = new Music(BuiltInRegistries.SOUND_EVENT.wrapAsHolder(ModSounds.WEATHER_RED_STORM_MUSIC), 0, 0, true);
     private static final long PACKET_FADE_NANOS = 1_600_000_000L;
     private static final long STORM_UPDATE_MIN_NANOS = 1_000_000L;
     private static final long FLASH_TICK_NANOS = 50_000_000L;
@@ -186,6 +187,7 @@ public final class PortalAtmosphereClient {
     }
 
     private static void playRedThunder(Minecraft client) {
+        // Fix: the storm audio stack previously bypassed the mod sound registry, so packs could not replace thunder layers cleanly. All three storm accents now route through mod-owned sound ids.
         if (client.player == null) {
             return;
         }
@@ -194,7 +196,7 @@ public final class PortalAtmosphereClient {
         float thunderVolume = 0.70f + stormIntensity * 0.75f;
         float thunderPitch = 0.58f + pulse * 0.12f;
         client.getSoundManager().play(new SimpleSoundInstance(
-            SoundEvents.LIGHTNING_BOLT_THUNDER,
+            ModSounds.WEATHER_RED_THUNDER,
             SoundSource.WEATHER,
             thunderVolume,
             thunderPitch,
@@ -202,7 +204,7 @@ public final class PortalAtmosphereClient {
             client.player.blockPosition()
         ));
         client.getSoundManager().play(new SimpleSoundInstance(
-            SoundEvents.WITHER_SPAWN,
+            ModSounds.WEATHER_RED_THUNDER_LOW,
             SoundSource.WEATHER,
             0.16f + stormIntensity * 0.18f,
             0.44f + pulse * 0.08f,
@@ -210,7 +212,7 @@ public final class PortalAtmosphereClient {
             client.player.blockPosition()
         ));
         client.getSoundManager().play(new SimpleSoundInstance(
-            SoundEvents.PORTAL_TRIGGER,
+            ModSounds.WEATHER_RED_THUNDER_PORTAL,
             SoundSource.WEATHER,
             0.26f + stormIntensity * 0.22f,
             0.50f + pulse * 0.12f,

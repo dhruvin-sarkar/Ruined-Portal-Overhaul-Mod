@@ -37,7 +37,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
@@ -298,10 +297,10 @@ public final class GoldRaidManager {
     }
 
     private static void playApproachActivation(ServerLevel level, ServerPlayer player, BlockPos origin) {
-        // Fix: the first raid warning now uses a translation key so the approach cue localizes like the rest of the encounter.
+        // Fix: the first raid warning now localizes and routes through a mod-owned sound id so packs can replace the approach sting without vanilla leaks.
         ModAdvancementTriggers.trigger(ModAdvancementTriggers.PORTAL_APPROACH, player);
         player.displayClientMessage(Component.translatable("message.ruined_portal_overhaul.raid.approach").withStyle(ChatFormatting.DARK_PURPLE), true);
-        level.playSound(null, origin, SoundEvents.PORTAL_AMBIENT, SoundSource.HOSTILE, 0.4f, 0.6f);
+        level.playSound(null, origin, ModSounds.RAID_APPROACH, SoundSource.HOSTILE, 0.4f, 0.6f);
     }
 
     private static void persistKnownSpawners(ServerLevel level, PortalRaidState portalRaidState, BlockPos origin) {
@@ -719,6 +718,7 @@ public final class GoldRaidManager {
     }
 
     private static void spawnPlayerAtmosphere(ServerLevel level, ServerPlayer player, BlockPos origin, long gameTime) {
+        // Fix: portal territory ambience previously used raw vanilla sounds, which meant storm packs could not own the whole soundscape. The close-range lava hiss now routes through a mod sound id.
         double distance = horizontalDistance(player.blockPosition(), origin);
         if (distance > PortalStructureHelper.OUTER_RADIUS) {
             return;
@@ -732,7 +732,7 @@ public final class GoldRaidManager {
         spawnParticle(level, ParticleTypes.CRIMSON_SPORE, player.getX(), y - 1.5, player.getZ(), sporeCount, 18.0, 6.0, 18.0, 0.01);
         spawnParticle(level, ParticleTypes.LARGE_SMOKE, player.getX(), y - 2.5, player.getZ(), smokeCount, 14.0, 5.0, 14.0, 0.01);
         if (intensity > 0.45 && gameTime % 120 == 0) {
-            level.playSound(null, player.blockPosition(), SoundEvents.LAVA_AMBIENT, SoundSource.AMBIENT, 0.35f, 0.7f);
+            level.playSound(null, player.blockPosition(), ModSounds.AMBIENT_PORTAL_LAVA, SoundSource.AMBIENT, 0.35f, 0.7f);
         }
         if (intensity > 0.65) {
             spawnParticle(level, ParticleTypes.DRIPPING_LAVA, player.getX(), player.getY() + 8.0, player.getZ(), 2, 12.0, 5.0, 12.0, 0.01);
@@ -821,6 +821,7 @@ public final class GoldRaidManager {
     }
 
     private static void trySpawnAnchoredGhast(ServerLevel level, ServerPlayer player, BlockPos origin, long key, long gameTime) {
+        // Fix: anchored ghast reveals previously bypassed the mod sound table, which made the ambient spawn layer partly unskinnable. The reveal cry now routes through the portal ghast event.
         if (horizontalDistance(player.blockPosition(), origin) > PortalStructureHelper.OUTER_RADIUS
             || gameTime < NEXT_GHAST_SPAWN_TICK.getOrDefault(key, 0L)
             || countAnchoredGhasts(level, origin) >= ANCHORED_GHAST_CAP) {
@@ -842,7 +843,7 @@ public final class GoldRaidManager {
                 ghast.addTag(PORTAL_GHAST_ORIGIN_TAG_PREFIX + origin.asLong());
                 ANCHORED_GHASTS.put(ghast.getUUID(), new PortalGhastAnchor(origin.immutable(), gameTime + GHAST_ANCHOR_TICKS));
                 spawnParticle(level, ParticleTypes.CRIMSON_SPORE, spawnPos.getX() + 0.5, spawnPos.getY() + 2.0, spawnPos.getZ() + 0.5, 30, 3.0, 2.0, 3.0, 0.02);
-                level.playSound(null, spawnPos, SoundEvents.GHAST_AMBIENT, SoundSource.HOSTILE, 2.0f, 0.65f);
+                level.playSound(null, spawnPos, ModSounds.AMBIENT_PORTAL_GHAST, SoundSource.HOSTILE, 2.0f, 0.65f);
                 spawned++;
             }
         }

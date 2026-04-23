@@ -12,7 +12,6 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
@@ -246,7 +245,7 @@ public class NetherDragonEntity extends EnderDragon {
     }
 
     private void activatePhaseTwo(ServerLevel level) {
-        // Fix: phase two had no authoritative transition, so the dragon now flips into an enraged state once, notifies nearby players, and applies its permanent speed boost immediately.
+        // Fix: phase two had no authoritative transition, so the dragon now flips into an enraged state once, notifies nearby players, applies its permanent speed boost immediately, and keeps both transition cues inside the mod sound registry.
         this.enraged = true;
         this.strafeCooldown = Math.min(this.strafeCooldown, STRAFE_INTERVAL_TICKS / 2);
         this.slamCooldown = Math.min(this.slamCooldown, 30);
@@ -254,7 +253,7 @@ public class NetherDragonEntity extends EnderDragon {
         this.setCustomNameVisible(true);
         this.applyEnragedSpeedBonus();
         level.playSound(null, this.blockPosition(), ModSounds.ENTITY_NETHER_DRAGON_PHASE2, SoundSource.HOSTILE, 2.4f, 0.95f);
-        level.playSound(null, this.blockPosition(), SoundEvents.ENDER_DRAGON_GROWL, SoundSource.HOSTILE, 3.0f, 0.85f);
+        level.playSound(null, this.blockPosition(), ModSounds.ENTITY_NETHER_DRAGON_GROWL, SoundSource.HOSTILE, 3.0f, 0.85f);
         level.sendParticles(ParticleTypes.FLAME, this.getX(), this.getY() + 2.5, this.getZ(), 200, 7.5, 7.5, 7.5, 0.05);
         level.sendParticles(ParticleTypes.LARGE_SMOKE, this.getX(), this.getY() + 2.5, this.getZ(), 100, 7.5, 7.5, 7.5, 0.02);
 

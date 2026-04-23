@@ -8,7 +8,6 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
@@ -120,6 +119,7 @@ public class PiglinIllusionerEntity extends Illusioner implements GeoEntity, Tex
 
     @Override
     public void performRangedAttack(LivingEntity target, float distanceFactor) {
+        // Fix: illusioner attack audio previously used raw blaze and piglin sounds, which left one of the flashiest attacks outside the mod sound registry. Both layers now route through replaceable mod-owned events.
         if (!(this.level() instanceof ServerLevel serverLevel)) {
             return;
         }
@@ -135,8 +135,8 @@ public class PiglinIllusionerEntity extends Illusioner implements GeoEntity, Tex
         arrow.shoot(dx, dy, dz, 1.6f, 0.9f);
         serverLevel.addFreshEntity(arrow);
         this.triggerAnim(RuinedPortalGeoAnimations.ACTION_CONTROLLER, RuinedPortalGeoAnimations.ATTACK_SHOOT);
-        serverLevel.playSound(null, this.blockPosition(), SoundEvents.BLAZE_SHOOT, SoundSource.HOSTILE, 0.55f, 1.45f);
-        serverLevel.playSound(null, this.blockPosition(), SoundEvents.PIGLIN_ANGRY, SoundSource.HOSTILE, 0.45f, 1.10f);
+        serverLevel.playSound(null, this.blockPosition(), ModSounds.ENTITY_PIGLIN_ILLUSIONER_ATTACK, SoundSource.HOSTILE, 0.55f, 1.45f);
+        serverLevel.playSound(null, this.blockPosition(), ModSounds.ENTITY_PIGLIN_ILLUSIONER_AMBIENT, SoundSource.HOSTILE, 0.45f, 1.10f);
     }
 
     @Override

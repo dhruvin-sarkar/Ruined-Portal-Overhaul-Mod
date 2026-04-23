@@ -4,10 +4,10 @@ import com.ruinedportaloverhaul.advancement.ModAdvancementTriggers;
 import com.ruinedportaloverhaul.component.ModDataComponents;
 import com.ruinedportaloverhaul.item.GhastTearNecklaceItem;
 import com.ruinedportaloverhaul.item.ModItems;
+import com.ruinedportaloverhaul.sound.ModSounds;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.projectile.hurtingprojectile.SmallFireball;
 import net.minecraft.world.item.ItemStack;
@@ -46,6 +46,7 @@ public final class NetherFireballHandler {
     }
 
     private static void spawnFireball(ServerLevel level, ServerPlayer player) {
+        // Fix: the necklace fireball effect previously used a raw ghast sound, which kept this player ability outside the mod sound registry. The launch cue now routes through a dedicated item sound id.
         Vec3 look = player.getLookAngle().normalize();
         Vec3 spawnPos = player.getEyePosition().add(look.scale(1.2));
         SmallFireball fireball = new SmallFireball(level, player, look);
@@ -53,6 +54,6 @@ public final class NetherFireballHandler {
         fireball.setPos(spawnPos.x, spawnPos.y - 0.1, spawnPos.z);
         fireball.setDeltaMovement(look.scale(1.25));
         level.addFreshEntity(fireball);
-        level.playSound(null, player.blockPosition(), SoundEvents.GHAST_SHOOT, SoundSource.PLAYERS, 1.0f, 1.0f);
+        level.playSound(null, player.blockPosition(), ModSounds.ITEM_GHAST_TEAR_NECKLACE_FIREBALL, SoundSource.PLAYERS, 1.0f, 1.0f);
     }
 }

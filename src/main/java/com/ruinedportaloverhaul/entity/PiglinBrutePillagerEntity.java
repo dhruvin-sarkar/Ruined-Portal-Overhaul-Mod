@@ -5,7 +5,6 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.damagesource.DamageSource;
@@ -147,6 +146,7 @@ public class PiglinBrutePillagerEntity extends Pillager implements GeoEntity, Te
 
     @Override
     public void performRangedAttack(LivingEntity target, float distanceFactor) {
+        // Fix: brute ranged attack audio previously bypassed the mod sound registry. The shot and battle-cry layers now stay replaceable through mod-owned sound ids.
         if (!(this.level() instanceof ServerLevel serverLevel)) {
             return;
         }
@@ -164,8 +164,8 @@ public class PiglinBrutePillagerEntity extends Pillager implements GeoEntity, Te
         arrow.shoot(dx, dy, dz, 1.5f, 1.0f);
         serverLevel.addFreshEntity(arrow);
         this.triggerAnim(RuinedPortalGeoAnimations.ACTION_CONTROLLER, RuinedPortalGeoAnimations.ATTACK_SHOOT);
-        this.playSound(SoundEvents.CROSSBOW_SHOOT, 1.0f, 1.0f / (this.getRandom().nextFloat() * 0.4f + 0.8f));
-        this.playSound(SoundEvents.PIGLIN_BRUTE_ANGRY, 0.75f, 0.75f + this.getRandom().nextFloat() * 0.25f);
+        this.playSound(ModSounds.ENTITY_PIGLIN_BRUTE_PILLAGER_ATTACK, 1.0f, 1.0f / (this.getRandom().nextFloat() * 0.4f + 0.8f));
+        this.playSound(ModSounds.ENTITY_PIGLIN_BRUTE_PILLAGER_AMBIENT, 0.75f, 0.75f + this.getRandom().nextFloat() * 0.25f);
     }
 
     @Override
