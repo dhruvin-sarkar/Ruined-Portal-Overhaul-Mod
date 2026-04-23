@@ -153,6 +153,12 @@ public class PiglinRavagerEntity extends Ravager implements GeoEntity {
     }
 
     @Override
+    protected float getSoundVolume() {
+        // Fix: the custom piglin ravager sound set used inherited volume, so the heavy wave-four threat now stays intentionally louder than humanoid mobs.
+        return 1.25f;
+    }
+
+    @Override
     public float getVoicePitch() {
         return 0.7f + (this.getRandom().nextFloat() - this.getRandom().nextFloat()) * 0.08f;
     }

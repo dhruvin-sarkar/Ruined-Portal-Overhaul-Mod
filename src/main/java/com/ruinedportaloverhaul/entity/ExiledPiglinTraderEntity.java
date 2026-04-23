@@ -168,6 +168,12 @@ public class ExiledPiglinTraderEntity extends WanderingTrader implements GeoEnti
     }
 
     @Override
+    protected float getSoundVolume() {
+        // Fix: the Exiled Piglin uses its own sound ids but inherited merchant volume, so dialogue and idle cues now sit at a clear post-raid level.
+        return 1.0f;
+    }
+
+    @Override
     public float getVoicePitch() {
         return 0.9f + (this.getRandom().nextFloat() - this.getRandom().nextFloat()) * 0.08f;
     }

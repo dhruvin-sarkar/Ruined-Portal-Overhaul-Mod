@@ -155,6 +155,12 @@ public class PiglinIllusionerEntity extends Illusioner implements GeoEntity, Tex
     }
 
     @Override
+    protected float getSoundVolume() {
+        // Fix: the custom piglin sound set used vanilla illusioner volume defaults, so spellcaster audio now has an explicit raid mix level.
+        return 0.95f;
+    }
+
+    @Override
     public float getVoicePitch() {
         return 1.05f + (this.getRandom().nextFloat() - this.getRandom().nextFloat()) * 0.10f;
     }

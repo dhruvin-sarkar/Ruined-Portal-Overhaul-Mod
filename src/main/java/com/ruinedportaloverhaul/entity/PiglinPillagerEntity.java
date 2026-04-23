@@ -209,6 +209,12 @@ public class PiglinPillagerEntity extends Pillager implements GeoEntity, Texture
     }
 
     @Override
+    protected float getSoundVolume() {
+        // Fix: the custom piglin sound set used vanilla pillager volume defaults, so the raid mix now has an explicit baseline for resource-packable mob audio.
+        return 1.0f;
+    }
+
+    @Override
     public float getVoicePitch() {
         return 1.0f + (this.getRandom().nextFloat() - this.getRandom().nextFloat()) * 0.10f;
     }

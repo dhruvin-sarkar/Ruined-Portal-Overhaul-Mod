@@ -186,6 +186,12 @@ public class PiglinEvokerEntity extends Evoker implements GeoEntity, TextureVari
     }
 
     @Override
+    protected float getSoundVolume() {
+        // Fix: the custom piglin sound set used vanilla evoker volume defaults, so the final-wave caster now has an explicit raid mix level.
+        return 1.0f;
+    }
+
+    @Override
     public float getVoicePitch() {
         return 1.0f + (this.getRandom().nextFloat() - this.getRandom().nextFloat()) * 0.08f;
     }

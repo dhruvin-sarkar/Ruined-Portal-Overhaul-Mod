@@ -142,6 +142,12 @@ public class PiglinVindicatorEntity extends Vindicator implements GeoEntity, Tex
     }
 
     @Override
+    protected float getSoundVolume() {
+        // Fix: the custom piglin sound set used vanilla vindicator volume defaults, so the raid mix now has an explicit baseline for resource-packable mob audio.
+        return 1.0f;
+    }
+
+    @Override
     public float getVoicePitch() {
         return 0.95f + (this.getRandom().nextFloat() - this.getRandom().nextFloat()) * 0.10f;
     }

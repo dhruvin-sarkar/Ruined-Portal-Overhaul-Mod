@@ -195,6 +195,12 @@ public class PiglinBrutePillagerEntity extends Pillager implements GeoEntity, Te
     }
 
     @Override
+    protected float getSoundVolume() {
+        // Fix: the custom piglin sound set used vanilla pillager volume defaults, so the brute hybrid now has an explicit heavier raid mix level.
+        return 1.05f;
+    }
+
+    @Override
     public float getVoicePitch() {
         return 0.85f + (this.getRandom().nextFloat() - this.getRandom().nextFloat()) * 0.08f;
     }
