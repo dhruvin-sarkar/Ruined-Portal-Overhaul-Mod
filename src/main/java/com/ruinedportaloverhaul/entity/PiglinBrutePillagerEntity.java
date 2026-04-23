@@ -86,7 +86,8 @@ public class PiglinBrutePillagerEntity extends Pillager implements GeoEntity, Te
     @Override
     protected void registerGoals() {
         super.registerGoals();
-        this.goalSelector.addGoal(1, new CloseRangeMeleeGoal());
+        // Fix: the close-range fallback used priority 1, which could compete with inherited swimming/float behavior. Keep fallback combat below the survival movement lane.
+        this.goalSelector.addGoal(2, new CloseRangeMeleeGoal());
     }
 
     @Override

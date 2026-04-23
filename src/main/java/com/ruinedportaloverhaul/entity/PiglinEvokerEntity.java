@@ -18,7 +18,6 @@ import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.illager.Evoker;
-import net.minecraft.world.entity.projectile.EvokerFangs;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.storage.ValueInput;
@@ -129,6 +128,7 @@ public class PiglinEvokerEntity extends Evoker implements GeoEntity, TextureVari
     }
 
     private void castMagmaEruption(ServerLevel serverLevel, Vec3 center) {
+        // Fix: Magma Eruption used to instantiate EvokerFangs directly, bypassing EntityType spawn setup. Fangs now spawn through the registered vanilla type while preserving owner, facing, and placement.
         float radius = 3.0f;
         this.triggerAnim(RuinedPortalGeoAnimations.ACTION_CONTROLLER, RuinedPortalGeoAnimations.ATTACK_CAST);
         serverLevel.playSound(null, this.blockPosition(), ModSounds.ENTITY_PIGLIN_EVOKER_CAST_SPELL, SoundSource.HOSTILE, 1.1f, 0.55f);
@@ -136,8 +136,17 @@ public class PiglinEvokerEntity extends Evoker implements GeoEntity, TextureVari
             double angle = Math.toRadians((360.0 / 10.0) * i);
             double x = center.x + Math.cos(angle) * radius;
             double z = center.z + Math.sin(angle) * radius;
-            EvokerFangs fangs = new EvokerFangs(serverLevel, x, center.y, z, (float) angle, 0, this);
-            serverLevel.addFreshEntity(fangs);
+            EntityType.EVOKER_FANGS.spawn(
+                serverLevel,
+                fangs -> {
+                    fangs.setOwner(this);
+                    fangs.snapTo(x, center.y, z, (float) Math.toDegrees(angle), 0.0f);
+                },
+                BlockPos.containing(x, center.y, z),
+                EntitySpawnReason.MOB_SUMMONED,
+                false,
+                false
+            );
         }
     }
 
