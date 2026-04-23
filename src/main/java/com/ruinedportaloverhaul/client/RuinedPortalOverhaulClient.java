@@ -5,6 +5,7 @@ import com.ruinedportaloverhaul.client.atmosphere.PortalAtmosphereClient;
 import com.ruinedportaloverhaul.client.render.geo.ExiledPiglinGeoRenderer;
 import com.ruinedportaloverhaul.client.render.geo.NetherConduitGeoRenderer;
 import com.ruinedportaloverhaul.client.render.geo.NetherCrystalGeoRenderer;
+import com.ruinedportaloverhaul.client.render.geo.NetherDragonGeoRenderer;
 import com.ruinedportaloverhaul.client.render.geo.PiglinBrutePillagerGeoRenderer;
 import com.ruinedportaloverhaul.client.render.geo.PiglinEvokerGeoRenderer;
 import com.ruinedportaloverhaul.client.render.geo.PiglinIllusionerGeoRenderer;
@@ -15,7 +16,6 @@ import com.ruinedportaloverhaul.client.render.geo.PiglinVindicatorGeoRenderer;
 import com.ruinedportaloverhaul.entity.ModEntities;
 import net.fabricmc.api.ClientModInitializer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
-import net.minecraft.client.renderer.entity.EnderDragonRenderer;
 import net.minecraft.client.renderer.entity.EntityRenderers;
 
 public final class RuinedPortalOverhaulClient implements ClientModInitializer {
@@ -66,7 +66,7 @@ public final class RuinedPortalOverhaulClient implements ClientModInitializer {
         );
         EntityRenderers.register(
             ModEntities.NETHER_DRAGON,
-            EnderDragonRenderer::new
+            context -> new NetherDragonGeoRenderer<>(context)
         );
     }
 }

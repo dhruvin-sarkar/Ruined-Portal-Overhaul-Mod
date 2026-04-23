@@ -161,7 +161,7 @@ The Nether Crystal ritual is the endgame loop:
 - `PortalStructureHelper`: places four netherite pedestals at offsets north/south/east/west six blocks from the portal center and exposes `ritualPedestalPositions(...)`.
 - `PortalRaidState`: persists discovered portal variants, filled ritual pedestals, and active dragon portals.
 - `NetherDragonRituals`: tracks crystal placement, starts the summoning sequence, manages the Nether Dragon boss bar, drops death rewards, and shatters pedestals.
-- `NetherDragonEntity`: extends vanilla `EnderDragon`, suppresses End fight hooks, suppresses crystal healing, sets 300 HP, and delegates custom death rewards to `NetherDragonRituals`.
+- `NetherDragonEntity`, `NetherDragonGeoRenderer`, and `NetherDragonGeoModel`: extend vanilla `EnderDragon` for combat semantics, suppress End fight hooks and crystal healing, set 300 HP, delegate custom death rewards to `NetherDragonRituals`, and render through GeckoLib with a vanilla dragon texture, crimson tint, flight loop, phase-two transition trigger, and Nether Slam trigger.
 
 Ritual conditions:
 
@@ -219,7 +219,7 @@ Overworld ruined portal structure JSON files are overridden to use `ruined_porta
 
 ## Entity Presentation
 
-GeckoLib now renders all combat mobs, the Exiled Piglin, the Nether Crystal, the Nether Conduit block entity, and the Nether Dragon.
+GeckoLib now renders all combat mobs, the Exiled Piglin, the Nether Crystal, the Nether Conduit block entity, and the Nether Dragon. The Dragon no longer uses the vanilla `EnderDragonRenderer`; its placeholder model lives at `assets/ruined_portal_overhaul/geo/entity/nether_dragon.geo.json`, and its flight, phase-two, and slam animations live at `assets/ruined_portal_overhaul/animations/entity/nether_dragon.animation.json`.
 
 Visual variant support is active for:
 

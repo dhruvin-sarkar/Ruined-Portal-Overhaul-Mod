@@ -36,8 +36,23 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animatable.manager.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.animation.object.PlayState;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
-public class NetherDragonEntity extends EnderDragon {
+public class NetherDragonEntity extends EnderDragon implements GeoEntity {
+    public static final String ACTION_CONTROLLER = "DragonActions";
+    public static final String PHASE_TWO_TRANSITION = "phase2_transition";
+    public static final String NETHER_SLAM = "nether_slam";
+
+    private static final String FLIGHT_CONTROLLER = "Flight";
+    private static final RawAnimation FLIGHT = RawAnimation.begin().thenLoop("misc.fly");
+    private static final RawAnimation PHASE_TWO_ANIMATION = RawAnimation.begin().thenPlay("action.phase2_transition");
+    private static final RawAnimation SLAM_ANIMATION = RawAnimation.begin().thenPlay("attack.nether_slam");
     private static final String PORTAL_ORIGIN_KEY = "RpoPortalOrigin";
     private static final String DEATH_REWARDS_HANDLED_KEY = "RpoDeathRewardsHandled";
     private static final String ENRAGED_KEY = "RpoEnraged";
@@ -76,6 +91,7 @@ public class NetherDragonEntity extends EnderDragon {
     private boolean netherSlamActive;
     private int netherSlamTicksRemaining;
     private BlockPos netherSlamTarget = BlockPos.ZERO;
+    private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
 
     public NetherDragonEntity(EntityType<? extends EnderDragon> entityType, Level level) {
         super(entityType, level);
@@ -111,6 +127,22 @@ public class NetherDragonEntity extends EnderDragon {
 
     public Component bossBarTitle() {
         return this.enraged ? ENRAGED_BOSS_BAR_TITLE : BOSS_BAR_TITLE;
+    }
+
+    @Override
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        // Fix: the Nether Dragon was still using the vanilla EnderDragonRenderer, so phase-two and slam presentation could not be authored as replaceable GeckoLib animations. These controllers keep the flight loop continuous while exposing triggerable cinematic attacks.
+        controllers.add(
+            new AnimationController<NetherDragonEntity>(FLIGHT_CONTROLLER, 5, state -> state.setAndContinue(FLIGHT)),
+            new AnimationController<NetherDragonEntity>(ACTION_CONTROLLER, 0, state -> PlayState.CONTINUE)
+                .triggerableAnim(PHASE_TWO_TRANSITION, PHASE_TWO_ANIMATION)
+                .triggerableAnim(NETHER_SLAM, SLAM_ANIMATION)
+        );
+    }
+
+    @Override
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return this.geoCache;
     }
 
     @Override
@@ -252,6 +284,7 @@ public class NetherDragonEntity extends EnderDragon {
         this.setCustomName(this.bossBarTitle());
         this.setCustomNameVisible(true);
         this.applyEnragedSpeedBonus();
+        this.triggerAnim(ACTION_CONTROLLER, PHASE_TWO_TRANSITION);
         level.playSound(null, this.blockPosition(), ModSounds.ENTITY_NETHER_DRAGON_PHASE2, SoundSource.HOSTILE, 2.4f, 0.95f);
         level.playSound(null, this.blockPosition(), ModSounds.ENTITY_NETHER_DRAGON_GROWL, SoundSource.HOSTILE, 3.0f, 0.85f);
         level.sendParticles(ParticleTypes.FLAME, this.getX(), this.getY() + 2.5, this.getZ(), 200, 7.5, 7.5, 7.5, 0.05);
@@ -368,6 +401,7 @@ public class NetherDragonEntity extends EnderDragon {
         this.netherSlamTicksRemaining = NETHER_SLAM_TOTAL_TICKS;
         this.netherSlamTarget = target.blockPosition();
         this.getPhaseManager().setPhase(EnderDragonPhase.HOLDING_PATTERN);
+        this.triggerAnim(ACTION_CONTROLLER, NETHER_SLAM);
         level.playSound(null, this.blockPosition(), ModSounds.ENTITY_NETHER_DRAGON_PHASE2, SoundSource.HOSTILE, 1.5f, 0.75f);
         level.sendParticles(ParticleTypes.FLAME, this.getX(), this.getY() + 2.0, this.getZ(), 30, 1.2, 0.8, 1.2, 0.03);
     }
