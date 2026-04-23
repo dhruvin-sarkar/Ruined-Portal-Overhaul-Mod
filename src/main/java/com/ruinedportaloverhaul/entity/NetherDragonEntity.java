@@ -282,14 +282,15 @@ public class NetherDragonEntity extends EnderDragon {
     }
 
     private void summonPhaseTwoGuardians(ServerLevel level) {
-        // Fix: the low-health guardian summon was missing entirely, so the dragon now spawns three Piglin Evokers once and only once when the fight reaches its second escalation point.
+        // Fix: the low-health guardian summon used to spawn evokers at the dragon's flight altitude, where they fell out of the sky and died on impact before reaching the player. Guardians now anchor to the portal origin at ground level so they actually join the fight.
         this.guardiansSummoned = true;
+        BlockPos anchor = this.portalOrigin;
         for (int i = 0; i < 3; i++) {
             double angle = (Math.PI * 2.0 / 3.0) * i;
             BlockPos spawnPos = BlockPos.containing(
-                this.getX() + Math.cos(angle) * 8.0,
-                this.getY(),
-                this.getZ() + Math.sin(angle) * 8.0
+                anchor.getX() + Math.cos(angle) * 8.0,
+                anchor.getY(),
+                anchor.getZ() + Math.sin(angle) * 8.0
             );
             PiglinEvokerEntity guardian = ModEntities.PIGLIN_EVOKER.spawn(level, spawnPos, net.minecraft.world.entity.EntitySpawnReason.MOB_SUMMONED);
             if (guardian != null) {
