@@ -275,7 +275,7 @@ public final class GoldRaidManager {
                 continue;
             }
 
-            int waveIndex = Math.max(0, Math.min(WAVE_LABEL_KEYS.length - 1, snapshot.currentWaveNumber() - 1));
+            int waveIndex = restoredWaveIndex(snapshot);
             ServerBossEvent bossBar = new ServerBossEvent(
                 waveLabelComponent(waveIndex),
                 BossEvent.BossBarColor.YELLOW,
@@ -291,7 +291,7 @@ public final class GoldRaidManager {
                     state.activeMobs.add(uuid);
                 }
             }
-            state.waveSize = Math.max(expectedWaveSize(level, waveIndex), state.activeMobs.size());
+            state.waveSize = Math.max(waveIndex >= 0 ? expectedWaveSize(level, waveIndex) : 0, state.activeMobs.size());
             if (snapshot.waveEndTimeTicks() > level.getGameTime()) {
                 state.delayTicks = (int) Math.min(Integer.MAX_VALUE, snapshot.waveEndTimeTicks() - level.getGameTime());
             }
@@ -610,6 +610,14 @@ public final class GoldRaidManager {
             ModAdvancementTriggers.trigger(ModAdvancementTriggers.RAID_COMPLETED, player);
             player.displayClientMessage(message, true);
         }
+    }
+
+    private static int restoredWaveIndex(PortalRaidState.ActiveRaidSnapshot snapshot) {
+        // Fix: a restart after beginRaid() but before wave 1 persisted active mobs used to clamp wave 0 to index 0, causing the next tick to skip to wave 2. Wave number 0 now restores as the pre-wave sentinel.
+        if (snapshot.currentWaveNumber() <= 0 && snapshot.waveMobs().isEmpty()) {
+            return -1;
+        }
+        return Math.max(0, Math.min(WAVE_LABEL_KEYS.length - 1, snapshot.currentWaveNumber() - 1));
     }
 
     private static void ignitePortal(ServerLevel level, BlockPos origin) {

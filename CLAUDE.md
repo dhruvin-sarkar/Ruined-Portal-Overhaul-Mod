@@ -328,6 +328,7 @@ Completion order:
 - `PortalRaidState.CODEC` uses save-compatible optional defaults for newer fields.
 - Active wave mobs are stored as UUIDs, never direct entity references.
 - Active raids rehydrate from persistent state after server restart.
+- A saved `current_wave_number` of `0` is treated as the pre-wave-1 sentinel during restore, so a crash after raid activation but before the first wave mob UUIDs are written resumes at wave 1 instead of skipping ahead.
 - Active raids pause mob-death evaluation while the portal area is not entity-ticking, so unloaded mobs are not counted as dead.
 - Boss bars track all players horizontally within 48 blocks of the active portal and remove players who leave range or disconnect.
 - Ritual state persists as portal-origin to filled-pedestal sets. Dragon activity is stored separately so placing replacement crystals cannot start duplicate fights while a dragon is active. Exiled Piglin lifetime still lives on the entity NBT for actual despawn behavior, while `PortalRaidState` now mirrors the spawn game time for portal-owned audit and recovery hooks.
