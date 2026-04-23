@@ -3,6 +3,7 @@ package com.ruinedportaloverhaul.raid;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.ruinedportaloverhaul.RuinedPortalOverhaul;
+import com.ruinedportaloverhaul.structure.PortalDungeonVariant;
 import com.ruinedportaloverhaul.structure.PortalStructureHelper;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,6 +24,7 @@ public final class PortalRaidState extends SavedData {
     private static final String ACTIVE_RAIDS_KEY = "active_raids";
     private static final String ACTIVATED_PORTALS_KEY = "activated_portals";
     private static final String PORTAL_SPAWNERS_KEY = "portal_spawners";
+    private static final String PORTAL_VARIANTS_KEY = "portal_variants";
     private static final String RITUAL_CRYSTALS_KEY = "ritual_crystals";
     private static final String ACTIVE_DRAGON_PORTALS_KEY = "active_dragon_portals";
 
@@ -39,6 +41,9 @@ public final class PortalRaidState extends SavedData {
         PortalSpawnerData.CODEC.listOf()
             .optionalFieldOf(PORTAL_SPAWNERS_KEY, List.of())
             .forGetter(PortalRaidState::snapshotPortalSpawners),
+        PortalVariantData.CODEC.listOf()
+            .optionalFieldOf(PORTAL_VARIANTS_KEY, List.of())
+            .forGetter(PortalRaidState::snapshotPortalVariants),
         RitualData.CODEC.listOf()
             .optionalFieldOf(RITUAL_CRYSTALS_KEY, List.of())
             .forGetter(PortalRaidState::snapshotRitualCrystals),
@@ -58,6 +63,7 @@ public final class PortalRaidState extends SavedData {
     private final Set<BlockPos> activatedPortals = new HashSet<>();
     private final Set<BlockPos> activeRaidLocations = new HashSet<>();
     private final Map<BlockPos, List<BlockPos>> portalSpawners = new HashMap<>();
+    private final Map<BlockPos, Integer> portalVariants = new HashMap<>();
     private final Map<BlockPos, Set<java.util.UUID>> waveTrackerUuids = new HashMap<>();
     private final Map<BlockPos, Integer> currentWaveNumbers = new HashMap<>();
     private final Map<BlockPos, Long> waveEndTimeTicks = new HashMap<>();
@@ -72,6 +78,7 @@ public final class PortalRaidState extends SavedData {
         List<ActiveRaidData> activeRaids,
         List<BlockPos> activatedPortals,
         List<PortalSpawnerData> portalSpawners,
+        List<PortalVariantData> portalVariants,
         List<RitualData> ritualCrystals,
         List<BlockPos> activeDragonPortals
     ) {
@@ -87,6 +94,9 @@ public final class PortalRaidState extends SavedData {
         }
         for (PortalSpawnerData spawnerData : portalSpawners) {
             this.portalSpawners.put(spawnerData.portalOrigin().immutable(), immutablePositions(spawnerData.spawners()));
+        }
+        for (PortalVariantData variantData : portalVariants) {
+            this.portalVariants.put(variantData.portalOrigin().immutable(), variantData.variantId());
         }
         for (RitualData ritualData : ritualCrystals) {
             this.ritualCrystals.put(ritualData.portalOrigin().immutable(), new HashSet<>(immutablePositions(ritualData.filledPedestals())));
@@ -133,6 +143,20 @@ public final class PortalRaidState extends SavedData {
 
     public List<BlockPos> portalSpawners(BlockPos portalOrigin) {
         return new ArrayList<>(this.portalSpawners.getOrDefault(portalOrigin.immutable(), List.of()));
+    }
+
+    public void rememberPortalVariant(BlockPos portalOrigin, PortalDungeonVariant variant) {
+        BlockPos origin = portalOrigin.immutable();
+        Integer previous = this.portalVariants.put(origin, variant.id());
+        if (previous == null || previous.intValue() != variant.id()) {
+            this.setDirty();
+        }
+    }
+
+    public PortalDungeonVariant portalVariant(BlockPos portalOrigin) {
+        BlockPos origin = portalOrigin.immutable();
+        int variantId = this.portalVariants.getOrDefault(origin, PortalDungeonVariant.selectForOrigin(origin).id());
+        return PortalDungeonVariant.byId(variantId);
     }
 
     public Optional<BlockPos> completedPortalForPedestal(BlockPos pedestalPos) {
@@ -304,6 +328,14 @@ public final class PortalRaidState extends SavedData {
         return spawners;
     }
 
+    private List<PortalVariantData> snapshotPortalVariants() {
+        List<PortalVariantData> variants = new ArrayList<>();
+        for (Map.Entry<BlockPos, Integer> entry : this.portalVariants.entrySet()) {
+            variants.add(new PortalVariantData(entry.getKey(), entry.getValue()));
+        }
+        return variants;
+    }
+
     private List<RitualData> snapshotRitualCrystals() {
         List<RitualData> crystals = new ArrayList<>();
         for (Map.Entry<BlockPos, Set<BlockPos>> entry : this.ritualCrystals.entrySet()) {
@@ -339,6 +371,13 @@ public final class PortalRaidState extends SavedData {
             BlockPos.CODEC.fieldOf("portal_origin").forGetter(PortalSpawnerData::portalOrigin),
             BlockPos.CODEC.listOf().fieldOf("spawners").forGetter(PortalSpawnerData::spawners)
         ).apply(instance, PortalSpawnerData::new));
+    }
+
+    private record PortalVariantData(BlockPos portalOrigin, int variantId) {
+        private static final Codec<PortalVariantData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            BlockPos.CODEC.fieldOf("portal_origin").forGetter(PortalVariantData::portalOrigin),
+            Codec.INT.fieldOf("variant_id").forGetter(PortalVariantData::variantId)
+        ).apply(instance, PortalVariantData::new));
     }
 
     private record RitualData(BlockPos portalOrigin, List<BlockPos> filledPedestals) {

@@ -1289,12 +1289,14 @@ public final class GoldRaidManager {
     }
 
     private static BlockPos findPortalDungeonOrigin(ServerLevel level, BlockPos pos, int range) {
+        // Fix: runtime portal discovery previously learned only the origin, which left later systems blind to which structure variant had generated there. Discovery now caches the piece's variant in persistent state the first time a portal is seen.
         double rangeSquared = (double) range * (double) range;
         int chunkRadius = Math.max(1, (range + 15) / 16 + 1);
         ChunkPos centerChunk = new ChunkPos(pos);
         BlockPos nearest = null;
         double nearestDistance = Double.MAX_VALUE;
         Set<BlockPos> seenOrigins = new HashSet<>();
+        PortalRaidState portalRaidState = PortalRaidState.get(level.getServer());
 
         for (int chunkX = centerChunk.x - chunkRadius; chunkX <= centerChunk.x + chunkRadius; chunkX++) {
             for (int chunkZ = centerChunk.z - chunkRadius; chunkZ <= centerChunk.z + chunkRadius; chunkZ++) {
@@ -1311,6 +1313,7 @@ public final class GoldRaidManager {
                             if (!seenOrigins.add(origin)) {
                                 continue;
                             }
+                            portalRaidState.rememberPortalVariant(origin, dungeonPiece.variant());
                             double distance = horizontalDistanceSqr(pos, origin);
                             if (distance <= rangeSquared && distance < nearestDistance) {
                                 nearest = origin;
