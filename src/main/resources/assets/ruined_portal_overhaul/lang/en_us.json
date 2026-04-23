@@ -141,7 +141,6 @@
   "title.ruined_portal_overhaul.ritual.dragon_awakens": "The Nether Dragon Awakens",
   "subtitle.ruined_portal_overhaul.ritual.dragon_awakens": "Flee or fight.",
   "text.autoconfig.ruined_portal_overhaul.title": "Ruined Portal Overhaul",
-  "text.autoconfig.ruined_portal_overhaul.option.structureRarity": "Structure Rarity",
   "text.autoconfig.ruined_portal_overhaul.option.enableAmbientNetherSpawns": "Enable Ambient Nether Spawns",
   "text.autoconfig.ruined_portal_overhaul.option.enableOuterZoneScatter": "Enable Outer Zone Scatter",
   "text.autoconfig.ruined_portal_overhaul.option.raidTriggerRadius": "Raid Trigger Radius",
