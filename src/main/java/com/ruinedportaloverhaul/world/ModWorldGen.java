@@ -21,6 +21,8 @@ public final class ModWorldGen {
     public static final ResourceKey<PlacedFeature> UNDERGROUND_SOUL_SAND_POCKET = placedFeature("underground_soul_sand_pocket");
     public static final ResourceKey<PlacedFeature> UNDERGROUND_BLACKSTONE_VEIN = placedFeature("underground_blackstone_vein");
     private static final TagKey<Biome> TERRALITH_SKYLANDS = TagKey.create(Registries.BIOME, Identifier.fromNamespaceAndPath("terralith", "skylands"));
+    private static final TagKey<Biome> TERRALITH_ALL_SKYLANDS = TagKey.create(Registries.BIOME, Identifier.fromNamespaceAndPath("terralith", "all_skylands"));
+    private static final TagKey<Biome> TERRALITH_CAVES = TagKey.create(Registries.BIOME, Identifier.fromNamespaceAndPath("terralith", "caves"));
     private static final Predicate<BiomeSelectionContext> AMBIENT_CORRUPTION_SELECTOR =
         BiomeSelectors.foundInOverworld().and(context -> !isCompatExcludedBiome(context));
 
@@ -50,19 +52,26 @@ public final class ModWorldGen {
         BiomeModifications.addSpawn(AMBIENT_CORRUPTION_SELECTOR, MobCategory.MONSTER, EntityType.BLAZE, 1, 1, 1);
     }
 
-    // Fix: Terralith exposes overworld cave biomes under terralith:cave/... and floating skylands via its biome tag, so both are filtered out here before ambient corruption hooks are applied.
+    // Fix: Terralith exposes skyland and cave biome groups through tags that changed across releases, so all known tag names plus id fallbacks are filtered before ambient corruption hooks are applied.
     private static boolean isCompatExcludedBiome(BiomeSelectionContext context) {
-        return context.hasTag(TERRALITH_SKYLANDS) || isExcludedBiomeId(context.getBiomeKey().identifier());
+        return context.hasTag(TERRALITH_SKYLANDS)
+            || context.hasTag(TERRALITH_ALL_SKYLANDS)
+            || context.hasTag(TERRALITH_CAVES)
+            || isExcludedBiomeId(context.getBiomeKey().identifier());
     }
 
     public static boolean isCompatExcludedBiome(Holder<Biome> biome) {
         return biome.is(TERRALITH_SKYLANDS)
+            || biome.is(TERRALITH_ALL_SKYLANDS)
+            || biome.is(TERRALITH_CAVES)
             || biome.unwrapKey().map(ResourceKey::identifier).map(ModWorldGen::isExcludedBiomeId).orElse(false);
     }
 
     private static boolean isExcludedBiomeId(Identifier biomeId) {
         return "terralith".equals(biomeId.getNamespace())
-            && (biomeId.getPath().startsWith("skylands") || biomeId.getPath().startsWith("cave/"));
+            && (biomeId.getPath().startsWith("skylands")
+                || biomeId.getPath().startsWith("cave/")
+                || biomeId.getPath().endsWith("_caves"));
     }
 
     private static ResourceKey<PlacedFeature> placedFeature(String path) {

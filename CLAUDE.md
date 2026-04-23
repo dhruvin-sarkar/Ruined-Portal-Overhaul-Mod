@@ -448,7 +448,7 @@ It also injects rare overworld monster spawns:
 
 The biome spawn entries are registered at load time because Fabric biome modifications are data-load hooks, not live config switches. `ModNaturalSpawnGuards` now gates those ambient Zombified Piglin/Blaze attempts during natural spawning, so `ModConfigManager.enableAmbientNetherSpawns()` can be changed at runtime without rebuilding biome data.
 
-Global ambient corruption intentionally excludes Terralith skylands and Terralith cave biomes so surface-scar features and ambient Nether spawns stay on grounded overworld terrain. The portal dungeon structure performs the same center-biome compatibility check from `PortalDungeonStructure.findGenerationPoint(...)` after honoring the structure JSON biome predicate, so the full dungeon replacement also avoids floating skylands and underground Terralith cave biomes.
+Global ambient corruption intentionally excludes Terralith skylands and Terralith cave biomes so surface-scar features and ambient Nether spawns stay on grounded overworld terrain. The compat filter checks `#terralith:skylands`, `#terralith:all_skylands`, `#terralith:caves`, and id fallbacks for older/newer Terralith packs. The portal dungeon structure performs the same center-biome compatibility check from `PortalDungeonStructure.findGenerationPoint(...)` after honoring the structure JSON biome predicate, so the full dungeon replacement also avoids floating skylands and underground Terralith cave biomes.
 
 Do not use global biome modifications for structure-local proximity gradients.
 
