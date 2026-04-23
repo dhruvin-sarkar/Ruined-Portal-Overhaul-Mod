@@ -1,7 +1,6 @@
 package com.ruinedportaloverhaul.entity;
 
 import com.ruinedportaloverhaul.config.ModConfigManager;
-import net.minecraft.world.Difficulty;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
