@@ -5,11 +5,11 @@
       "id": "minecraft:fire_charge"
     },
     "title": {
-      "text": "Ghost Fire",
+      "translate": "advancement.ruined_portal_overhaul.ghost_fire.title",
       "color": "red"
     },
     "description": {
-      "text": "Launch a fireball from the Ghast Tear Necklace."
+      "translate": "advancement.ruined_portal_overhaul.ghost_fire.description"
     },
     "frame": "task",
     "show_toast": true,

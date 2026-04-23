@@ -5,10 +5,10 @@
       "id": "minecraft:saddle"
     },
     "title": {
-      "text": "Large Print"
+      "translate": "advancement.ruined_portal_overhaul.large_print.title"
     },
     "description": {
-      "text": "Kill a Piglin Ravager. The contract was mostly hoofnotes."
+      "translate": "advancement.ruined_portal_overhaul.large_print.description"
     },
     "frame": "goal",
     "show_toast": true,

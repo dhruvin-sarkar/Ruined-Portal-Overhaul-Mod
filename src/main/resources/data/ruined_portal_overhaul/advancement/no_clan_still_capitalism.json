@@ -5,10 +5,10 @@
       "id": "minecraft:gold_ingot"
     },
     "title": {
-      "text": "20$ is 20$"
+      "translate": "advancement.ruined_portal_overhaul.no_clan_still_capitalism.title"
     },
     "description": {
-      "text": "Complete a trade with the Exiled Piglin."
+      "translate": "advancement.ruined_portal_overhaul.no_clan_still_capitalism.description"
     },
     "frame": "goal",
     "show_toast": true,

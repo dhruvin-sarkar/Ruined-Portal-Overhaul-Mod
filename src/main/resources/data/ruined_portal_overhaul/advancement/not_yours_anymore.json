@@ -5,10 +5,10 @@
       "id": "minecraft:totem_of_undying"
     },
     "title": {
-      "text": "Not Yours Anymore"
+      "translate": "advancement.ruined_portal_overhaul.not_yours_anymore.title"
     },
     "description": {
-      "text": "Accept the portal's very suspicious welcome gift."
+      "translate": "advancement.ruined_portal_overhaul.not_yours_anymore.description"
     },
     "frame": "task",
     "show_toast": true,

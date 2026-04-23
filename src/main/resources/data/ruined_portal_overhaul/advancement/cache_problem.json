@@ -5,10 +5,10 @@
       "id": "minecraft:netherite_upgrade_smithing_template"
     },
     "title": {
-      "text": "Cache Problem"
+      "translate": "advancement.ruined_portal_overhaul.cache_problem.title"
     },
     "description": {
-      "text": "Find enough underground loot that concern becomes logistics."
+      "translate": "advancement.ruined_portal_overhaul.cache_problem.description"
     },
     "frame": "goal",
     "show_toast": true,

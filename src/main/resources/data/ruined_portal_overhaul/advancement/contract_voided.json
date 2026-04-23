@@ -5,10 +5,10 @@
       "id": "minecraft:totem_of_undying"
     },
     "title": {
-      "text": "Contract Voided"
+      "translate": "advancement.ruined_portal_overhaul.contract_voided.title"
     },
     "description": {
-      "text": "Kill a Piglin Evoker before the paperwork summons teeth."
+      "translate": "advancement.ruined_portal_overhaul.contract_voided.description"
     },
     "frame": "goal",
     "show_toast": true,

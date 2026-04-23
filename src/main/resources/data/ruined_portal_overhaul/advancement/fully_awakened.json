@@ -5,11 +5,11 @@
       "id": "minecraft:ancient_debris"
     },
     "title": {
-      "text": "Fully Awakened",
+      "translate": "advancement.ruined_portal_overhaul.fully_awakened.title",
       "color": "gold"
     },
     "description": {
-      "text": "Raise a Nether Conduit to level 2."
+      "translate": "advancement.ruined_portal_overhaul.fully_awakened.description"
     },
     "frame": "challenge",
     "show_toast": true,

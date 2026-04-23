@@ -4,11 +4,11 @@
       "id": "minecraft:crying_obsidian"
     },
     "title": {
-      "text": "Something Stirs",
+      "translate": "advancement.ruined_portal_overhaul.root.title",
       "color": "dark_red"
     },
     "description": {
-      "text": "A ruined portal noticed you noticing it."
+      "translate": "advancement.ruined_portal_overhaul.root.description"
     },
     "background": "minecraft:gui/advancements/backgrounds/nether",
     "frame": "task",

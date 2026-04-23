@@ -5,10 +5,10 @@
       "id": "minecraft:netherite_ingot"
     },
     "title": {
-      "text": "Paid in full"
+      "translate": "advancement.ruined_portal_overhaul.paid_in_scar_tissue.title"
     },
     "description": {
-      "text": "Walk away with netherite from the boss cache."
+      "translate": "advancement.ruined_portal_overhaul.paid_in_scar_tissue.description"
     },
     "frame": "goal",
     "show_toast": true,

@@ -5,11 +5,11 @@
       "id": "minecraft:totem_of_undying"
     },
     "title": {
-      "text": "The Last Wave",
+      "translate": "advancement.ruined_portal_overhaul.the_last_wave_broke.title",
       "color": "gold"
     },
     "description": {
-      "text": "Survive all five waves."
+      "translate": "advancement.ruined_portal_overhaul.the_last_wave_broke.description"
     },
     "frame": "challenge",
     "show_toast": true,

@@ -376,6 +376,8 @@ Loot table files contain `_comment` fields documenting reward intent.
 
 Advancements live under `data/ruined_portal_overhaul/advancement/`. Vanilla criteria cover inventory and kill events; custom player-event triggers live in `com.ruinedportaloverhaul.advancement`.
 
+All advancement display JSON now points at `advancement.ruined_portal_overhaul.*` translation keys in `en_us.json` instead of hardcoded English text, so titles and descriptions stay consistent with the canonical names listed below and remain localization-ready.
+
 Custom trigger classes:
 
 - `PortalEventTrigger`: a `PlayerTrigger` subclass used for portal-specific player events.

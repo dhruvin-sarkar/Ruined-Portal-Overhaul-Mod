@@ -5,10 +5,10 @@
       "id": "minecraft:golden_apple"
     },
     "title": {
-      "text": "Take Only What Screams"
+      "translate": "advancement.ruined_portal_overhaul.surface_plunder.title"
     },
     "description": {
-      "text": "Pull a useful raid supply from the portal's surface cache."
+      "translate": "advancement.ruined_portal_overhaul.surface_plunder.description"
     },
     "frame": "task",
     "show_toast": true,

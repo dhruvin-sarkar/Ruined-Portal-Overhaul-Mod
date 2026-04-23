@@ -5,11 +5,11 @@
       "id": "ruined_portal_overhaul:nether_conduit"
     },
     "title": {
-      "text": "Nether Bond",
+      "translate": "advancement.ruined_portal_overhaul.nether_bond.title",
       "color": "dark_red"
     },
     "description": {
-      "text": "Claim a Nether Conduit from a ruined portal."
+      "translate": "advancement.ruined_portal_overhaul.nether_bond.description"
     },
     "frame": "task",
     "show_toast": true,

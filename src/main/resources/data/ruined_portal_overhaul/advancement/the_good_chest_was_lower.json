@@ -5,10 +5,10 @@
       "id": "minecraft:ancient_debris"
     },
     "title": {
-      "text": "The Good Chest Was Lower"
+      "translate": "advancement.ruined_portal_overhaul.the_good_chest_was_lower.title"
     },
     "description": {
-      "text": "Find a deep-cache reward."
+      "translate": "advancement.ruined_portal_overhaul.the_good_chest_was_lower.description"
     },
     "frame": "goal",
     "show_toast": true,

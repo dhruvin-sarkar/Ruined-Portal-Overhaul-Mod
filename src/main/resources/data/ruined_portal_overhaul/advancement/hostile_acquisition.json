@@ -5,10 +5,10 @@
       "id": "minecraft:crossbow"
     },
     "title": {
-      "text": "Hostile Acquisition"
+      "translate": "advancement.ruined_portal_overhaul.hostile_acquisition.title"
     },
     "description": {
-      "text": "Kill one of the Nether's new accountants."
+      "translate": "advancement.ruined_portal_overhaul.hostile_acquisition.description"
     },
     "frame": "task",
     "show_toast": true,

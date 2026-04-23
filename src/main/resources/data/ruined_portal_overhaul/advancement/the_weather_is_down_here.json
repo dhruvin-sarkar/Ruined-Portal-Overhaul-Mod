@@ -5,10 +5,10 @@
       "id": "minecraft:lava_bucket"
     },
     "title": {
-      "text": "The Weather Is Down Here"
+      "translate": "advancement.ruined_portal_overhaul.the_weather_is_down_here.title"
     },
     "description": {
-      "text": "Stand underground inside the portal storm."
+      "translate": "advancement.ruined_portal_overhaul.the_weather_is_down_here.description"
     },
     "frame": "goal",
     "show_toast": true,

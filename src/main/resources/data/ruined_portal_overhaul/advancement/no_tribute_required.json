@@ -5,10 +5,10 @@
       "id": "minecraft:gold_block"
     },
     "title": {
-      "text": "No Tribute Required"
+      "translate": "advancement.ruined_portal_overhaul.no_tribute_required.title"
     },
     "description": {
-      "text": "Start the raid by standing where you clearly should not."
+      "translate": "advancement.ruined_portal_overhaul.no_tribute_required.description"
     },
     "frame": "task",
     "show_toast": true,

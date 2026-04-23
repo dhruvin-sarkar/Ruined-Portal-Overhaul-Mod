@@ -5,10 +5,10 @@
       "id": "minecraft:netherrack"
     },
     "title": {
-      "text": "Its like Australia down here"
+      "translate": "advancement.ruined_portal_overhaul.down_the_red_throat.title"
     },
     "description": {
-      "text": "Descend beneath the portal while the storm follows."
+      "translate": "advancement.ruined_portal_overhaul.down_the_red_throat.description"
     },
     "frame": "task",
     "show_toast": true,

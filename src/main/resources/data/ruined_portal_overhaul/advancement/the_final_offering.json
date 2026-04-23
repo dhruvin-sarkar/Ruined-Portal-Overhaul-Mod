@@ -5,11 +5,11 @@
       "id": "ruined_portal_overhaul:nether_crystal"
     },
     "title": {
-      "text": "The Final Offering",
+      "translate": "advancement.ruined_portal_overhaul.the_final_offering.title",
       "color": "dark_red"
     },
     "description": {
-      "text": "Place all four Nether Crystals on the portal pedestals."
+      "translate": "advancement.ruined_portal_overhaul.the_final_offering.description"
     },
     "frame": "challenge",
     "show_toast": true,

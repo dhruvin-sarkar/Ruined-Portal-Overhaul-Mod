@@ -5,10 +5,10 @@
       "id": "minecraft:enchanted_golden_apple"
     },
     "title": {
-      "text": "The Air Cheats"
+      "translate": "advancement.ruined_portal_overhaul.the_air_cheats.title"
     },
     "description": {
-      "text": "Let the red aether do the eating for you."
+      "translate": "advancement.ruined_portal_overhaul.the_air_cheats.description"
     },
     "frame": "task",
     "show_toast": true,

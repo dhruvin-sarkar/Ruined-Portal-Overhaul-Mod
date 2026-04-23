@@ -5,11 +5,11 @@
       "id": "ruined_portal_overhaul:ghast_tear_necklace"
     },
     "title": {
-      "text": "Draped in Sorrow",
+      "translate": "advancement.ruined_portal_overhaul.draped_in_sorrow.title",
       "color": "gray"
     },
     "description": {
-      "text": "Equip the Ghast Tear Necklace."
+      "translate": "advancement.ruined_portal_overhaul.draped_in_sorrow.description"
     },
     "frame": "task",
     "show_toast": true,
