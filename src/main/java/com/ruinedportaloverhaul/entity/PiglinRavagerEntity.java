@@ -73,6 +73,7 @@ public class PiglinRavagerEntity extends Ravager implements GeoEntity {
 
     @Override
     public void aiStep() {
+        // Fix: the custom Hard wall-impact roar previously played sound/effects only, so it now triggers the GeckoLib roar animation too.
         super.aiStep();
         if (!(this.level() instanceof ServerLevel serverLevel)) {
             return;
@@ -88,6 +89,7 @@ public class PiglinRavagerEntity extends Ravager implements GeoEntity {
             this.hardWallRoarCooldown--;
         } else if (serverLevel.getDifficulty() == Difficulty.HARD && this.hasHardWallImpact(serverLevel)) {
             this.hardWallRoarCooldown = 80;
+            this.triggerAnim(RuinedPortalGeoAnimations.ACTION_CONTROLLER, RuinedPortalGeoAnimations.ATTACK_ROAR);
             serverLevel.playSound(null, this.blockPosition(), ModSounds.ENTITY_PIGLIN_RAVAGER_ROAR, SoundSource.HOSTILE, 1.4f, 0.75f);
             for (Player target : serverLevel.getEntitiesOfClass(Player.class, this.getBoundingBox().inflate(7.0))) {
                 target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 60, 1), this);

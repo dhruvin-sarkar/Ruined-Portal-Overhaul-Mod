@@ -3,6 +3,7 @@ package com.ruinedportaloverhaul.entity;
 import net.minecraft.world.entity.LivingEntity;
 import software.bernie.geckolib.animatable.GeoAnimatable;
 import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.constant.DefaultAnimations;
 
 public final class RuinedPortalGeoAnimations {
@@ -12,6 +13,8 @@ public final class RuinedPortalGeoAnimations {
     public static final String ATTACK_CAST = "cast";
     public static final String ATTACK_SLAM = "slam";
     public static final String ATTACK_FLYING = "flying";
+    public static final String ATTACK_ROAR = "roar";
+    private static final RawAnimation RAVAGER_ROAR = RawAnimation.begin().thenPlay("action.roar");
 
     private RuinedPortalGeoAnimations() {
     }
@@ -34,6 +37,7 @@ public final class RuinedPortalGeoAnimations {
             .triggerableAnim(ATTACK_SHOOT, DefaultAnimations.ATTACK_SHOOT)
             .triggerableAnim(ATTACK_CAST, DefaultAnimations.ATTACK_CAST)
             .triggerableAnim(ATTACK_SLAM, DefaultAnimations.ATTACK_SLAM)
-            .triggerableAnim(ATTACK_FLYING, DefaultAnimations.ATTACK_FLYING_ATTACK);
+            .triggerableAnim(ATTACK_FLYING, DefaultAnimations.ATTACK_FLYING_ATTACK)
+            .triggerableAnim(ATTACK_ROAR, RAVAGER_ROAR);
     }
 }
