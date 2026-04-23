@@ -37,6 +37,21 @@ public final class ClothRuntimeConfig implements ConfigData, ModConfigAccess {
     public boolean enableNetherDragon = true;
 
     @Override
+    public void validatePostLoad() {
+        // Fix: hand-edited config files could keep invalid values inside AutoConfig even though gameplay getters clamped them, so loaded values are normalized once before systems read them.
+        this.structureRarity = clamp(this.structureRarity, 16, 64);
+        this.raidTriggerRadius = clamp(this.raidTriggerRadius, 12.0, 48.0, 24.0);
+        this.waveCountMultiplier = clamp(this.waveCountMultiplier, 0.5, 2.0, 1.0);
+        this.interWaveDelayTicks = clamp(this.interWaveDelayTicks, 100, 600);
+        this.stormIntensity = clamp(this.stormIntensity, 0.2, 1.0, 0.6);
+        this.thunderFrequency = clamp(this.thunderFrequency, 40, 200);
+        this.mobHealthMultiplier = clamp(this.mobHealthMultiplier, 0.5, 3.0, 1.0);
+        this.mobDamageMultiplier = clamp(this.mobDamageMultiplier, 0.5, 3.0, 1.0);
+        this.ambientMobCap = clamp(this.ambientMobCap, 50, 400);
+        this.netherStarDropRate = clamp(this.netherStarDropRate, 0.0, 5.0, 1.0);
+    }
+
+    @Override
     public int structureRarity() {
         return clamp(this.structureRarity, 16, 64);
     }
@@ -53,12 +68,12 @@ public final class ClothRuntimeConfig implements ConfigData, ModConfigAccess {
 
     @Override
     public double raidTriggerRadius() {
-        return clamp(this.raidTriggerRadius, 12.0, 48.0);
+        return clamp(this.raidTriggerRadius, 12.0, 48.0, 24.0);
     }
 
     @Override
     public double waveCountMultiplier() {
-        return clamp(this.waveCountMultiplier, 0.5, 2.0);
+        return clamp(this.waveCountMultiplier, 0.5, 2.0, 1.0);
     }
 
     @Override
@@ -78,7 +93,7 @@ public final class ClothRuntimeConfig implements ConfigData, ModConfigAccess {
 
     @Override
     public double stormIntensity() {
-        return clamp(this.stormIntensity, 0.2, 1.0);
+        return clamp(this.stormIntensity, 0.2, 1.0, 0.6);
     }
 
     @Override
@@ -88,12 +103,12 @@ public final class ClothRuntimeConfig implements ConfigData, ModConfigAccess {
 
     @Override
     public double mobHealthMultiplier() {
-        return clamp(this.mobHealthMultiplier, 0.5, 3.0);
+        return clamp(this.mobHealthMultiplier, 0.5, 3.0, 1.0);
     }
 
     @Override
     public double mobDamageMultiplier() {
-        return clamp(this.mobDamageMultiplier, 0.5, 3.0);
+        return clamp(this.mobDamageMultiplier, 0.5, 3.0, 1.0);
     }
 
     @Override
@@ -108,7 +123,7 @@ public final class ClothRuntimeConfig implements ConfigData, ModConfigAccess {
 
     @Override
     public double netherStarDropRate() {
-        return clamp(this.netherStarDropRate, 0.0, 5.0);
+        return clamp(this.netherStarDropRate, 0.0, 5.0, 1.0);
     }
 
     @Override
@@ -120,7 +135,10 @@ public final class ClothRuntimeConfig implements ConfigData, ModConfigAccess {
         return Math.max(min, Math.min(max, value));
     }
 
-    private static double clamp(double value, double min, double max) {
+    private static double clamp(double value, double min, double max, double fallback) {
+        if (!Double.isFinite(value)) {
+            return fallback;
+        }
         return Math.max(min, Math.min(max, value));
     }
 }
