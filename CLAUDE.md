@@ -444,20 +444,17 @@ The magma cream trade is not a gold loop because vanilla has no crafting path fr
 
 ## Global Worldgen
 
-`ModWorldGen.initialize()` injects these low-density overworld lore features:
+`ModWorldGen.initialize()` injects only these low-density overworld lore features:
 
 - `ruined_portal_overhaul:underground_netherrack_blob`
 - `ruined_portal_overhaul:underground_soul_sand_pocket`
 - `ruined_portal_overhaul:underground_blackstone_vein`
 
-It also injects rare overworld monster spawns:
+Global biome modifications no longer add blaze or zombified piglin spawn tables. Ambient Nether pressure is structure-local and lives in `GoldRaidManager.tickPortalZoneNaturalSpawns(...)`, where `ModConfigManager.enableAmbientNetherSpawns()` can disable the loop at runtime without rebuilding biome data.
 
-- Zombified Piglin, weight 1, group 1-2
-- Blaze, weight 1, group 1
+`ModNaturalSpawnGuards` is now strictly the post-raid suppression layer. It only blocks natural hostile spawns inside completed overworld portal territories when `ModConfigManager.enablePostRaidSuppression()` is enabled, and it does not participate in pre-completion ambient portal spawning.
 
-The biome spawn entries are registered at load time because Fabric biome modifications are data-load hooks, not live config switches. `ModNaturalSpawnGuards` now gates those ambient Zombified Piglin/Blaze attempts during natural spawning, so `ModConfigManager.enableAmbientNetherSpawns()` can be changed at runtime without rebuilding biome data.
-
-Global ambient corruption intentionally excludes Terralith skylands and Terralith cave biomes so surface-scar features and ambient Nether spawns stay on grounded overworld terrain. The compat filter checks `#terralith:skylands`, `#terralith:all_skylands`, `#terralith:caves`, and id fallbacks for older/newer Terralith packs. The portal dungeon structure performs the same center-biome compatibility check from `PortalDungeonStructure.findGenerationPoint(...)` after honoring the structure JSON biome predicate, so the full dungeon replacement also avoids floating skylands and underground Terralith cave biomes.
+Global terrain corruption intentionally excludes Terralith skylands and Terralith cave biomes so the underground lore features stay on grounded overworld terrain. The compat filter checks `#terralith:skylands`, `#terralith:all_skylands`, `#terralith:caves`, and id fallbacks for older/newer Terralith packs. The portal dungeon structure performs the same center-biome compatibility check from `PortalDungeonStructure.findGenerationPoint(...)` after honoring the structure JSON biome predicate, so the full dungeon replacement also avoids floating skylands and underground Terralith cave biomes.
 
 Do not use global biome modifications for structure-local proximity gradients.
 
