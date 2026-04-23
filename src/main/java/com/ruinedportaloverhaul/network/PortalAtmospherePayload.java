@@ -7,7 +7,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 
-public record PortalAtmospherePayload(float intensity, float descent) implements CustomPacketPayload {
+public record PortalAtmospherePayload(float intensity, float descent, boolean completed) implements CustomPacketPayload {
     public static final CustomPacketPayload.Type<PortalAtmospherePayload> TYPE = new CustomPacketPayload.Type<>(
         Identifier.fromNamespaceAndPath(RuinedPortalOverhaul.MOD_ID, "portal_atmosphere")
     );
@@ -16,6 +16,8 @@ public record PortalAtmospherePayload(float intensity, float descent) implements
         PortalAtmospherePayload::intensity,
         ByteBufCodecs.FLOAT,
         PortalAtmospherePayload::descent,
+        ByteBufCodecs.BOOL,
+        PortalAtmospherePayload::completed,
         PortalAtmospherePayload::new
     );
 

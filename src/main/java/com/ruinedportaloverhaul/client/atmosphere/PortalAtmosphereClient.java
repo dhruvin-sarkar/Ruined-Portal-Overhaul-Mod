@@ -39,6 +39,7 @@ public final class PortalAtmosphereClient {
     private static long nextFlashNanos;
     private static long redFlashEndNanos;
     private static boolean musicPlaying;
+    private static boolean completedPortalStorm;
 
     private PortalAtmosphereClient() {
     }
@@ -59,10 +60,12 @@ public final class PortalAtmosphereClient {
             targetIntensity = 0.0f;
             targetDescent = 0.0f;
             lastPacketNanos = 0L;
+            completedPortalStorm = false;
             return;
         }
         targetIntensity = clamp01(payload.intensity());
         targetDescent = clamp01(payload.descent());
+        completedPortalStorm = payload.completed();
         lastPacketNanos = System.nanoTime();
     }
 
@@ -131,6 +134,7 @@ public final class PortalAtmosphereClient {
         if (now - lastPacketNanos > PACKET_FADE_NANOS) {
             targetIntensity = 0.0f;
             targetDescent = 0.0f;
+            completedPortalStorm = false;
         }
 
         displayIntensity += (targetIntensity - displayIntensity) * 0.10f;
@@ -172,7 +176,7 @@ public final class PortalAtmosphereClient {
             return;
         }
 
-        if (ModConfigManager.enableRedStorm() && stormIntensity > 0.18f) {
+        if (ModConfigManager.enableRedStorm() && stormIntensity > 0.18f && !completedPortalStorm) {
             if (!musicPlaying || !client.getMusicManager().isPlayingMusic(RED_STORM_MUSIC)) {
                 client.getMusicManager().startPlaying(RED_STORM_MUSIC);
                 musicPlaying = true;

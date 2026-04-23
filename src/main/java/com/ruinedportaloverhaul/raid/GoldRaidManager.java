@@ -646,7 +646,7 @@ public final class GoldRaidManager {
         Set<BlockPos> emitted = new HashSet<>();
         for (ServerPlayer player : level.players()) {
             BlockPos portal = findPortalDungeonOrigin(level, player.blockPosition(), AMBIENT_PARTICLE_RANGE);
-            if (portal == null || portalRaidState.isCompleted(portal)) {
+            if (portal == null) {
                 continue;
             }
             spawnPlayerAtmosphere(level, player, portal, gameTime);
@@ -657,16 +657,19 @@ public final class GoldRaidManager {
     }
 
     private static void tickPortalZoneStormPayloads(ServerLevel level, PortalRaidState portalRaidState) {
-        // Fix: the territory boon stays active while the red storm toggle now suppresses only the client weather packet when the user disables it.
+        // Fix: completed portals used to silence the storm entirely, contradicting the claimed-but-corrupted end state. Completed packets now keep the red weather visible while suppressing music and boon effects client-side.
         for (ServerPlayer player : level.players()) {
             BlockPos portal = findNearbyGeneratedPortal(level, player, PortalStructureHelper.OUTER_RADIUS);
-            if (portal == null || portalRaidState.isCompleted(portal)) {
+            if (portal == null) {
                 continue;
             }
+            boolean completed = portalRaidState.isCompleted(portal);
             if (ModConfigManager.enableRedStorm()) {
-                sendPortalAtmosphere(player, portal);
+                sendPortalAtmosphere(player, portal, completed);
             }
-            applyPortalTerritoryBoon(player, portal);
+            if (!completed) {
+                applyPortalTerritoryBoon(player, portal);
+            }
         }
     }
 
@@ -695,7 +698,7 @@ public final class GoldRaidManager {
         player.displayClientMessage(Component.translatable("message.ruined_portal_overhaul.raid.totem").withStyle(ChatFormatting.GOLD), true);
     }
 
-    private static void sendPortalAtmosphere(ServerPlayer player, BlockPos origin) {
+    private static void sendPortalAtmosphere(ServerPlayer player, BlockPos origin, boolean completed) {
         // Fix: storm payloads now honor the live toggle on the server too, which prevents needless traffic once the client storm is disabled.
         if (!ModConfigManager.enableRedStorm()) {
             return;
@@ -714,7 +717,7 @@ public final class GoldRaidManager {
         if (distance <= PortalStructureHelper.INNER_RADIUS + 10 && belowPortal >= 24.0) {
             ModAdvancementTriggers.trigger(ModAdvancementTriggers.DEEP_STORM, player);
         }
-        ServerPlayNetworking.send(player, new PortalAtmospherePayload(intensity, descent));
+        ServerPlayNetworking.send(player, new PortalAtmospherePayload(intensity, descent, completed));
     }
 
     private static void spawnPlayerAtmosphere(ServerLevel level, ServerPlayer player, BlockPos origin, long gameTime) {

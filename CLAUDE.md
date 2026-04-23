@@ -332,7 +332,7 @@ Completion order:
 
 The red storm is a client-side visual/audio system driven by server proximity packets:
 
-- `GoldRaidManager` sends `PortalAtmospherePayload` every `10` ticks while a player is horizontally inside the radius-136 zone and the portal is incomplete.
+- `GoldRaidManager` sends `PortalAtmospherePayload` every `10` ticks while a player is horizontally inside the radius-136 zone, including after raid completion so the claimed portal remains visibly corrupted.
 - Packet intensity uses horizontal distance and never falls below `0.22` while in-zone.
 - Packet descent uses how far the player is below the portal frame, making pit and cave atmosphere tighter and more intense.
 - `PortalAtmosphereClient` eases target intensity/descent, fades when packets stop, applies a 4.2-second breathing pulse, and renders the HUD tint. Current tint strength is about 15-20% more pronounced than the earlier storm pass.
@@ -341,7 +341,7 @@ The red storm is a client-side visual/audio system driven by server proximity pa
 - `SkyRendererMixin` tints the sky toward a dark red storm color and dims rain brightness.
 - `FogRendererMixin` tints fog red and tightens fog distance, especially underground.
 - Red thunder is generated on a client-side storm timer that is roughly twice as frequent as the earlier storm pass. Thunder uses a 2-3 tick deep-red HUD flash and now routes all layered thunder accents through `ModSounds`, so packs can replace the storm stack without touching logic. It does not rely on real world weather.
-- Storm music starts when storm intensity rises through the custom `weather.red_storm.music` event and is stopped when the player leaves the zone or the raid completes and packets fade.
+- Storm music starts when storm intensity rises through the custom `weather.red_storm.music` event and is stopped when the player leaves the zone or the portal is completed. Completed portal packets carry a `completed` flag so the red weather remains while combat music and territory boon effects stop.
 - Custom mob voices use mod-owned sound ids plus explicit volume and pitch overrides, avoiding inherited pillager/illager identity audio while keeping resource-pack replacement simple.
 
 Server-side atmosphere remains active too: ash, crimson spores, smoke, lava drips, frame particles, lava ambience, raid start bursts, inter-wave pulses, completion particles, mob spawn sounds, ritual breaks, dragon victory cues, and necklace fireball launches are all routed through server-side effects and mod-owned sound ids.
