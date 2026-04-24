@@ -22,8 +22,31 @@ public final class NetherConduitChestPlacement {
     }
 
     public static void addNetherConduit(RandomizableContainerBlockEntity chest) {
-        int slot = Math.max(0, chest.getContainerSize() / 2);
+        // Fix: the guaranteed conduit used to overwrite the center loot slot after the chest loot table unpacked. It now prefers the nearest empty slot so the direct-insert reward does not silently delete generated treasure.
+        int slot = findBestEmptySlot(chest);
         chest.setItem(slot, new ItemStack(ModBlocks.NETHER_CONDUIT_ITEM));
         chest.setChanged();
+    }
+
+    private static int findBestEmptySlot(RandomizableContainerBlockEntity chest) {
+        int size = chest.getContainerSize();
+        if (size <= 0) {
+            return 0;
+        }
+        int center = size / 2;
+        if (chest.getItem(center).isEmpty()) {
+            return center;
+        }
+        for (int offset = 1; offset < size; offset++) {
+            int right = center + offset;
+            if (right < size && chest.getItem(right).isEmpty()) {
+                return right;
+            }
+            int left = center - offset;
+            if (left >= 0 && chest.getItem(left).isEmpty()) {
+                return left;
+            }
+        }
+        return center;
     }
 }
