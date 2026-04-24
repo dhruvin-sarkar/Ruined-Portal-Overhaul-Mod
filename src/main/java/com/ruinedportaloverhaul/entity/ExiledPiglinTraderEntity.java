@@ -4,6 +4,7 @@ import com.ruinedportaloverhaul.advancement.ModAdvancementTriggers;
 import com.ruinedportaloverhaul.sound.ModSounds;
 import java.util.List;
 import java.util.Optional;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -17,6 +18,7 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
+import net.minecraft.world.entity.decoration.LeashFenceKnotEntity;
 import net.minecraft.world.entity.npc.wanderingtrader.WanderingTrader;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -25,6 +27,7 @@ import net.minecraft.world.item.trading.ItemCost;
 import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import software.bernie.geckolib.animatable.GeoEntity;
@@ -33,8 +36,10 @@ import software.bernie.geckolib.animatable.manager.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 public class ExiledPiglinTraderEntity extends WanderingTrader implements GeoEntity {
+    private static final String ANCHOR_POS_KEY = "AnchorPos";
     private static final long DESPAWN_AFTER_TICKS = 72_000L;
     private static final long RESTOCK_INTERVAL_TICKS = 40_000L;
+    private static final int ANCHOR_RESTRICTION_RADIUS = 4;
     private static final List<String> TRADE_MESSAGES = List.of(
         "message.ruined_portal_overhaul.trader.line_1",
         "message.ruined_portal_overhaul.trader.line_2",
@@ -44,6 +49,7 @@ public class ExiledPiglinTraderEntity extends WanderingTrader implements GeoEnti
     );
 
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
+    private BlockPos anchorPos;
     private long spawnGameTime = -1L;
     private long lastRestockGameTime = -1L;
 
@@ -81,6 +87,12 @@ public class ExiledPiglinTraderEntity extends WanderingTrader implements GeoEnti
 
     public void rememberSpawnTime(long gameTime) {
         this.spawnGameTime = gameTime;
+    }
+
+    public void rememberAnchor(BlockPos anchorPos) {
+        // Fix: the Exiled Piglin reward scene used a decorative fence post but never stored or applied the trader's anchor, so the "chained to the post" reveal immediately drifted apart. The trader now persists its fence-post anchor and keeps its home restriction centered there.
+        this.anchorPos = anchorPos.immutable();
+        this.setHomeTo(this.anchorPos, ANCHOR_RESTRICTION_RADIUS);
     }
 
     @Override
@@ -134,6 +146,7 @@ public class ExiledPiglinTraderEntity extends WanderingTrader implements GeoEnti
 
     @Override
     public void aiStep() {
+        // Fix: the completion scene promised a chained trader, but the entity kept full wandering-trader behavior with no leash recovery. Server ticks now keep the trader bound to its saved fence-post anchor across reloads and leash-knot glitches.
         super.aiStep();
         if (this.level().isClientSide()) {
             return;
@@ -144,6 +157,7 @@ public class ExiledPiglinTraderEntity extends WanderingTrader implements GeoEnti
         if (this.lastRestockGameTime < 0L) {
             this.lastRestockGameTime = this.level().getGameTime();
         }
+        this.restoreAnchorLeash();
         if (this.level().getGameTime() - this.lastRestockGameTime >= RESTOCK_INTERVAL_TICKS) {
             for (MerchantOffer offer : this.getOffers()) {
                 offer.resetUses();
@@ -188,17 +202,47 @@ public class ExiledPiglinTraderEntity extends WanderingTrader implements GeoEnti
 
     @Override
     protected void addAdditionalSaveData(ValueOutput valueOutput) {
+        // Fix: the trader used to save only timing fields, so reloads forgot which fence post was meant to hold the leash. The anchor now persists with the rest of the entity state.
         super.addAdditionalSaveData(valueOutput);
+        if (this.anchorPos != null) {
+            valueOutput.putLong(ANCHOR_POS_KEY, this.anchorPos.asLong());
+        }
         valueOutput.putLong("SpawnGameTime", this.spawnGameTime);
         valueOutput.putLong("LastRestockGameTime", this.lastRestockGameTime);
     }
 
     @Override
     protected void readAdditionalSaveData(ValueInput valueInput) {
+        // Fix: reloads restored the trader but not its fence-post anchor, so completed portals lost the chained tableau after chunk loads. Loading now restores the anchor and re-applies the trader's home restriction immediately.
         super.readAdditionalSaveData(valueInput);
+        long anchorLong = valueInput.getLongOr(ANCHOR_POS_KEY, Long.MIN_VALUE);
+        if (anchorLong != Long.MIN_VALUE) {
+            this.anchorPos = BlockPos.of(anchorLong);
+            this.setHomeTo(this.anchorPos, ANCHOR_RESTRICTION_RADIUS);
+        } else {
+            this.anchorPos = null;
+            this.clearHome();
+        }
         this.spawnGameTime = valueInput.getLongOr("SpawnGameTime", -1L);
         this.lastRestockGameTime = valueInput.getLongOr("LastRestockGameTime", -1L);
         this.setInvulnerable(true);
         this.setDespawnDelay(0);
+    }
+
+    private void restoreAnchorLeash() {
+        // Fix: the fence knot can be absent during reload timing or local block updates, which used to leave the trader permanently unchained. When the anchor post still exists, the trader now recreates the knot and reattaches itself.
+        if (this.anchorPos == null || this.level().isClientSide()) {
+            return;
+        }
+
+        this.setHomeTo(this.anchorPos, ANCHOR_RESTRICTION_RADIUS);
+        if (this.isLeashed()) {
+            return;
+        }
+
+        if (this.level().getBlockState(this.anchorPos).is(Blocks.NETHER_BRICK_FENCE)) {
+            LeashFenceKnotEntity leashKnot = LeashFenceKnotEntity.getOrCreateKnot(this.level(), this.anchorPos);
+            this.setLeashedTo(leashKnot, true);
+        }
     }
 }

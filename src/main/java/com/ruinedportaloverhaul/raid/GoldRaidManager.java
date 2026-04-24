@@ -50,6 +50,7 @@ import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.decoration.LeashFenceKnotEntity;
 import net.minecraft.world.entity.monster.Ghast;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -660,8 +661,9 @@ public final class GoldRaidManager {
     }
 
     private static long spawnExiledTrader(ServerLevel level, BlockPos origin) {
-        // Fix: this method used to mutate saved portal state while spawning the trader. It now only performs the entity/block spawn and returns the timestamp for ordered persistence by finishRaid().
-        level.setBlock(origin.offset(4, 1, 0), Blocks.NETHER_BRICK_FENCE.defaultBlockState(), 3);
+        // Fix: the reward scene promised an Exiled Piglin chained to the ritual anchor, but completion only placed decorative fence blocks and left the trader free to wander. The spawn now creates the real leash knot immediately while still returning the timestamp for ordered persistence by finishRaid().
+        BlockPos fencePos = origin.offset(4, 1, 0);
+        level.setBlock(fencePos, Blocks.NETHER_BRICK_FENCE.defaultBlockState(), 3);
         level.setBlock(origin.offset(4, 1, 1), Blocks.CRIMSON_FENCE_GATE.defaultBlockState(), 3);
         ExiledPiglinTraderEntity trader = ModEntities.EXILED_PIGLIN.spawn(
             level,
@@ -673,6 +675,8 @@ public final class GoldRaidManager {
             trader.setCustomName(Component.translatable("entity.ruined_portal_overhaul.exiled_piglin"));
             trader.setCustomNameVisible(true);
             trader.rememberSpawnTime(spawnGameTime);
+            trader.rememberAnchor(fencePos);
+            trader.setLeashedTo(LeashFenceKnotEntity.getOrCreateKnot(level, fencePos), true);
             playExiledPiglinSpawnEffects(level, trader.blockPosition());
             return spawnGameTime;
         }

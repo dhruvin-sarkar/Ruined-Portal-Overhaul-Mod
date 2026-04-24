@@ -319,7 +319,7 @@ Completion order:
 1. Remove all boss-bar players and hide the bar.
 2. Ignite the portal.
 3. Spawn the boss reward chest.
-4. Spawn the Exiled Piglin trader at the anchor.
+4. Spawn the Exiled Piglin trader leashed to the nether-brick fence anchor.
 5. Mark the portal completed in persistent state.
 6. Disable any remaining known/scanned pre-raid spawner blocks without re-adding spawner positions to persistent state.
 7. Play completion fanfare.
@@ -335,6 +335,7 @@ Completion order:
 - Active raids pause mob-death evaluation while the portal area is not entity-ticking, so unloaded mobs are not counted as dead.
 - Boss bars track all players horizontally within 48 blocks of the active portal and remove players who leave range or disconnect.
 - Ritual state persists as portal-origin to filled-pedestal sets. Dragon activity is stored separately so placing replacement crystals cannot start duplicate fights while a dragon is active. Exiled Piglin lifetime still lives on the entity NBT for actual despawn behavior, while `PortalRaidState` now mirrors the spawn game time for portal-owned audit and recovery hooks.
+- `ExiledPiglinTraderEntity` also persists its fence-post anchor on the entity itself, reapplies its home radius on load, and recreates the leash knot if chunk or save timing drops the leash holder.
 - Older saves that predate `portal_variants` fall back to `PortalDungeonVariant.selectForOrigin(...)`, so variant lookups stay deterministic even before runtime discovery repopulates the saved field.
 
 ## Red Storm And Audio
@@ -441,6 +442,8 @@ Current advancement tree:
 | 32 gold ingots | 1 ancient debris | 1 |
 
 The magma cream trade is not a gold loop because vanilla has no crafting path from magma cream or magma blocks back into gold.
+
+The trader is meant to read as a captive post-raid prize rather than a free-roaming villager clone. Raid completion now spawns it already chained to the ritual fence post, and reload recovery restores that leash if the knot entity is missing while the anchor block still exists.
 
 ## Global Worldgen
 
