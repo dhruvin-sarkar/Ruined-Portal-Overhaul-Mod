@@ -32,6 +32,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.BossEvent;
 import net.minecraft.world.entity.boss.enderdragon.EndCrystal;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
@@ -104,8 +105,9 @@ public final class NetherDragonRituals {
         shatterPedestals(level, portalOrigin);
         level.playSound(null, portalOrigin, ModSounds.RITUAL_VICTORY, SoundSource.HOSTILE, 1.2f, 0.9f);
         if (level.getGameRules().get(GameRules.MOB_DROPS)) {
-            dragon.spawnAtLocation(level, new ItemStack(Items.NETHER_STAR, 2));
-            dragon.spawnAtLocation(level, new ItemStack(Items.ANCIENT_DEBRIS, 1 + level.getRandom().nextInt(3)));
+            // Fix: spawnAtLocation(dragon) dropped loot at the dragon's body position, which is ~5 blocks above the portal by end of the 60-tick death rise and often scattered outside the arena. Loot now lands at the pedestal ring so players fighting from the ritual floor can actually pick it up.
+            dropRitualLoot(level, portalOrigin, new ItemStack(Items.NETHER_STAR, 2));
+            dropRitualLoot(level, portalOrigin, new ItemStack(Items.ANCIENT_DEBRIS, 1 + level.getRandom().nextInt(3)));
         }
         triggerNearby(level, portalOrigin, ModAdvancementTriggers.NETHER_DRAGON_DEFEATED);
         PortalRaidState.get(level.getServer()).clearRitual(portalOrigin);
@@ -114,6 +116,18 @@ public final class NetherDragonRituals {
         if (bossBar != null) {
             bossBar.removeAllPlayers();
         }
+    }
+
+    private static void dropRitualLoot(ServerLevel level, BlockPos portalOrigin, ItemStack stack) {
+        if (stack.isEmpty()) {
+            return;
+        }
+        double x = portalOrigin.getX() + 0.5;
+        double y = portalOrigin.getY() + 1.0;
+        double z = portalOrigin.getZ() + 0.5;
+        ItemEntity item = new ItemEntity(level, x, y, z, stack);
+        item.setDefaultPickUpDelay();
+        level.addFreshEntity(item);
     }
 
     private static void beginSummoning(ServerLevel level, BlockPos portalOrigin) {
