@@ -47,3 +47,4 @@ replay_*.log
 !SPEC.md
 CLAUDE.md
 CLAUDE.md
+local.db
