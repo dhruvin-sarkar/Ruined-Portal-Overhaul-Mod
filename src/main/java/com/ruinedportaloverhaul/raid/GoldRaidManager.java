@@ -280,7 +280,8 @@ public final class GoldRaidManager {
     }
 
     private static void restorePersistedRaids(ServerLevel level, PortalRaidState portalRaidState) {
-        // Fix: restored raids now rebuild their expected wave size from the live difficulty and config multipliers instead of frozen vanilla counts.
+        // Fix: restored raids now rebuild live wave sizing and keep the pending inter-wave delay,
+        // so a restart during combat does not make the next wave begin instantly once restored mobs die.
         for (PortalRaidState.ActiveRaidSnapshot snapshot : portalRaidState.activeRaidSnapshots()) {
             BlockPos origin = snapshot.portalOrigin().immutable();
             long key = raidKey(level, origin);
@@ -315,6 +316,8 @@ public final class GoldRaidManager {
             state.waveSize = Math.max(waveIndex >= 0 ? expectedWaveSize(level, waveIndex) : 0, state.activeMobs.size());
             if (snapshot.waveEndTimeTicks() > level.getGameTime()) {
                 state.delayTicks = (int) Math.min(Integer.MAX_VALUE, snapshot.waveEndTimeTicks() - level.getGameTime());
+            } else if (!state.activeMobs.isEmpty() && waveIndex >= 0) {
+                state.delayTicks = ModConfigManager.interWaveDelayTicks();
             }
             ACTIVE_RAIDS.put(key, state);
         }
