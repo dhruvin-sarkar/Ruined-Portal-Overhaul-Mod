@@ -426,7 +426,7 @@ Current advancement tree:
 | `Paid in Scar Tissue` | `paid_in_scar_tissue.json` | `inventory_changed` for netherite ingots from the boss reward |
 | `Nether Bond` | `nether_bond.json` | `inventory_changed` for `ruined_portal_overhaul:nether_conduit` |
 | `Fully Awakened` | `fully_awakened.json` | Challenge custom `nether_conduit_level_2`, fired when ancient debris upgrades a conduit to level 2 |
-| `Draped in Sorrow` | `draped_in_sorrow.json` | Custom `ghast_tear_necklace_equipped`, fired from `GhastTearNecklaceItem.onEquip(...)` |
+| `Draped in Sorrow` | `draped_in_sorrow.json` | Custom `ghast_tear_necklace_equipped`, fired from `GhastTearNecklaceEvents.tick(...)` the first time a player carries the necklace |
 | `Ghost Fire` | `ghost_fire.json` | Custom `nether_fireball_used`, fired after the server spawns the necklace fireball |
 | `The Final Offering` | `the_final_offering.json` | Challenge custom `nether_crystal_ritual_complete`, fired when all four pedestal crystals complete the ritual |
 | `Here Be Dragons` | `here_be_dragons.json` | Challenge custom `nether_dragon_defeated`, fired when the Nether Dragon death rewards are handled |

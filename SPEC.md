@@ -78,7 +78,8 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
 13. Nether Crystal Ritual And Dragon
    - Nether Crystals place on netherite blocks or obsidian.
    - Four generated netherite pedestals around a completed portal track crystal placement in persistent raid state.
-   - Ritual state is reconciled from the loaded pedestal crystals; broken crystals clear saved progress, interrupted summoning only resumes when all four crystals are still present, and the persistent dragon-active flag means a live dragon rather than a queued summon.
+   - Ritual state is reconciled from the loaded pedestal crystals; broken crystals clear saved progress, interrupted summoning only resumes when all four crystals are still present, raid completion backfills any crystals that were staged before the portal was lit, and the persistent dragon-active flag means a live dragon rather than a queued summon.
+   - When the Nether Dragon config toggle is disabled, completed ritual pedestals reject new crystal placements instead of consuming the offering for a boss that cannot spawn.
    - Completing the ritual summons the Nether Dragon, which suppresses End-only behavior, drops Nether rewards, and shatters the pedestals on death.
    - Ritual summon titles, dragon-progression triggers, boss-bar viewers, and the phase-two flash all use horizontal portal distance so players in the pit or cave stack remain included in the fight cues.
 
@@ -116,7 +117,7 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
 4. Runtime portal discovery also persists the discovered structure variant through `PortalRaidState` without mutating save data during chunk generation.
 5. Active raids rehydrate after server restart and pause mob-death evaluation while the portal area is not entity-ticking.
 6. Wave completion advances through five boss-bar waves.
-7. Final completion hides and clears the boss bar, lights the portal, spawns the boss chest, summons the Exiled Piglin, marks the portal complete, disables any remaining spawner blocks, then plays completion effects and grants nearby players the raid-complete trigger.
+7. Final completion hides and clears the boss bar, lights the portal, spawns the boss chest, summons the Exiled Piglin, marks the portal complete, disables any remaining spawner blocks, then plays completion effects, grants nearby players the raid-complete trigger, and reconciles any ritual crystals that were already staged on the pedestals.
 
 ## Compatibility
 
