@@ -605,7 +605,7 @@ public final class GoldRaidManager {
     }
 
     private static void finishRaid(RaidState state) {
-        // Fix: completion side effects had drifted out of order, and players still inside the 48-block boss-bar ring could miss the final trigger because completion used a smaller hardcoded radius. The portal now keeps the required reward order and grants the completion handoff to the same participant footprint that stayed on the raid bar.
+        // Fix: completion side effects had drifted out of order, nearby players could miss the final trigger, and crystals staged before portal completion never joined the dragon ritual. The portal now keeps the required reward order, grants the completion handoff to the same participant footprint that stayed on the raid bar, and reconciles any waiting pedestal crystals after the completion scene finishes.
         List<ServerPlayer> nearbyPlayers = state.level.getPlayers(player -> horizontalDistanceSqr(player.blockPosition(), state.origin) <= BOSS_BAR_PLAYER_RANGE_SQUARED);
         List<BlockPos> completionSpawners = knownOrScannedPreRaidSpawners(state.level, state.portalRaidState, state.origin);
         state.bossBar.removeAllPlayers();
@@ -626,6 +626,7 @@ public final class GoldRaidManager {
             ModAdvancementTriggers.trigger(ModAdvancementTriggers.RAID_COMPLETED, player);
             player.displayClientMessage(message, true);
         }
+        NetherDragonRituals.onPortalCompleted(state.level, state.origin);
     }
 
     private static int restoredWaveIndex(PortalRaidState.ActiveRaidSnapshot snapshot) {

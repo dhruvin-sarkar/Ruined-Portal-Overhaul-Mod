@@ -80,6 +80,22 @@ public final class NetherDragonRituals {
         });
     }
 
+    public static void onPortalCompleted(ServerLevel level, BlockPos portalOrigin) {
+        // Fix: crystals staged on the pedestals before raid completion never entered ritual state because the tracker only learned about completed portals after a later placement. Portal completion now reconciles any already-present crystals immediately and starts the summoning sequence if the full set is waiting.
+        if (!arePortalChunksLoaded(level, portalOrigin)) {
+            return;
+        }
+
+        PortalRaidState portalRaidState = PortalRaidState.get(level.getServer());
+        PortalRaidState.RitualProgress progress = portalRaidState.syncRitualCrystals(portalOrigin, findFilledPedestals(level, portalOrigin));
+        if (ModConfigManager.enableNetherDragon()
+            && progress.allFilled()
+            && !portalRaidState.isDragonActive(portalOrigin)
+            && !SUMMONING_SEQUENCES.containsKey(portalOrigin.asLong())) {
+            beginSummoning(level, portalOrigin);
+        }
+    }
+
     public static void onNetherDragonDeath(ServerLevel level, NetherDragonEntity dragon) {
         // Fix: rewards used to appear before the ritual collapse and ignored doMobLoot. The finale now shatters first, then only drops items when vanilla mob loot is enabled.
         BlockPos portalOrigin = dragon.portalOrigin();

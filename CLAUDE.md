@@ -172,6 +172,7 @@ Ritual conditions:
 - The portal must be completed/lit.
 - A Nether Crystal must be placed on top of each generated pedestal.
 - No dragon may already be active for that portal.
+- If the four crystals were staged before raid completion, the completion handoff now backfills ritual progress from the loaded pedestals immediately instead of waiting for an extra crystal placement after the raid.
 
 Summoning sequence:
 
@@ -324,6 +325,7 @@ Completion order:
 6. Disable any remaining known/scanned pre-raid spawner blocks without re-adding spawner positions to persistent state.
 7. Play completion fanfare.
 8. Grant players who are still within the 48-block boss-bar radius the raid-complete custom advancement trigger and action-bar feedback: `The tribute is over. The scar remains.`
+9. Reconcile any already-placed ritual crystals on the four pedestals so a pre-built offering can flow straight into the Nether Dragon summoning sequence.
 
 ## Persistence And Multiplayer
 
