@@ -77,6 +77,7 @@ public final class GoldRaidManager {
     private static final int ATMOSPHERE_PACKET_INTERVAL_TICKS = 20;
     private static final int AMBIENT_PARTICLE_INTERVAL_TICKS = 40;
     private static final int AMBIENT_SPAWN_INTERVAL_TICKS = 10;
+    private static final int COMPLETED_SPAWNER_RETRY_INTERVAL_TICKS = 100;
     private static final int BOSS_BAR_SYNC_INTERVAL_TICKS = 20;
     private static final int AMBIENT_BURST_MIN = 8;
     private static final int AMBIENT_BURST_RANDOM = 5;
@@ -225,6 +226,10 @@ public final class GoldRaidManager {
         PortalRaidState portalRaidState = PortalRaidState.get(level.getServer());
         restorePersistedRaids(level, portalRaidState);
 
+        if (gameTime % COMPLETED_SPAWNER_RETRY_INTERVAL_TICKS == 0) {
+            retryCompletedPortalSpawnerCleanup(level, portalRaidState);
+        }
+
         if (gameTime % ATMOSPHERE_PACKET_INTERVAL_TICKS == 0) {
             tickPortalZoneStormPayloads(level, portalRaidState);
         }
@@ -348,6 +353,27 @@ public final class GoldRaidManager {
                 level.setBlock(spawner, Blocks.AIR.defaultBlockState(), 3);
             }
         }
+    }
+
+    private static void retryCompletedPortalSpawnerCleanup(ServerLevel level, PortalRaidState portalRaidState) {
+        // Fix: post-raid spawner cleanup previously ran only once at completion, so far-edge structure chunks that were not loaded could keep spawning later. This throttled pass retries known completed-portal spawners whenever players are back near the scar.
+        for (BlockPos portalOrigin : portalRaidState.completedPortalOrigins()) {
+            List<BlockPos> spawners = portalRaidState.portalSpawners(portalOrigin);
+            if (spawners.isEmpty() || !hasPlayerNearPortal(level, portalOrigin, PortalStructureHelper.OUTER_RADIUS + 32)) {
+                continue;
+            }
+            disableSpawnerBlocks(level, spawners);
+        }
+    }
+
+    private static boolean hasPlayerNearPortal(ServerLevel level, BlockPos portalOrigin, int horizontalRadius) {
+        double radiusSqr = horizontalRadius * horizontalRadius;
+        for (ServerPlayer player : level.players()) {
+            if (horizontalDistanceSqr(player.blockPosition(), portalOrigin) <= radiusSqr) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static List<BlockPos> scanPreRaidSpawners(ServerLevel level, BlockPos origin) {
@@ -608,6 +634,9 @@ public final class GoldRaidManager {
         // Fix: completion side effects had drifted out of order, nearby players could miss the final trigger, and crystals staged before portal completion never joined the dragon ritual. The portal now keeps the required reward order, grants the completion handoff to the same participant footprint that stayed on the raid bar, and reconciles any waiting pedestal crystals after the completion scene finishes.
         List<ServerPlayer> nearbyPlayers = state.level.getPlayers(player -> horizontalDistanceSqr(player.blockPosition(), state.origin) <= BOSS_BAR_PLAYER_RANGE_SQUARED);
         List<BlockPos> completionSpawners = knownOrScannedPreRaidSpawners(state.level, state.portalRaidState, state.origin);
+        if (!completionSpawners.isEmpty()) {
+            state.portalRaidState.setPortalSpawners(state.origin, completionSpawners);
+        }
         state.bossBar.removeAllPlayers();
         state.trackedPlayers.clear();
         state.bossBar.setVisible(false);

@@ -309,10 +309,10 @@ public final class PortalRaidState extends SavedData {
     }
 
     public void markCompleted(BlockPos portalOrigin) {
+        // Fix: completion used to delete tracked spawner positions immediately, so unloaded spawners could survive the raid with no persisted list left to clean them later. Completed portals now keep their spawner list for post-completion retry cleanup.
         BlockPos origin = portalOrigin.immutable();
         this.clearActiveRaid(origin);
         boolean changed = this.completedPortals.add(origin);
-        changed |= this.portalSpawners.remove(origin) != null;
         if (changed) {
             this.setDirty();
         }
