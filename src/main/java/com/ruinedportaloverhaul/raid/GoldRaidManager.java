@@ -297,6 +297,7 @@ public final class GoldRaidManager {
                 continue;
             }
 
+            boolean hadPersistedWaveMobs = !snapshot.waveMobs().isEmpty();
             int waveIndex = restoredWaveIndex(snapshot);
             ServerBossEvent bossBar = new ServerBossEvent(
                 waveLabelComponent(waveIndex),
@@ -316,7 +317,7 @@ public final class GoldRaidManager {
             state.waveSize = Math.max(waveIndex >= 0 ? expectedWaveSize(level, waveIndex) : 0, state.activeMobs.size());
             if (snapshot.waveEndTimeTicks() > level.getGameTime()) {
                 state.delayTicks = (int) Math.min(Integer.MAX_VALUE, snapshot.waveEndTimeTicks() - level.getGameTime());
-            } else if (!state.activeMobs.isEmpty() && waveIndex >= 0) {
+            } else if ((hadPersistedWaveMobs || !state.activeMobs.isEmpty()) && waveIndex >= 0) {
                 state.delayTicks = ModConfigManager.interWaveDelayTicks();
             }
             ACTIVE_RAIDS.put(key, state);
