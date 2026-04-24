@@ -17,6 +17,14 @@ public final class ModDataComponents {
             .networkSynchronized(ByteBufCodecs.VAR_LONG)
             .build()
     );
+    public static final DataComponentType<Integer> NETHER_CONDUIT_LEVEL = Registry.register(
+        BuiltInRegistries.DATA_COMPONENT_TYPE,
+        Identifier.fromNamespaceAndPath(RuinedPortalOverhaul.MOD_ID, "nether_conduit_level"),
+        DataComponentType.<Integer>builder()
+            .persistent(Codec.INT)
+            .networkSynchronized(ByteBufCodecs.VAR_INT)
+            .build()
+    );
 
     private ModDataComponents() {
     }

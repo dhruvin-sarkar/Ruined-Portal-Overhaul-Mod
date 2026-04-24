@@ -1,11 +1,14 @@
 package com.ruinedportaloverhaul.block.entity;
 
 import com.ruinedportaloverhaul.block.NetherConduitBlock;
+import com.ruinedportaloverhaul.component.ModDataComponents;
 import com.ruinedportaloverhaul.damage.ModDamageTypes;
 import com.ruinedportaloverhaul.entity.ModEntities;
 import com.ruinedportaloverhaul.sound.ModSounds;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponentGetter;
+import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -106,6 +109,28 @@ public class NetherConduitBlockEntity extends BlockEntity implements GeoBlockEnt
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
         output.putInt(CONDUIT_LEVEL_TAG, this.conduitLevel);
+    }
+
+    @Override
+    protected void applyImplicitComponents(DataComponentGetter components) {
+        // Fix: upgraded conduit drops previously had no item component path, so placement could not restore the saved tier. Item components now hydrate the block entity when a carried conduit is placed.
+        super.applyImplicitComponents(components);
+        this.conduitLevel = Mth.clamp(components.getOrDefault(ModDataComponents.NETHER_CONDUIT_LEVEL, this.conduitLevel), 0, MAX_CONDUIT_LEVEL);
+    }
+
+    @Override
+    protected void collectImplicitComponents(DataComponentMap.Builder builder) {
+        // Fix: the conduit level only lived in block-entity NBT, which vanilla loot tables do not copy unless exposed as a component. Publish the level so the block drop and tooltip keep the upgrade state.
+        super.collectImplicitComponents(builder);
+        if (this.conduitLevel > 0) {
+            builder.set(ModDataComponents.NETHER_CONDUIT_LEVEL, this.conduitLevel);
+        }
+    }
+
+    @Override
+    public void removeComponentsFromTag(ValueOutput output) {
+        super.removeComponentsFromTag(output);
+        output.discard(CONDUIT_LEVEL_TAG);
     }
 
     @Override

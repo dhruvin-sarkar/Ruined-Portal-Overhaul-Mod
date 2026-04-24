@@ -1,0 +1,31 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "function": "minecraft:copy_components",
+              "include": [
+                "minecraft:custom_name",
+                "ruined_portal_overhaul:nether_conduit_level"
+              ],
+              "source": "block_entity"
+            }
+          ],
+          "name": "ruined_portal_overhaul:nether_conduit"
+        }
+      ],
+      "rolls": 1.0
+    }
+  ],
+  "random_sequence": "ruined_portal_overhaul:blocks/nether_conduit"
+}

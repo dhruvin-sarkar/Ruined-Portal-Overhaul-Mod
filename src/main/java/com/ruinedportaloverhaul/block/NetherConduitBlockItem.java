@@ -1,6 +1,7 @@
 package com.ruinedportaloverhaul.block;
 
 import com.ruinedportaloverhaul.block.entity.ModBlockEntities;
+import com.ruinedportaloverhaul.component.ModDataComponents;
 import com.ruinedportaloverhaul.item.TooltipClientState;
 import java.util.function.Consumer;
 import net.minecraft.ChatFormatting;
@@ -90,6 +91,11 @@ public class NetherConduitBlockItem extends BlockItem {
     }
 
     private static int getStoredConduitLevel(ItemStack stack) {
+        Integer componentLevel = stack.get(ModDataComponents.NETHER_CONDUIT_LEVEL);
+        if (componentLevel != null) {
+            return Math.max(0, Math.min(MAX_CONDUIT_LEVEL, componentLevel));
+        }
+
         TypedEntityData<BlockEntityType<?>> blockEntityData = stack.get(DataComponents.BLOCK_ENTITY_DATA);
         if (blockEntityData == null || blockEntityData.type() != ModBlockEntities.NETHER_CONDUIT || !blockEntityData.contains(CONDUIT_LEVEL_TAG)) {
             return 0;
