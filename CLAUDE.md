@@ -1,6 +1,6 @@
 # Ruined Portal Overhaul - Canonical Project Context
 
-Last reconciled: 2026-04-23. Current build status: `./gradlew build` succeeds with Java 21 when `JAVA_HOME` points at `C:\Users\dhruv\.codex\jdks\temurin-21`.
+Last reconciled: 2026-04-24. Current build status: `./gradlew build` succeeds with Java 21 when `JAVA_HOME` points at `C:\Users\dhruv\.codex\jdks\temurin-21`; JSON, language-key, sound-subtitle, and GeckoLib asset-reference static audits also pass.
 
 This file is the single source of truth for the project. `SPEC.md` is the concise companion and must stay aligned with this file.
 
@@ -335,6 +335,7 @@ Completion order:
 - Active wave mobs are stored as UUIDs, never direct entity references.
 - Active raids rehydrate from persistent state after server restart.
 - A saved `current_wave_number` of `0` is treated as the pre-wave-1 sentinel during restore, so a crash after raid activation but before the first wave mob UUIDs are written resumes at wave 1 instead of skipping ahead.
+- Restored raids preserve the configured inter-wave delay whenever saved wave UUIDs exist, even if those entities are not loaded by the time the runtime manager rebuilds its in-memory view, so restarting between waves cannot instantly dump the next wave on returning players.
 - Active raids pause mob-death evaluation while the portal area is not entity-ticking, so unloaded mobs are not counted as dead.
 - Boss bars track all players horizontally within 48 blocks of the active portal and remove players who leave range or disconnect.
 - Ritual state persists as portal-origin to filled-pedestal sets. Dragon activity is stored separately so placing replacement crystals cannot start duplicate fights while a dragon is active. Exiled Piglin lifetime still lives on the entity NBT for actual despawn behavior, while `PortalRaidState` now mirrors the spawn game time for portal-owned audit and recovery hooks.
@@ -354,7 +355,7 @@ The red storm is a client-side visual/audio system driven by server proximity pa
 - `SkyRendererMixin` tints the sky toward a dark red storm color and dims rain brightness.
 - `FogRendererMixin` tints fog red and tightens fog distance, especially underground.
 - Red thunder is generated on a client-side storm timer that is roughly twice as frequent as the earlier storm pass. Thunder uses a 2-3 tick deep-red HUD flash and now routes all layered thunder accents through `ModSounds`, so packs can replace the storm stack without touching logic. It does not rely on real world weather.
-- Storm music starts when storm intensity rises through the custom `weather.red_storm.music` event and is stopped when the player leaves the zone or the portal is completed. Completed portal packets carry a `completed` flag so the red weather remains while combat music and territory boon effects stop.
+- Storm music starts when storm intensity rises through the custom `weather.red_storm.music` event and is stopped when the player leaves the zone, the portal is completed, or the client world/player unloads. Completed portal packets carry a `completed` flag so the red weather remains while combat music and territory boon effects stop.
 - Custom mob voices use mod-owned sound ids plus explicit volume and pitch overrides, avoiding inherited pillager/illager identity audio while keeping resource-pack replacement simple.
 - `assets/ruined_portal_overhaul/sounds.json` maps every custom sound id to vanilla fallback sound events with `"type": "event"`, so the mod has audible defaults without bundling `.ogg` files and resource packs can still replace each id cleanly.
 

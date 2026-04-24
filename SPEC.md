@@ -56,6 +56,7 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
    - Client overlay is about 15-20% stronger than the previous storm pass.
    - Red thunder is roughly twice as frequent and uses a brief 2-3 tick deep-red HUD flash instead of the vanilla white sky flash.
    - Sky, rain, weather state, and fog are handled through client mixins; `ClientLevelStormMixin` only affects real `ClientLevel` instances so fake storm weather does not leak into integrated-server logic, and fog is tighter underground through descent-scaled intensity.
+   - Storm music stops on zone exit, completion, or client world/player unload so combat music cannot leak across disconnects or dimension swaps.
 8. Territory Boon
    - While a portal is incomplete, players horizontally inside its radius-136 territory receive Regeneration II, Resistance I, Fire Resistance I, and Absorption IV every 20 ticks with a 260-tick duration.
    - The boon uses the same horizontal zone logic as the atmosphere, so it works on the surface, in the pit, and throughout the caves.
@@ -115,7 +116,7 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
 2. Raid trigger starts wave 1, grants `No Tribute Required`, deletes pre-raid spawners, and shows the raid title.
 3. Active mobs are tracked by UUID and persisted through `PortalRaidState`.
 4. Runtime portal discovery also persists the discovered structure variant through `PortalRaidState` without mutating save data during chunk generation.
-5. Active raids rehydrate after server restart and pause mob-death evaluation while the portal area is not entity-ticking.
+5. Active raids rehydrate after server restart, preserve inter-wave pacing when saved wave UUIDs exist, and pause mob-death evaluation while the portal area is not entity-ticking.
 6. Wave completion advances through five boss-bar waves.
 7. Final completion hides and clears the boss bar, lights the portal, spawns the boss chest, summons the Exiled Piglin, marks the portal complete, disables any remaining spawner blocks, then plays completion effects, grants nearby players the raid-complete trigger, and reconciles any ritual crystals that were already staged on the pedestals.
 
@@ -133,6 +134,7 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
 
 - `./gradlew.bat build` succeeds with Java 21 when `JAVA_HOME` points at `C:\Users\dhruv\.codex\jdks\temurin-21`.
 - JSON data files in resources parse successfully.
+- Language keys, sound subtitles, registered sound ids, and GeckoLib asset references pass static audits.
 
 ## Remaining Work
 
