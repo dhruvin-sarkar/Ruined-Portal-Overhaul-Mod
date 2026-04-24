@@ -169,9 +169,13 @@ public final class PortalAtmosphereClient {
     }
 
     private static void updateStormMusic() {
-        // Fix: music needed to stop when the storm is disabled live, not only when packets taper out on their own.
+        // Fix: music needed to stop when the storm is disabled live or the client world unloads,
+        // not only when packets taper out on their own.
         Minecraft client = Minecraft.getInstance();
         if (client.level == null || client.player == null) {
+            if (musicPlaying) {
+                client.getMusicManager().stopPlaying(RED_STORM_MUSIC);
+            }
             musicPlaying = false;
             return;
         }
