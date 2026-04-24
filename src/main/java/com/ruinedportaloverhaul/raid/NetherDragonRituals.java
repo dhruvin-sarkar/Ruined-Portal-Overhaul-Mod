@@ -43,6 +43,8 @@ public final class NetherDragonRituals {
     private static final double BOSS_BAR_RANGE_SQUARED = 96.0 * 96.0;
     private static final int TITLE_TICK = 40;
     private static final int SPAWN_TICK = 80;
+    private static final int RITUAL_RECONCILE_INTERVAL_TICKS = 20;
+    private static final int BOSS_BAR_PLAYER_SYNC_INTERVAL_TICKS = 20;
 
     private static final Map<Long, SummoningSequence> SUMMONING_SEQUENCES = new HashMap<>();
     private static final Map<UUID, ServerBossEvent> BOSS_BARS = new HashMap<>();
@@ -129,9 +131,13 @@ public final class NetherDragonRituals {
     }
 
     private static void tick(MinecraftServer server) {
-        reconcilePortalState(server);
+        // Fix: ritual recovery and dragon boss-bar membership were doing portal/chunk/entity scans every server tick. Recovery now runs once per second while summoning timing and boss-bar progress stay tick-responsive.
+        long gameTime = server.overworld().getGameTime();
+        if (gameTime % RITUAL_RECONCILE_INTERVAL_TICKS == 0) {
+            reconcilePortalState(server);
+        }
         tickSummoningSequences();
-        tickBossBars(server);
+        tickBossBars(server, gameTime);
     }
 
     private static void reconcilePortalState(MinecraftServer server) {
@@ -190,9 +196,10 @@ public final class NetherDragonRituals {
         }
     }
 
-    private static void tickBossBars(MinecraftServer server) {
-        // Fix: dragon boss bars used vertical-aware distance, so players fighting from the pit or cave stack could drop off the bar despite staying inside the portal arena. Each tick now rebuilds the viewer set from horizontal portal distance and still removes every player not currently eligible.
+    private static void tickBossBars(MinecraftServer server, long gameTime) {
+        // Fix: dragon boss bars used vertical-aware distance and rebuilt viewer sets every tick. Progress/name still update every tick, but player membership now syncs on the same 20-tick cadence as raid boss bars using horizontal portal distance.
         Iterator<Map.Entry<UUID, ServerBossEvent>> iterator = BOSS_BARS.entrySet().iterator();
+        boolean syncPlayers = gameTime % BOSS_BAR_PLAYER_SYNC_INTERVAL_TICKS == 0;
         while (iterator.hasNext()) {
             Map.Entry<UUID, ServerBossEvent> entry = iterator.next();
             ServerBossEvent bossBar = entry.getValue();
@@ -206,6 +213,9 @@ public final class NetherDragonRituals {
 
             bossBar.setName(dragon.bossBarTitle());
             bossBar.setProgress(Math.max(0.0f, dragon.getHealth() / dragon.getMaxHealth()));
+            if (!syncPlayers) {
+                continue;
+            }
             ServerLevel dragonLevel = (ServerLevel) dragon.level();
             Set<ServerPlayer> inRangePlayers = new HashSet<>();
             for (ServerPlayer player : dragonLevel.players()) {
