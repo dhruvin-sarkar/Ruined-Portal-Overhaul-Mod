@@ -173,6 +173,7 @@ Ritual conditions:
 - A Nether Crystal must be placed on top of each generated pedestal.
 - No dragon may already be active for that portal.
 - If the four crystals were staged before raid completion, the completion handoff now backfills ritual progress from the loaded pedestals immediately instead of waiting for an extra crystal placement after the raid.
+- If the Nether Dragon config toggle is disabled, completed ritual pedestals reject new crystal placements and show action-bar feedback instead of consuming the offering for a boss that cannot spawn.
 
 Summoning sequence:
 

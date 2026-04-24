@@ -1,7 +1,9 @@
 package com.ruinedportaloverhaul.item;
 
+import com.ruinedportaloverhaul.config.ModConfigManager;
 import com.ruinedportaloverhaul.entity.NetherCrystalEntity;
 import com.ruinedportaloverhaul.raid.NetherDragonRituals;
+import com.ruinedportaloverhaul.raid.PortalRaidState;
 import com.ruinedportaloverhaul.sound.ModSounds;
 import java.util.function.Consumer;
 import net.minecraft.core.BlockPos;
@@ -46,7 +48,7 @@ public class NetherCrystalItem extends Item {
 
     @Override
     public InteractionResult useOn(UseOnContext context) {
-        // Fix: crystal placement spawned server-side but still shrank the stack on both logical sides. Consumption now happens only on the server and respects creative mode.
+        // Fix: ritual crystals used to consume on both logical sides and still let players waste them on completed pedestals while the dragon feature was disabled. Placement now stays server-authoritative, respects creative mode, and refuses disabled ritual anchors with feedback instead of silently eating the offering.
         Level level = context.getLevel();
         BlockPos basePos = context.getClickedPos();
         BlockState baseState = level.getBlockState(basePos);
@@ -68,6 +70,17 @@ public class NetherCrystalItem extends Item {
         }
 
         if (level instanceof ServerLevel serverLevel) {
+            if (!ModConfigManager.enableNetherDragon()
+                && PortalRaidState.get(serverLevel.getServer()).completedPortalForPedestal(basePos).isPresent()) {
+                if (context.getPlayer() != null) {
+                    context.getPlayer().displayClientMessage(
+                        Component.translatable("message.ruined_portal_overhaul.ritual.disabled").withStyle(ChatFormatting.DARK_RED),
+                        true
+                    );
+                }
+                return InteractionResult.FAIL;
+            }
+
             NetherCrystalEntity crystal = new NetherCrystalEntity(serverLevel, x + 0.5, y, z + 0.5);
             crystal.setShowBottom(false);
             serverLevel.addFreshEntity(crystal);

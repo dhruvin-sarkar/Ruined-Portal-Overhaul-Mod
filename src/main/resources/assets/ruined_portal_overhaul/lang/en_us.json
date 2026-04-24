@@ -129,6 +129,7 @@
   "message.ruined_portal_overhaul.raid.next_wave": "Next wave in %ss",
   "message.ruined_portal_overhaul.raid.complete": "The tribute is over. The scar remains.",
   "message.ruined_portal_overhaul.raid.totem": "The red air presses a totem into your hand.",
+  "message.ruined_portal_overhaul.ritual.disabled": "The ritual lies dormant. This world has sealed the Nether Dragon away.",
   "bossbar.ruined_portal_overhaul.nether_dragon": "The Nether Dragon",
   "bossbar.ruined_portal_overhaul.nether_dragon_enraged": "The Nether Dragon - Enraged",
   "bossbar.ruined_portal_overhaul.raid.wave_1": "The Red Storm Breaks",
