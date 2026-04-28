@@ -44,11 +44,12 @@ public final class ModItems {
             .setId(ResourceKey.create(Registries.ITEM, NETHER_CRYSTAL_ID))
             .fireResistant())
     );
-    public static final Item CORRUPTED_NETHERITE_INGOT = Registry.register(
+    public static final CorruptedNetheriteIngotItem CORRUPTED_NETHERITE_INGOT = Registry.register(
         BuiltInRegistries.ITEM,
         CORRUPTED_NETHERITE_INGOT_ID,
-        new Item(new Item.Properties()
+        new CorruptedNetheriteIngotItem(new Item.Properties()
             .setId(ResourceKey.create(Registries.ITEM, CORRUPTED_NETHERITE_INGOT_ID))
+            .component(DataComponents.CUSTOM_DATA, dragonInfusedIngotData())
             .fireResistant()
             .rarity(Rarity.EPIC))
     );
@@ -85,10 +86,10 @@ public final class ModItems {
             .fireResistant()
             .rarity(Rarity.EPIC))
     );
-    public static final Item MUSIC_DISC_NETHER_TIDE = Registry.register(
+    public static final NetherTideDiscItem MUSIC_DISC_NETHER_TIDE = Registry.register(
         BuiltInRegistries.ITEM,
         MUSIC_DISC_NETHER_TIDE_ID,
-        new Item(new Item.Properties()
+        new NetherTideDiscItem(new Item.Properties()
             .setId(ResourceKey.create(Registries.ITEM, MUSIC_DISC_NETHER_TIDE_ID))
             .jukeboxPlayable(NETHER_TIDE_SONG_KEY)
             .stacksTo(1)
@@ -123,6 +124,12 @@ public final class ModItems {
     private static CustomData corruptedArmorData() {
         CompoundTag tag = new CompoundTag();
         tag.putBoolean(RuinedPortalOverhaul.MOD_ID + ":corrupted", true);
+        return CustomData.of(tag);
+    }
+
+    private static CustomData dragonInfusedIngotData() {
+        CompoundTag tag = new CompoundTag();
+        tag.putBoolean(RuinedPortalOverhaul.MOD_ID + ":dragon_infused", true);
         return CustomData.of(tag);
     }
 }

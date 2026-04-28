@@ -1,6 +1,7 @@
 package com.ruinedportaloverhaul.entity;
 
 import com.ruinedportaloverhaul.sound.ModSounds;
+import com.ruinedportaloverhaul.world.ModParticles;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -140,6 +141,7 @@ public class PiglinEvokerEntity extends Evoker implements GeoEntity, TextureVari
         float radius = 3.0f;
         this.triggerAnim(RuinedPortalGeoAnimations.ACTION_CONTROLLER, RuinedPortalGeoAnimations.ATTACK_CAST);
         serverLevel.playSound(null, this.blockPosition(), ModSounds.ENTITY_PIGLIN_EVOKER_CAST_SPELL, SoundSource.HOSTILE, 1.1f, 0.55f);
+        spawnCastingRunes(serverLevel);
         for (int i = 0; i < 10; i++) {
             double angle = Math.toRadians((360.0 / 10.0) * i);
             double x = center.x + Math.cos(angle) * radius;
@@ -155,6 +157,21 @@ public class PiglinEvokerEntity extends Evoker implements GeoEntity, TextureVari
                 false,
                 false
             );
+        }
+    }
+
+    private void spawnCastingRunes(ServerLevel serverLevel) {
+        Vec3 look = this.getLookAngle();
+        Vec3 side = new Vec3(-look.z, 0.0, look.x);
+        if (side.lengthSqr() < 0.001) {
+            side = new Vec3(1.0, 0.0, 0.0);
+        } else {
+            side = side.normalize();
+        }
+        Vec3 base = this.position().add(0.0, 1.35, 0.0).add(look.normalize().scale(0.35));
+        for (double offset : new double[] {-0.45, 0.45}) {
+            Vec3 hand = base.add(side.scale(offset));
+            serverLevel.sendParticles(ModParticles.CORRUPTION_RUNE, hand.x, hand.y, hand.z, 5, 0.08, 0.12, 0.08, 0.0);
         }
     }
 

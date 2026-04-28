@@ -9,6 +9,7 @@ import com.ruinedportaloverhaul.network.PortalAtmospherePayload;
 import com.ruinedportaloverhaul.sound.ModSounds;
 import com.ruinedportaloverhaul.structure.PortalDungeonPiece;
 import com.ruinedportaloverhaul.structure.PortalStructureHelper;
+import com.ruinedportaloverhaul.world.ModParticles;
 import com.ruinedportaloverhaul.world.ModStructures;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -823,7 +824,7 @@ public final class GoldRaidManager {
         if (interior != null) {
             for (BlockPos framePos : interior.frameBlocks()) {
                 level.sendParticles(
-                    ParticleTypes.PORTAL,
+                    ModParticles.NETHER_EMBER,
                     framePos.getX() + 0.5,
                     framePos.getY() + 0.5,
                     framePos.getZ() + 0.5,
@@ -838,10 +839,10 @@ public final class GoldRaidManager {
 
         int surfaceY = origin.getY() + 1;
         int radius = 15;
-        spawnParticle(level, ParticleTypes.FLAME, origin.getX() - radius + 0.5, surfaceY + 0.5, origin.getZ() - radius + 0.5, 1, 0.1, 0.1, 0.1, 0.01);
-        spawnParticle(level, ParticleTypes.FLAME, origin.getX() + radius + 0.5, surfaceY + 0.5, origin.getZ() - radius + 0.5, 1, 0.1, 0.1, 0.1, 0.01);
-        spawnParticle(level, ParticleTypes.FLAME, origin.getX() - radius + 0.5, surfaceY + 0.5, origin.getZ() + radius + 0.5, 1, 0.1, 0.1, 0.1, 0.01);
-        spawnParticle(level, ParticleTypes.FLAME, origin.getX() + radius + 0.5, surfaceY + 0.5, origin.getZ() + radius + 0.5, 1, 0.1, 0.1, 0.1, 0.01);
+        spawnParticle(level, ModParticles.NETHER_EMBER, origin.getX() - radius + 0.5, surfaceY + 0.5, origin.getZ() - radius + 0.5, 1, 0.1, 0.1, 0.1, 0.01);
+        spawnParticle(level, ModParticles.NETHER_EMBER, origin.getX() + radius + 0.5, surfaceY + 0.5, origin.getZ() - radius + 0.5, 1, 0.1, 0.1, 0.1, 0.01);
+        spawnParticle(level, ModParticles.NETHER_EMBER, origin.getX() - radius + 0.5, surfaceY + 0.5, origin.getZ() + radius + 0.5, 1, 0.1, 0.1, 0.1, 0.01);
+        spawnParticle(level, ModParticles.NETHER_EMBER, origin.getX() + radius + 0.5, surfaceY + 0.5, origin.getZ() + radius + 0.5, 1, 0.1, 0.1, 0.1, 0.01);
     }
 
     private static void tickPortalZoneNaturalSpawns(ServerLevel level, PortalRaidState portalRaidState, long gameTime) {
@@ -1189,7 +1190,7 @@ public final class GoldRaidManager {
     private static void playRaidStartEffects(ServerLevel level, BlockPos origin) {
         level.playSound(null, origin, ModSounds.RAID_START, SoundSource.HOSTILE, 1.5f, 1.0f);
         spawnRandomizedParticleBurst(level, origin, ParticleTypes.LARGE_SMOKE, 40, 3.0, 0.01);
-        spawnRandomizedParticleBurst(level, origin, ParticleTypes.FLAME, 20, 3.0, 0.01);
+        spawnRandomizedParticleBurst(level, origin, ModParticles.NETHER_EMBER, 24, 3.0, 0.01);
     }
 
     private static void broadcastRaidStartTitle(ServerLevel level, BlockPos origin) {

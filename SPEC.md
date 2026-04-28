@@ -1,4 +1,4 @@
-# Ruined Portal Overhaul - Implementation Spec v1.11
+# Ruined Portal Overhaul - Implementation Spec v1.12
 
 ## Source Of Truth
 
@@ -32,7 +32,7 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
    - The cave graph is denser than the first worm pass, with more nodes, more side branches, stronger cross-linking, and many cave-node treasure caches.
    - Deep caves bias toward blackstone/basalt, more lava runs, ceiling lava drips, larger rooms, and ghast-ready volume.
    - `StructureBlockPalette` adds weighted YUNG-style material variation for ritual floors, cache pads, deep walls, and room shells.
-   - Masterwork rooms now include a guaranteed Wither Shrine plus selected Gold Vault, Blaze Chamber, and hidden Ancient Vault templates wired into the deep chest/spawner flow.
+   - Masterwork rooms now include a guaranteed 7x7x5 Wither Shrine with four Wither Skeleton spawners, a Gold Vault with a 3x3 gold center, a Blaze Chamber with wall spawners and a fire pillar, and a hidden Ancient Vault with a false wall, lava, debris, and triple chest payoff.
 3. Runtime Portal-Zone Spawns
    - `GoldRaidManager` owns structure-local ambient spawns; global biome modifications remain only low-density lore hints.
    - Incomplete, inactive portal zones attempt natural-style spawns by distance/depth band.
@@ -54,6 +54,7 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
    - Raid starts horizontally within the configured trigger radius of an uncompleted, inactive generated portal. The built-in default is 24 blocks and is clamped to 12-48.
    - Horizontal X/Z checks are used for zone membership, so the storm and progression work inside the pit and caves below the frame.
 7. Red Storm And Audio
+   - `ModPackets` registers typed 1.21.11 play payloads in one common packet hub.
    - Server sends `PortalAtmospherePayload` every 20 ticks while a player is horizontally inside the portal zone.
    - Client overlay is about 15-20% stronger than the previous storm pass.
    - Red thunder is roughly twice as frequent and uses a brief 2-3 tick deep-red HUD flash instead of the vanilla white sky flash.
@@ -78,7 +79,7 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
    - Exactly one conduit is inserted directly into a generated structure chest, with additional rare drops from custom raid mobs.
 12. Ghast Tear Necklace
    - Native carried charm item with no external accessory dependency.
-   - While carried, it grants Speed II and Jump Boost II; the client keybind sends a server packet that spawns a cooldown-gated Small Fireball.
+   - While carried, it grants Speed II and Jump Boost II; the client keybind sends a typed server packet that is thread-wrapped, validates the carried necklace, alive/spectator state, and cooldown server-side, then silently drops invalid packets.
 13. Nether Crystal Ritual And Dragon
    - Nether Crystals place on netherite blocks or obsidian.
    - Four generated netherite pedestals around a completed portal track crystal placement in persistent raid state.
@@ -89,14 +90,17 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
 14. Masterwork Rewards And Discovery
    - The boss chest guarantees `ruined_portal_overhaul:portal_shard`, a server-side locator for the nearest uncompleted ruined portal with a 30-second component cooldown.
    - The Nether Dragon drops 1-2 Corrupted Netherite Ingots, has a 30% Nether Dragon Scale trophy roll, and performs the world's first Nether Tide disc roll at 15%.
+   - Corrupted Netherite Ingots carry `CUSTOM_DATA` marker `ruined_portal_overhaul:dragon_infused` and explain the smithing path in their tooltip.
    - Corrupted Netherite armor is made through smithing with Corrupted Netherite Ingot, matching vanilla netherite armor, and echo shard. Two pieces grant Fire Resistance, three add Resistance, and four add +4 armor toughness plus ember particles.
    - `music_disc_nether_tide` uses custom jukebox song metadata, vanilla placeholder audio, and emits nether ember particles from jukeboxes near completed portals.
 15. Optional Discovery Integrations
    - REI pages explain the Portal Shard, Corrupted Netherite, Nether Tide, Nether Star drops, Conduit, Crystal, and Necklace progression.
-   - Patchouli is suggested, not required. Corrupted Chronicle book data ships under `patchouli_books/corrupted_chronicle`, and the guide is injected into boss chest drops only when Patchouli is installed.
+   - Patchouli is suggested, not required. Corrupted Chronicle book data ships under `patchouli_books/corrupted_chronicle`, and the guide is injected into surface and boss chest drops only when Patchouli is installed.
 16. Custom Particles
    - `ModParticles` registers `nether_ember`, `corruption_rune`, and `dragon_blood`.
-   - `nether_ember` is used for armor and Nether Tide jukebox shimmer; `corruption_rune` is used for Portal Shard trails and ritual shatter effects; `dragon_blood` is reserved for later dragon hit polish.
+   - `nether_ember` is used for portal frame ambience, raid start cues, armor shimmer, Nether Tide jukebox shimmer, Ravager roar particles, and dragon phase/slam embers.
+   - `corruption_rune` is used for Portal Shard trails, ritual shatter effects, and Piglin Evoker casting particles.
+   - `dragon_blood` is emitted when the Nether Dragon takes damage during or entering phase two.
 
 ## Advancement Tree
 
@@ -158,7 +162,7 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
 2. Use `/locate structure minecraft:ruined_portal` across multiple seeds to confirm all three structure variants appear with readable transitions in-game.
 3. Replace generated entity and particle placeholder art with hand-polished art if a future visual pass has time.
 4. Add custom `.ogg` sounds only if a later asset pass wants unique audio; the current release uses vanilla sounds intentionally, including Nether Tide's placeholder disc audio.
-5. Wire `dragon_blood` into dragon damage events if the next visual polish pass wants stronger boss feedback.
+5. Replace the Nether Dragon Scale trophy with a real back-slot renderer only after a truthful Accessories-compatible `1.21.11` build exists and is verified in Lunar Client.
 
 ## Guardrails
 

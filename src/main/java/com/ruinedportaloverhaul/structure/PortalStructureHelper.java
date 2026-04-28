@@ -1088,7 +1088,7 @@ public final class PortalStructureHelper {
         CaveNode deepest = caveNodes.stream()
             .min((first, second) -> Integer.compare(first.center().getY(), second.center().getY()))
             .orElse(caveNodes.getFirst());
-        placeWitherShrine(level, pieceBox, chunkBox, deepest.center().offset(0, -deepest.height() + 2, 0), deepChests, tunnelSpawners, random);
+        placeWitherShrine(level, pieceBox, chunkBox, deepest.center().offset(0, -deepest.height() + 2, 0), deepChests, random);
 
         for (int i = 0; i < caveNodes.size(); i++) {
             CaveNode node = caveNodes.get(i);
@@ -1099,7 +1099,7 @@ public final class PortalStructureHelper {
             BlockPos roomCenter = node.center().offset(0, -Math.max(1, node.height() - 2), 0);
             switch ((i + node.band()) % 3) {
                 case 0 -> placeGoldVault(level, pieceBox, chunkBox, roomCenter, deepChests, random);
-                case 1 -> placeBlazeChamber(level, pieceBox, chunkBox, roomCenter, tunnelSpawners, random);
+                case 1 -> placeBlazeChamber(level, pieceBox, chunkBox, roomCenter, random);
                 default -> placeAncientVault(level, pieceBox, chunkBox, roomCenter, deepChests, random);
             }
         }
@@ -1111,20 +1111,35 @@ public final class PortalStructureHelper {
         BoundingBox chunkBox,
         BlockPos center,
         List<BlockPos> deepChests,
-        List<BlockPos> tunnelSpawners,
         RandomSource random
     ) {
-        carveRectRoom(level, pieceBox, chunkBox, center, 5, 4, 5, random);
-        for (int dx = -2; dx <= 2; dx++) {
-            set(level, pieceBox, chunkBox, center.offset(dx, 0, 0), StructureBlockPalette.ritualFloor(random));
-            set(level, pieceBox, chunkBox, center.offset(0, 0, dx), StructureBlockPalette.ritualFloor(random));
+        carveRectRoom(level, pieceBox, chunkBox, center, 3, 4, 3, random);
+        for (int dx = -3; dx <= 3; dx++) {
+            for (int dz = -3; dz <= 3; dz++) {
+                if (Math.abs(dx) <= 2 && Math.abs(dz) <= 2) {
+                    set(level, pieceBox, chunkBox, center.offset(dx, 0, dz), (Math.abs(dx) + Math.abs(dz)) % 2 == 0
+                        ? Blocks.SOUL_SAND.defaultBlockState()
+                        : Blocks.SOUL_SOIL.defaultBlockState());
+                }
+            }
+        }
+        for (Direction direction : Direction.Plane.HORIZONTAL) {
+            BlockPos inset = center.relative(direction, 3).above(2);
+            set(level, pieceBox, chunkBox, inset, Blocks.CHISELED_NETHER_BRICKS.defaultBlockState());
+            set(level, pieceBox, chunkBox, inset.relative(direction.getClockWise()), Blocks.CRACKED_NETHER_BRICKS.defaultBlockState());
+            set(level, pieceBox, chunkBox, inset.relative(direction.getCounterClockWise()), Blocks.CRACKED_NETHER_BRICKS.defaultBlockState());
         }
         set(level, pieceBox, chunkBox, center.above(), Blocks.SOUL_SAND.defaultBlockState());
-        set(level, pieceBox, chunkBox, center.above(2), Blocks.WITHER_SKELETON_SKULL.defaultBlockState());
-        set(level, pieceBox, chunkBox, center.offset(-3, 1, 3), Blocks.SOUL_LANTERN.defaultBlockState());
-        set(level, pieceBox, chunkBox, center.offset(3, 1, -3), Blocks.SOUL_LANTERN.defaultBlockState());
-        deepChests.add(center.offset(-3, 1, -3));
-        tunnelSpawners.add(center.offset(3, 1, 3));
+        set(level, pieceBox, chunkBox, center.above(2), Blocks.SOUL_SAND.defaultBlockState());
+        set(level, pieceBox, chunkBox, center.above(3), Blocks.WITHER_SKELETON_SKULL.defaultBlockState());
+        set(level, pieceBox, chunkBox, center.offset(-2, 1, 0), Blocks.SOUL_LANTERN.defaultBlockState());
+        set(level, pieceBox, chunkBox, center.offset(2, 1, 0), Blocks.SOUL_LANTERN.defaultBlockState());
+        deepChests.add(center.offset(0, 1, 2));
+        int[][] corners = {{-2, -2}, {2, -2}, {-2, 2}, {2, 2}};
+        for (int[] corner : corners) {
+            BlockPos spawner = center.offset(corner[0], 1, corner[1]);
+            placeConfiguredSpawner(level, pieceBox, chunkBox, spawner, EntityType.WITHER_SKELETON, 4, 8, 30, 80, 32, 24, false);
+        }
     }
 
     private static void placeGoldVault(
@@ -1135,17 +1150,20 @@ public final class PortalStructureHelper {
         List<BlockPos> deepChests,
         RandomSource random
     ) {
-        carveRectRoom(level, pieceBox, chunkBox, center, 4, 3, 4, random);
+        carveRectRoom(level, pieceBox, chunkBox, center, 3, 3, 3, random);
         for (int dx = -2; dx <= 2; dx++) {
             for (int dz = -2; dz <= 2; dz++) {
-                if (Math.abs(dx) == 2 || Math.abs(dz) == 2) {
-                    set(level, pieceBox, chunkBox, center.offset(dx, 0, dz), Blocks.GILDED_BLACKSTONE.defaultBlockState());
+                set(level, pieceBox, chunkBox, center.offset(dx, 0, dz), Math.abs(dx) <= 1 && Math.abs(dz) <= 1
+                    ? Blocks.GOLD_BLOCK.defaultBlockState()
+                    : Blocks.GILDED_BLACKSTONE.defaultBlockState());
+                if ((Math.abs(dx) == 2 || Math.abs(dz) == 2) && random.nextFloat() < 0.28f) {
+                    set(level, pieceBox, chunkBox, center.offset(dx, 2, dz), Blocks.NETHER_GOLD_ORE.defaultBlockState());
                 }
             }
         }
-        set(level, pieceBox, chunkBox, center.offset(0, 0, 0), Blocks.GOLD_BLOCK.defaultBlockState());
-        deepChests.add(center.offset(-1, 1, -1));
-        deepChests.add(center.offset(1, 1, 1));
+        set(level, pieceBox, chunkBox, center.offset(-1, 3, -3), Blocks.IRON_CHAIN.defaultBlockState());
+        set(level, pieceBox, chunkBox, center.offset(1, 3, -3), Blocks.IRON_CHAIN.defaultBlockState());
+        deepChests.add(center.offset(0, 1, 0));
     }
 
     private static void placeBlazeChamber(
@@ -1153,19 +1171,35 @@ public final class PortalStructureHelper {
         BoundingBox pieceBox,
         BoundingBox chunkBox,
         BlockPos center,
-        List<BlockPos> tunnelSpawners,
         RandomSource random
     ) {
         carveRectRoom(level, pieceBox, chunkBox, center, 4, 5, 4, random);
+        for (int dx = -3; dx <= 3; dx++) {
+            for (int dz = -3; dz <= 3; dz++) {
+                boolean edge = Math.abs(dx) == 3 || Math.abs(dz) == 3;
+                set(level, pieceBox, chunkBox, center.offset(dx, 0, dz), edge
+                    ? Blocks.MAGMA_BLOCK.defaultBlockState()
+                    : Blocks.SOUL_SOIL.defaultBlockState());
+            }
+        }
         for (int dx = -2; dx <= 2; dx++) {
             for (int dz = -2; dz <= 2; dz++) {
-                if (Math.abs(dx) + Math.abs(dz) <= 2) {
-                    set(level, pieceBox, chunkBox, center.offset(dx, 0, dz), Blocks.LAVA.defaultBlockState());
+                if (Math.abs(dx) + Math.abs(dz) == 2) {
+                    set(level, pieceBox, chunkBox, center.offset(dx, 0, dz), Blocks.BLACKSTONE.defaultBlockState());
                 }
             }
         }
-        set(level, pieceBox, chunkBox, center, Blocks.MAGMA_BLOCK.defaultBlockState());
-        tunnelSpawners.add(center.above());
+        for (int dy = 1; dy <= 3; dy++) {
+            set(level, pieceBox, chunkBox, center.above(dy), dy == 1 ? Blocks.SOUL_FIRE.defaultBlockState() : Blocks.FIRE.defaultBlockState());
+        }
+        int[][] glowstone = {{-3, -3}, {3, -3}, {-3, 3}, {3, 3}};
+        for (int[] cluster : glowstone) {
+            set(level, pieceBox, chunkBox, center.offset(cluster[0], 5, cluster[1]), Blocks.GLOWSTONE.defaultBlockState());
+        }
+        BlockPos firstSpawner = center.offset(-3, 2, 0);
+        BlockPos secondSpawner = center.offset(3, 2, 0);
+        placeConfiguredSpawner(level, pieceBox, chunkBox, firstSpawner, EntityType.BLAZE, 4, 8, 24, 68, 30, 24, false);
+        placeConfiguredSpawner(level, pieceBox, chunkBox, secondSpawner, EntityType.BLAZE, 4, 8, 24, 68, 30, 24, false);
     }
 
     private static void placeAncientVault(
@@ -1176,15 +1210,18 @@ public final class PortalStructureHelper {
         List<BlockPos> deepChests,
         RandomSource random
     ) {
-        carveRectRoom(level, pieceBox, chunkBox, center, 4, 3, 4, random);
+        carveRectRoom(level, pieceBox, chunkBox, center, 3, 3, 3, random);
         for (int dx = -2; dx <= 2; dx++) {
-            set(level, pieceBox, chunkBox, center.offset(dx, 1, -3), Blocks.NETHERRACK.defaultBlockState());
+            set(level, pieceBox, chunkBox, center.offset(dx, 1, -3), Blocks.CRACKED_POLISHED_BLACKSTONE_BRICKS.defaultBlockState());
+            set(level, pieceBox, chunkBox, center.offset(dx, 2, -3), Blocks.CRACKED_POLISHED_BLACKSTONE_BRICKS.defaultBlockState());
         }
         set(level, pieceBox, chunkBox, center.offset(0, 1, -3), Blocks.GRAVEL.defaultBlockState());
+        set(level, pieceBox, chunkBox, center.offset(0, 2, -3), Blocks.GRAVEL.defaultBlockState());
         for (int dx = -2; dx <= 2; dx += 2) {
             set(level, pieceBox, chunkBox, center.offset(dx, 1, 2), Blocks.ANCIENT_DEBRIS.defaultBlockState());
             deepChests.add(center.offset(dx, 1, 0));
         }
+        set(level, pieceBox, chunkBox, center.offset(2, 0, -2), Blocks.LAVA.defaultBlockState());
         deepChests.add(center.offset(0, 1, 1));
     }
 

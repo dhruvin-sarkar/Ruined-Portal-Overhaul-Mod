@@ -4,7 +4,6 @@ import com.ruinedportaloverhaul.advancement.ModAdvancementTriggers;
 import com.ruinedportaloverhaul.component.ModDataComponents;
 import com.ruinedportaloverhaul.item.GhastTearNecklaceItem;
 import com.ruinedportaloverhaul.sound.ModSounds;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
@@ -19,7 +18,6 @@ public final class NetherFireballHandler {
     }
 
     public static void handle(ServerPlayer player) {
-        // Fix: the handler previously trusted any C2S packet from a connected player, so dead/spectator players could still invoke the fireball. Packet handlers must never trust the client; reject non-alive or spectator players silently before touching state.
         if (!(player.level() instanceof ServerLevel serverLevel)) {
             return;
         }
@@ -29,7 +27,6 @@ public final class NetherFireballHandler {
 
         ItemStack stack = GhastTearNecklaceItem.findCarriedNecklace(player);
         if (stack.isEmpty()) {
-            player.displayClientMessage(Component.translatable("message.ruined_portal_overhaul.necklace.missing"), true);
             return;
         }
 
@@ -37,19 +34,15 @@ public final class NetherFireballHandler {
         long lastUse = stack.getOrDefault(ModDataComponents.LAST_NECKLACE_FIREBALL_TICK, Long.MIN_VALUE);
         long elapsed = now - lastUse;
         if (lastUse != Long.MIN_VALUE && elapsed < COOLDOWN_TICKS) {
-            long secondsRemaining = Math.max(1L, (COOLDOWN_TICKS - elapsed + 19L) / 20L);
-            player.displayClientMessage(Component.translatable("message.ruined_portal_overhaul.necklace.cooldown", secondsRemaining), true);
             return;
         }
 
         spawnFireball(serverLevel, player);
         stack.set(ModDataComponents.LAST_NECKLACE_FIREBALL_TICK, now);
         ModAdvancementTriggers.trigger(ModAdvancementTriggers.NETHER_FIREBALL_USED, player);
-        player.displayClientMessage(Component.translatable("message.ruined_portal_overhaul.necklace.fired"), true);
     }
 
     private static void spawnFireball(ServerLevel level, ServerPlayer player) {
-        // Fix: the necklace fireball effect previously used a raw ghast sound, which kept this player ability outside the mod sound registry. The launch cue now routes through a dedicated item sound id.
         Vec3 look = player.getLookAngle().normalize();
         Vec3 spawnPos = player.getEyePosition().add(look.scale(1.2));
         SmallFireball fireball = new SmallFireball(level, player, look);

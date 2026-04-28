@@ -34,6 +34,10 @@ public final class ModLootEvents {
         Registries.LOOT_TABLE,
         Identifier.fromNamespaceAndPath(RuinedPortalOverhaul.MOD_ID, "chests/portal_boss_reward")
     );
+    private static final ResourceKey<LootTable> PORTAL_SURFACE = ResourceKey.create(
+        Registries.LOOT_TABLE,
+        Identifier.fromNamespaceAndPath(RuinedPortalOverhaul.MOD_ID, "chests/portal_surface")
+    );
 
     private ModLootEvents() {
     }
@@ -93,7 +97,7 @@ public final class ModLootEvents {
     }
 
     private static void addOptionalPatchouliGuide(Holder<LootTable> entry, List<ItemStack> drops) {
-        if (!entry.is(PORTAL_BOSS_REWARD) || !FabricLoader.getInstance().isModLoaded("patchouli")) {
+        if ((!entry.is(PORTAL_BOSS_REWARD) && !entry.is(PORTAL_SURFACE)) || !FabricLoader.getInstance().isModLoaded("patchouli")) {
             return;
         }
 

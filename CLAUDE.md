@@ -45,7 +45,7 @@ src/main/java/com/ruinedportaloverhaul/entity/TextureVariantHelper.java
 src/main/java/com/ruinedportaloverhaul/entity/TextureVariantMob.java
 src/main/java/com/ruinedportaloverhaul/item/*.java
 src/main/java/com/ruinedportaloverhaul/mixin/LivingEntityLavaMovementMixin.java
-src/main/java/com/ruinedportaloverhaul/network/ModNetworking.java
+src/main/java/com/ruinedportaloverhaul/network/ModPackets.java
 src/main/java/com/ruinedportaloverhaul/network/PortalAtmospherePayload.java
 src/main/java/com/ruinedportaloverhaul/network/NetherFireballPayload.java
 src/main/java/com/ruinedportaloverhaul/network/NetherFireballHandler.java
@@ -157,7 +157,8 @@ The Ghast Tear Necklace is a native carried charm:
 - `GhastTearNecklaceEvents`: server tick hook that applies passive effects while carried and triggers the first-carry advancement.
 - `ModDataComponents`: registers `last_necklace_fireball_tick` as a persistent/networked long component on the carried stack.
 - `NetherFireballPayload`: empty C2S payload for the keybind ability.
-- `NetherFireballHandler`: server-side carried-stack lookup, cooldown check, fireball spawn, sound, stack component update, and advancement trigger.
+- `ModPackets`: central common packet hub. It registers typed 1.21.11 play payloads and wraps the fireball C2S receiver back onto the server executor before gameplay state changes.
+- `NetherFireballHandler`: server-side carried-stack lookup, alive/spectator validation, cooldown check, fireball spawn, sound, stack component update, and advancement trigger. Invalid C2S requests are silently dropped.
 - `NetherFireballKeybinds`: client keybind registration, default key `G`, sends the payload only when the server supports it.
 - `RuinedPortalOverhaulClient`: registers the keybind from the client initializer.
 
@@ -210,10 +211,11 @@ Recipes live in singular `data/ruined_portal_overhaul/recipe/`.
 ## Masterwork Rewards And Discovery
 
 - `ModItems` registers `corrupted_netherite_ingot`, four Corrupted Netherite armor pieces, `portal_shard`, `nether_dragon_scale`, and `music_disc_nether_tide`.
+- `CorruptedNetheriteIngotItem` carries `DataComponents.CUSTOM_DATA` key `ruined_portal_overhaul:dragon_infused` and tooltips the smithing path.
 - Corrupted Netherite armor uses vanilla netherite item/armor components plus both `ModDataComponents.CORRUPTED_NETHERITE` and `DataComponents.CUSTOM_DATA` key `ruined_portal_overhaul:corrupted`, so set detection is data-driven rather than tied to class identity alone.
 - `CorruptedNetheriteEvents` checks armor every 20 ticks. Two pieces grant Fire Resistance, three pieces add Resistance I, and four pieces add a transient +4 armor toughness modifier plus `nether_ember` shimmer particles.
 - `PortalShardItem` stores a 600-tick cooldown in `ModDataComponents.LAST_PORTAL_SHARD_USE_TICK`, searches `StructureTags.RUINED_PORTAL` server-side for the nearest uncompleted portal candidate within 10,000 blocks, shows an action-bar bearing/distance, and emits `corruption_rune` guide particles.
-- `music_disc_nether_tide` uses the `ruined_portal_overhaul:nether_tide` jukebox song JSON and `ModSounds.MUSIC_DISC_NETHER_TIDE`, mapped to vanilla `music_disc.13` as placeholder audio. Piglin Evokers have a separate 5% runtime drop chance. Jukeboxes playing the disc within 64 blocks of a completed portal emit `nether_ember` particles.
+- `music_disc_nether_tide` uses `NetherTideDiscItem`, the `ruined_portal_overhaul:nether_tide` jukebox song JSON, and `ModSounds.MUSIC_DISC_NETHER_TIDE`, mapped to vanilla `music_disc.13` as placeholder audio. Piglin Evokers have a separate 5% runtime drop chance. Jukeboxes playing the disc within 64 blocks of a completed portal emit `nether_ember` particles.
 - `Nether Dragon Scale` is intentionally a trophy item in this Lunar-compatible branch, not an Accessories back-slot renderer, until a verified Accessories release exists for 1.21.11.
 
 ## Custom Particles
@@ -221,14 +223,14 @@ Recipes live in singular `data/ruined_portal_overhaul/recipe/`.
 - `ModParticles` registers `nether_ember`, `corruption_rune`, and `dragon_blood` with `FabricParticleTypes.simple()`.
 - Client factories live in `client/particle/` and are registered from `RuinedPortalOverhaulClient`.
 - Particle sprite JSON lives under `assets/ruined_portal_overhaul/particles/`; `nether_ember.png` and `corruption_rune.png` are generated 8x8 placeholder sprites under `textures/particle/`.
-- Current uses: armor set shimmer and Nether Tide jukebox effects use `nether_ember`; Portal Shard trails and ritual pedestal shatter use `corruption_rune`; `dragon_blood` is registered for future dragon hit-effect wiring.
+- Current uses: portal frame ambience, raid start cues, armor set shimmer, Ravager roar cues, dragon phase/slam accents, and Nether Tide jukebox effects use `nether_ember`; Portal Shard trails, Evoker casting cues, and ritual pedestal shatter use `corruption_rune`; `dragon_blood` emits when the Nether Dragon takes damage during or entering phase two.
 
 ## Patchouli Guide Data
 
 - Patchouli remains optional and is listed under `suggests`, not `depends`.
 - The data-driven book lives at `data/ruined_portal_overhaul/patchouli_books/corrupted_chronicle/book.json`.
 - English categories/entries live under `assets/ruined_portal_overhaul/patchouli_books/corrupted_chronicle/en_us/`.
-- `ModLootEvents` adds a `patchouli:guide_book` with `patchouli:book = ruined_portal_overhaul:corrupted_chronicle` to boss chest drops only when Patchouli is actually loaded and the guide item exists.
+- `ModLootEvents` adds a `patchouli:guide_book` with `patchouli:book = ruined_portal_overhaul:corrupted_chronicle` to surface and boss chest drops only when Patchouli is actually loaded and the guide item exists. This keeps first-structure discovery useful without making Patchouli a hard dependency.
 
 ## Structure Generation
 
@@ -250,7 +252,7 @@ The generated piece uses a radius-136 surface footprint and a depth-45 undergrou
 - Underground pit: protected original-style ragged mouth, organic shaft, 12 lower lava seeps, mixed basalt/blackstone/netherrack/soul-soil rim rubble, and Nether material conversion around carved space.
 - Primary chamber: large blackstone/basalt/netherrack cavern with lava lake, vents, glowstone clusters, stalactites, and basalt/blackstone spikes.
 - Cave network: denser graph-based cave nodes connected by worm-carved organic tunnels. Each tunnel advances by a gradually blended noisy direction, varies radius from roughly 2-6 blocks with an independent smooth noise signal, drifts vertically, and creates side pockets. Deep nodes are larger and taller, including ghast-ready caverns with high ceilings, more blackstone/basalt material, lava runs, ceiling drips, glowstone pockets, and frequent underground cache pads.
-- Masterwork room templates: after cave graph connection, `PortalStructureHelper` places a guaranteed Wither Shrine at the deepest node and additional Gold Vault, Blaze Chamber, or hidden Ancient Vault rooms at selected branch nodes. Their chest positions are added to the existing deep chest pipeline and their spawner anchors feed the same portal spawner placement flow.
+- Masterwork room templates: after cave graph connection, `PortalStructureHelper` places a guaranteed 7x7x5 Wither Shrine at the deepest node with soul terrain, a skull totem, deep loot, and four Wither Skeleton spawners. Selected branch nodes add Gold Vault, Blaze Chamber, or hidden Ancient Vault rooms with designed floors, false walls, embedded ore/debris, deep chest positions, and room-specific spawners.
 - Altar and caches: blackstone brick altar with crying obsidian focus, two altar `portal_deep` chests, plus many cave-node `portal_deep` caches distributed through shallow, middle, and deep branches.
 - Ritual pedestals: four `minecraft:netherite_block` pedestals are placed at ground level exactly 6 blocks north, south, east, and west of the portal center. These are generated by the structure and are the only canonical Nether Dragon ritual pedestals.
 - Nether Conduit guarantee: after structure chest placement, `NetherConduitChestPlacement` deterministically picks one generated deep chest and inserts exactly one Nether Conduit directly into that chest inventory/NBT. This is not loot-table driven and never waits for the post-raid boss chest.
@@ -433,7 +435,7 @@ Loot table files contain `_comment` fields documenting reward intent.
 - Nether Star entity drops: `ModLootEvents` adds runtime-configured killed-by-player Nether Star rolls after entity loot generation. Base odds remain Piglin Evoker 5%, Piglin Ravager 3%, and Piglin Illusioner 1%, multiplied by `ModConfigManager.netherStarDropRate()` so ModMenu/Cloth changes can reduce or boost the economy without editing data packs.
 - Nether Conduit entity drops: all seven custom combat mobs have a 2% killed-by-player chance.
 - Nether Tide entity drops: Piglin Evokers have a separate killed-by-player 5% runtime roll for `music_disc_nether_tide`.
-- Optional Patchouli boss reward: when Patchouli is loaded, the boss reward table receives the Corrupted Chronicle guide book from `ModLootEvents` without making Patchouli a hard dependency.
+- Optional Patchouli guide reward: when Patchouli is loaded, surface and boss reward tables receive the Corrupted Chronicle guide book from `ModLootEvents` without making Patchouli a hard dependency.
 
 ## Advancements
 
@@ -519,7 +521,7 @@ Structure rarity note:
 
 - Version: `1.0.0`
 - Author: `Dhruv Sarkar`
-- Description now covers the current release scope: Procedural Portal Dungeon, Gold Tribute Raid, Exiled Piglin Trader, GeckoLib animated/variant mobs, Nether Conduit, Ghast Tear Necklace, Nether Crystal ritual, Nether Dragon phase-two boss, optional ModMenu/Cloth Config, and optional REI progression info.
+- Description now covers the current release scope: Procedural Portal Dungeon, Gold Tribute Raid, Exiled Piglin Trader, GeckoLib animated/variant mobs, Nether Conduit, Ghast Tear Necklace, Nether Crystal ritual, Nether Dragon phase-two boss, Corrupted Netherite rewards, Portal Shard discovery, Nether Tide music, custom particles, optional ModMenu/Cloth Config, optional Patchouli, and optional REI progression info.
 - Sources: `https://github.com/dhruvin-sarkar/Ruined-Portal-Overhaul-Mod`
 - Issues: `https://github.com/dhruvin-sarkar/Ruined-Portal-Overhaul-Mod/issues`
 - Client entrypoint: `com.ruinedportaloverhaul.client.RuinedPortalOverhaulClient`
@@ -539,7 +541,7 @@ Structure rarity note:
 - Use `loot_table/`, not `loot_tables/`.
 - Do not import `net.minecraft.client.*` outside `com.ruinedportaloverhaul.client`.
 - Register common content from `RuinedPortalOverhaul.onInitialize()`.
-- Register common play payload types through `ModNetworking` before server code sends them.
+- Register common play payload types through `ModPackets` before server code sends them.
 - Register renderers, client packet receivers, HUD atmosphere, and client mixins only from client-side configuration.
 - Do not reintroduce Accessories until a matching `1.21.11` Accessories release has been verified in Lunar Client.
 - Necklace behavior is implemented through native carried-item scanning, not external accessory slots.
@@ -589,7 +591,7 @@ Structure rarity note:
 | Portal Shard boss locator item and cooldown component | COMPLETE |
 | Corrupted Netherite ingot, armor set, smithing recipes, and set bonuses | COMPLETE |
 | Nether Dragon Scale trophy item | COMPLETE |
-| Optional Patchouli Corrupted Chronicle data and boss-chest injection | COMPLETE |
+| Optional Patchouli Corrupted Chronicle data plus surface/boss chest injection | COMPLETE |
 | StructureBlockPalette and Masterwork underground room templates | COMPLETE |
 | Custom registered particles and generated placeholder sprites | COMPLETE |
 | Nether Tide music disc, drops, jukebox particle effect, and jukebox song metadata | COMPLETE |
@@ -602,7 +604,6 @@ Structure rarity note:
 
 - The entity textures and variant sheets are simple generated release art, not hand-painted final textures.
 - The mod registers custom sound events with vanilla fallback mappings rather than shipping bespoke `.ogg` assets. Nether Tide intentionally uses `minecraft:music_disc.13` as placeholder audio for resource-pack replacement.
-- `dragon_blood` is registered with a client particle factory but is not yet wired into dragon damage events; it is reserved for a later visual polish pass.
 - The storm renderer now uses client mixins for sky, fog, rain, and weather state. These hooks are version-sensitive and should be rechecked whenever updating Minecraft mappings.
 - A full interactive `runClient` survival smoke test still needs to be performed before final submission.
 

@@ -3,6 +3,7 @@ package com.ruinedportaloverhaul.entity;
 import com.ruinedportaloverhaul.network.DragonPhaseFlashPayload;
 import com.ruinedportaloverhaul.raid.NetherDragonRituals;
 import com.ruinedportaloverhaul.sound.ModSounds;
+import com.ruinedportaloverhaul.world.ModParticles;
 import java.util.Optional;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.ChatFormatting;
@@ -238,7 +239,12 @@ public class NetherDragonEntity extends EnderDragon implements GeoEntity {
 
     @Override
     public boolean hurt(ServerLevel level, EnderDragonPart part, DamageSource damageSource, float damage) {
-        return super.hurt(level, part, damageSource, damage);
+        float previousHealth = this.getHealth();
+        boolean damaged = super.hurt(level, part, damageSource, damage);
+        if (damaged && damage > 0.0f && (this.enraged || previousHealth <= PHASE_TWO_HEALTH_THRESHOLD || this.getHealth() <= PHASE_TWO_HEALTH_THRESHOLD)) {
+            spawnDragonBlood(level, part);
+        }
+        return damaged;
     }
 
     @Override
@@ -292,7 +298,7 @@ public class NetherDragonEntity extends EnderDragon implements GeoEntity {
         this.triggerAnim(ACTION_CONTROLLER, PHASE_TWO_TRANSITION);
         level.playSound(null, this.blockPosition(), ModSounds.ENTITY_NETHER_DRAGON_PHASE2, SoundSource.HOSTILE, 2.4f, 0.95f);
         level.playSound(null, this.blockPosition(), ModSounds.ENTITY_NETHER_DRAGON_GROWL, SoundSource.HOSTILE, 3.0f, 0.85f);
-        level.sendParticles(ParticleTypes.FLAME, this.getX(), this.getY() + 2.5, this.getZ(), 200, 7.5, 7.5, 7.5, 0.05);
+        level.sendParticles(ModParticles.NETHER_EMBER, this.getX(), this.getY() + 2.5, this.getZ(), 200, 7.5, 7.5, 7.5, 0.05);
         level.sendParticles(ParticleTypes.LARGE_SMOKE, this.getX(), this.getY() + 2.5, this.getZ(), 100, 7.5, 7.5, 7.5, 0.02);
 
         double maxDistanceSqr = PLAYER_EVENT_RANGE * PLAYER_EVENT_RANGE;
@@ -418,7 +424,7 @@ public class NetherDragonEntity extends EnderDragon implements GeoEntity {
         this.getPhaseManager().setPhase(EnderDragonPhase.HOLDING_PATTERN);
         this.triggerAnim(ACTION_CONTROLLER, NETHER_SLAM);
         level.playSound(null, this.blockPosition(), ModSounds.ENTITY_NETHER_DRAGON_PHASE2, SoundSource.HOSTILE, 1.5f, 0.75f);
-        level.sendParticles(ParticleTypes.FLAME, this.getX(), this.getY() + 2.0, this.getZ(), 30, 1.2, 0.8, 1.2, 0.03);
+        level.sendParticles(ModParticles.NETHER_EMBER, this.getX(), this.getY() + 2.0, this.getZ(), 30, 1.2, 0.8, 1.2, 0.03);
     }
 
     private void tickNetherSlam(ServerLevel level) {
@@ -471,9 +477,16 @@ public class NetherDragonEntity extends EnderDragon implements GeoEntity {
         }
 
         level.sendParticles(ParticleTypes.LAVA, impactCenter.x, impactCenter.y + 0.5, impactCenter.z, 20, 0.8, 0.2, 0.8, 0.01);
-        level.sendParticles(ParticleTypes.FLAME, impactCenter.x, impactCenter.y + 0.5, impactCenter.z, 30, 1.1, 0.4, 1.1, 0.02);
+        level.sendParticles(ModParticles.NETHER_EMBER, impactCenter.x, impactCenter.y + 0.5, impactCenter.z, 30, 1.1, 0.4, 1.1, 0.02);
         this.setDeltaMovement(Vec3.ZERO);
         this.getPhaseManager().setPhase(EnderDragonPhase.HOLDING_PATTERN);
+    }
+
+    private void spawnDragonBlood(ServerLevel level, EnderDragonPart part) {
+        double x = part == null ? this.getX() : part.getX();
+        double y = part == null ? this.getY() + 2.0 : part.getY() + 0.35;
+        double z = part == null ? this.getZ() : part.getZ();
+        level.sendParticles(ModParticles.DRAGON_BLOOD, x, y, z, 10, 0.35, 0.3, 0.35, 0.02);
     }
 
     private static double horizontalDistanceSqr(BlockPos first, BlockPos second) {

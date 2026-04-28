@@ -12,7 +12,7 @@ import com.ruinedportaloverhaul.advancement.ModAdvancementTriggers;
 import com.ruinedportaloverhaul.item.ModItems;
 import com.ruinedportaloverhaul.item.NetherTideJukeboxEvents;
 import com.ruinedportaloverhaul.loot.ModLootEvents;
-import com.ruinedportaloverhaul.network.ModNetworking;
+import com.ruinedportaloverhaul.network.ModPackets;
 import com.ruinedportaloverhaul.raid.GoldRaidManager;
 import com.ruinedportaloverhaul.raid.NetherDragonRituals;
 import com.ruinedportaloverhaul.sound.ModSounds;
@@ -47,7 +47,7 @@ public class RuinedPortalOverhaul implements ModInitializer {
         ModAdvancementTriggers.initialize();
         ModStructures.initialize();
         ModWorldGen.initialize();
-        ModNetworking.initialize();
+        ModPackets.register();
         NetherDragonRituals.initialize();
         GoldRaidManager.initialize();
     }
