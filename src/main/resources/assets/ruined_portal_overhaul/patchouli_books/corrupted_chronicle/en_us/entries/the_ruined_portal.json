@@ -1,0 +1,15 @@
+{
+  "name": "The Ruined Portal",
+  "icon": "minecraft:crying_obsidian",
+  "category": "ruined_portal_overhaul:the_corruption",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "A ruined portal is no longer a small ruin. The scar now reaches outward through terrain, caves, caches, storm color, and hostile response."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "The structure has three deterministic forms: the baseline throne, a sunken sanctum, and a basalt citadel. All routes lead down."
+    }
+  ]
+}

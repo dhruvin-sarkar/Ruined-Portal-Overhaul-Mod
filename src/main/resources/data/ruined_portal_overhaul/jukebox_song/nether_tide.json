@@ -1,0 +1,8 @@
+{
+  "comparator_output": 9,
+  "description": {
+    "translate": "jukebox_song.ruined_portal_overhaul.nether_tide"
+  },
+  "length_in_seconds": 178.0,
+  "sound_event": "ruined_portal_overhaul:music.disc.nether_tide"
+}

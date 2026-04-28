@@ -1,0 +1,15 @@
+{
+  "name": "Wave by Wave",
+  "icon": "minecraft:shield",
+  "category": "ruined_portal_overhaul:the_encounter",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "The early waves test positioning. The last waves add brutes, ravagers, illusioners, and evokers. Keep the portal ring visible and use terrain breaks."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Nether stars are rare mob drops: Evokers 5%, Ravagers 3%, and Illusioners 1%, all modified by the config drop-rate multiplier."
+    }
+  ]
+}

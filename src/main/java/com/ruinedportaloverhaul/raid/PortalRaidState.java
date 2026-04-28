@@ -29,6 +29,7 @@ public final class PortalRaidState extends SavedData {
     private static final String RITUAL_CRYSTALS_KEY = "ritual_crystals";
     private static final String ACTIVE_DRAGON_PORTALS_KEY = "active_dragon_portals";
     private static final String EXILED_PIGLIN_SPAWNS_KEY = "exiled_piglin_spawns";
+    private static final String NETHER_TIDE_DISC_ROLLED_KEY = "nether_tide_disc_rolled";
 
     public static final Codec<PortalRaidState> CODEC = RecordCodecBuilder.create(instance -> instance.group(
         BlockPos.CODEC.listOf()
@@ -54,7 +55,10 @@ public final class PortalRaidState extends SavedData {
             .forGetter(state -> new ArrayList<>(state.activeDragonPortals)),
         ExiledPiglinSpawnData.CODEC.listOf()
             .optionalFieldOf(EXILED_PIGLIN_SPAWNS_KEY, List.of())
-            .forGetter(PortalRaidState::snapshotExiledPiglinSpawns)
+            .forGetter(PortalRaidState::snapshotExiledPiglinSpawns),
+        Codec.BOOL
+            .optionalFieldOf(NETHER_TIDE_DISC_ROLLED_KEY, false)
+            .forGetter(state -> state.netherTideDiscRolled)
     ).apply(instance, PortalRaidState::new));
 
     private static final SavedDataType<PortalRaidState> TYPE = new SavedDataType<>(
@@ -75,6 +79,7 @@ public final class PortalRaidState extends SavedData {
     private final Map<BlockPos, Set<BlockPos>> ritualCrystals = new HashMap<>();
     private final Set<BlockPos> activeDragonPortals = new HashSet<>();
     private final Map<BlockPos, Long> exiledPiglinSpawnTimes = new HashMap<>();
+    private boolean netherTideDiscRolled;
 
     public PortalRaidState() {
     }
@@ -87,7 +92,8 @@ public final class PortalRaidState extends SavedData {
         List<PortalVariantData> portalVariants,
         List<RitualData> ritualCrystals,
         List<BlockPos> activeDragonPortals,
-        List<ExiledPiglinSpawnData> exiledPiglinSpawns
+        List<ExiledPiglinSpawnData> exiledPiglinSpawns,
+        boolean netherTideDiscRolled
     ) {
         this.completedPortals.addAll(completedPortals);
         this.activatedPortals.addAll(activatedPortals);
@@ -111,6 +117,7 @@ public final class PortalRaidState extends SavedData {
         for (ExiledPiglinSpawnData spawnData : exiledPiglinSpawns) {
             this.exiledPiglinSpawnTimes.put(spawnData.portalOrigin().immutable(), spawnData.spawnGameTime());
         }
+        this.netherTideDiscRolled = netherTideDiscRolled;
     }
 
     public static PortalRaidState get(MinecraftServer server) {
@@ -181,6 +188,15 @@ public final class PortalRaidState extends SavedData {
     public OptionalLong exiledPiglinSpawnTime(BlockPos portalOrigin) {
         Long spawnGameTime = this.exiledPiglinSpawnTimes.get(portalOrigin.immutable());
         return spawnGameTime == null ? OptionalLong.empty() : OptionalLong.of(spawnGameTime);
+    }
+
+    public boolean tryMarkNetherTideDiscRolled() {
+        if (this.netherTideDiscRolled) {
+            return false;
+        }
+        this.netherTideDiscRolled = true;
+        this.setDirty();
+        return true;
     }
 
     public Optional<BlockPos> completedPortalForPedestal(BlockPos pedestalPos) {

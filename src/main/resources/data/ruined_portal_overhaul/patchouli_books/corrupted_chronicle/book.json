@@ -1,0 +1,10 @@
+{
+  "name": "Corrupted Chronicle",
+  "landing_text": "A field guide to the scar around every ruined portal: the tribute raid, the deep caches, the Nether Conduit, and the dragon ritual waiting underneath.",
+  "book_texture": "patchouli:textures/gui/book_purple.png",
+  "model": "patchouli:book_purple",
+  "text_color": "000000",
+  "header_color": "5500aa",
+  "category_button_color": "880044",
+  "use_resource_pack": false
+}

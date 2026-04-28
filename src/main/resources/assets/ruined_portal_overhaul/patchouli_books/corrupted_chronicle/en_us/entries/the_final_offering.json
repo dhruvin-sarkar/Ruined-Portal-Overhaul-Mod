@@ -1,0 +1,11 @@
+{
+  "name": "The Final Offering",
+  "icon": "ruined_portal_overhaul:nether_crystal",
+  "category": "ruined_portal_overhaul:the_dragon",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Place Nether Crystals on all four portal pedestals after the raid is complete. The ritual state is persisted per portal."
+    }
+  ]
+}

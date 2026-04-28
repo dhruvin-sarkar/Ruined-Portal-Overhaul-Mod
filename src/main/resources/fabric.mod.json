@@ -48,6 +48,7 @@
 	"suggests": {
 		"cloth-config2": "*",
 		"modmenu": "*",
+		"patchouli": "*",
 		"roughlyenoughitems": "*",
 		"terralith": "*",
 		"biomesoplenty": "*",

@@ -52,6 +52,8 @@ public final class ModSounds {
     public static final SoundEvent ENTITY_NETHER_DRAGON_PHASE2 = register("entity.nether_dragon.phase2");
 
     public static final SoundEvent ITEM_GHAST_TEAR_NECKLACE_FIREBALL = register("item.ghast_tear_necklace.fireball");
+    public static final SoundEvent ITEM_PORTAL_SHARD_LOCATE = register("item.portal_shard.locate");
+    public static final SoundEvent MUSIC_DISC_NETHER_TIDE = register("music.disc.nether_tide");
 
     public static final SoundEvent RAID_APPROACH = register("raid.approach");
     public static final SoundEvent RAID_START = register("raid.start");

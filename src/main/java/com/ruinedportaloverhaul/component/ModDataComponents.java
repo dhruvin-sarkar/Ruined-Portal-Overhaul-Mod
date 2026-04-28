@@ -25,6 +25,22 @@ public final class ModDataComponents {
             .networkSynchronized(ByteBufCodecs.VAR_INT)
             .build()
     );
+    public static final DataComponentType<Long> LAST_PORTAL_SHARD_USE_TICK = Registry.register(
+        BuiltInRegistries.DATA_COMPONENT_TYPE,
+        Identifier.fromNamespaceAndPath(RuinedPortalOverhaul.MOD_ID, "last_portal_shard_use_tick"),
+        DataComponentType.<Long>builder()
+            .persistent(Codec.LONG)
+            .networkSynchronized(ByteBufCodecs.VAR_LONG)
+            .build()
+    );
+    public static final DataComponentType<Boolean> CORRUPTED_NETHERITE = Registry.register(
+        BuiltInRegistries.DATA_COMPONENT_TYPE,
+        Identifier.fromNamespaceAndPath(RuinedPortalOverhaul.MOD_ID, "corrupted_netherite"),
+        DataComponentType.<Boolean>builder()
+            .persistent(Codec.BOOL)
+            .networkSynchronized(ByteBufCodecs.BOOL)
+            .build()
+    );
 
     private ModDataComponents() {
     }

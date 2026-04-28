@@ -1,0 +1,7 @@
+{
+  "name": "The Dragon",
+  "description": "Ritual notes unlocked after the final offering.",
+  "icon": "ruined_portal_overhaul:nether_crystal",
+  "sortnum": 4,
+  "flag": "advancement:ruined_portal_overhaul:the_final_offering"
+}

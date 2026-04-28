@@ -1,0 +1,15 @@
+{
+  "name": "The Corrupted",
+  "icon": "ruined_portal_overhaul:nether_crystal",
+  "category": "ruined_portal_overhaul:the_corruption",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Piglin pillagers, vindicators, brutes, illusioners, evokers, ravagers, and vexes all use custom GeckoLib renderers and visual variants."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Their gear renders visibly and their drop tables feed the star economy required for conduits, crystals, and the final ritual."
+    }
+  ]
+}

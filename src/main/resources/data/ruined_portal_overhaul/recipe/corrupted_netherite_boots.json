@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:smithing_transform",
+  "addition": "minecraft:echo_shard",
+  "base": "minecraft:netherite_boots",
+  "result": {
+    "id": "ruined_portal_overhaul:corrupted_netherite_boots"
+  },
+  "template": "ruined_portal_overhaul:corrupted_netherite_ingot"
+}

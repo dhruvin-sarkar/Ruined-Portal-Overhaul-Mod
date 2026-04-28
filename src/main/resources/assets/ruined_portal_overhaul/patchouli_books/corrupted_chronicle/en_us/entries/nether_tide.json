@@ -1,0 +1,11 @@
+{
+  "name": "Nether Tide",
+  "icon": "ruined_portal_overhaul:music_disc_nether_tide",
+  "category": "ruined_portal_overhaul:the_rewards",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Nether Tide is a rare Evoker and dragon reward. A resource pack can replace the placeholder audio while keeping the disc infrastructure."
+    }
+  ]
+}

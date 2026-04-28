@@ -5,8 +5,10 @@ import com.ruinedportaloverhaul.advancement.PortalEventTrigger;
 import com.ruinedportaloverhaul.config.ModConfigManager;
 import com.ruinedportaloverhaul.entity.NetherDragonEntity;
 import com.ruinedportaloverhaul.entity.NetherCrystalEntity;
+import com.ruinedportaloverhaul.item.ModItems;
 import com.ruinedportaloverhaul.sound.ModSounds;
 import com.ruinedportaloverhaul.structure.PortalStructureHelper;
+import com.ruinedportaloverhaul.world.ModParticles;
 import java.util.HashSet;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -108,6 +110,14 @@ public final class NetherDragonRituals {
             // Fix: spawnAtLocation(dragon) dropped loot at the dragon's body position, which is ~5 blocks above the portal by end of the 60-tick death rise and often scattered outside the arena. Loot now lands at the pedestal ring so players fighting from the ritual floor can actually pick it up.
             dropRitualLoot(level, portalOrigin, new ItemStack(Items.NETHER_STAR, 2));
             dropRitualLoot(level, portalOrigin, new ItemStack(Items.ANCIENT_DEBRIS, 1 + level.getRandom().nextInt(3)));
+            dropRitualLoot(level, portalOrigin, new ItemStack(ModItems.CORRUPTED_NETHERITE_INGOT, 1 + level.getRandom().nextInt(2)));
+            if (level.getRandom().nextFloat() < 0.3f) {
+                dropRitualLoot(level, portalOrigin, new ItemStack(ModItems.NETHER_DRAGON_SCALE));
+            }
+            PortalRaidState portalRaidState = PortalRaidState.get(level.getServer());
+            if (portalRaidState.tryMarkNetherTideDiscRolled() && level.getRandom().nextFloat() < 0.15f) {
+                dropRitualLoot(level, portalOrigin, new ItemStack(ModItems.MUSIC_DISC_NETHER_TIDE));
+            }
         }
         triggerNearby(level, portalOrigin, ModAdvancementTriggers.NETHER_DRAGON_DEFEATED);
         PortalRaidState.get(level.getServer()).clearRitual(portalOrigin);
@@ -364,6 +374,7 @@ public final class NetherDragonRituals {
             level.setBlock(pedestal, Blocks.AIR.defaultBlockState(), 3);
             level.sendParticles(ParticleTypes.EXPLOSION, pedestal.getX() + 0.5, pedestal.getY() + 0.5, pedestal.getZ() + 0.5, 8, 0.35, 0.35, 0.35, 0.02);
             level.sendParticles(ParticleTypes.LARGE_SMOKE, pedestal.getX() + 0.5, pedestal.getY() + 0.5, pedestal.getZ() + 0.5, 12, 0.45, 0.45, 0.45, 0.01);
+            level.sendParticles(ModParticles.CORRUPTION_RUNE, pedestal.getX() + 0.5, pedestal.getY() + 1.0, pedestal.getZ() + 0.5, 10, 0.35, 0.35, 0.35, 0.02);
         }
         level.playSound(null, origin, ModSounds.RITUAL_PEDESTAL_SHATTER, SoundSource.BLOCKS, 1.4f, 0.7f);
     }

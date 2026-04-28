@@ -1,0 +1,11 @@
+{
+  "name": "Nether Dragon",
+  "icon": "minecraft:dragon_head",
+  "category": "ruined_portal_overhaul:the_dragon",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "The dragon fights in the overworld, cannot heal from crystals, enters an enraged phase, and drops ritual rewards at the portal ring."
+    }
+  ]
+}

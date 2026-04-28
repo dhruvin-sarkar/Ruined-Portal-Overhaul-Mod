@@ -1,0 +1,11 @@
+{
+  "name": "Red Storm",
+  "icon": "minecraft:redstone",
+  "category": "ruined_portal_overhaul:the_encounter",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Storm tint, fog, thunder, and music are server-authorized through the portal atmosphere packet. The client renders only the state the server sends."
+    }
+  ]
+}

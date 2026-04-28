@@ -1,0 +1,11 @@
+{
+  "name": "Nether Conduit",
+  "icon": "ruined_portal_overhaul:nether_conduit",
+  "category": "ruined_portal_overhaul:the_rewards",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Surround the Conduit with nether bricks to awaken it. Ancient debris upgrades it to level 2, expanding effects, strikes, and lava movement."
+    }
+  ]
+}

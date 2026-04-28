@@ -28,6 +28,9 @@ public final class ModREIPlugin implements REIClientPlugin {
         registry.add(netherCrystalDisplay());
         registry.add(ghastTearNecklaceDisplay());
         registry.add(netherStarDisplay());
+        registry.add(portalShardDisplay());
+        registry.add(corruptedNetheriteDisplay());
+        registry.add(netherTideDisplay());
     }
 
     private static DefaultInformationDisplay netherConduitDisplay() {
@@ -86,6 +89,45 @@ public final class ModREIPlugin implements REIClientPlugin {
                 text("rei.ruined_portal_overhaul.nether_star.line3"),
                 text("rei.ruined_portal_overhaul.nether_star.line4"),
                 text("rei.ruined_portal_overhaul.nether_star.line5")
+            ));
+    }
+
+    private static DefaultInformationDisplay portalShardDisplay() {
+        return DefaultInformationDisplay.createFromEntry(
+                EntryStacks.of(ModItems.PORTAL_SHARD),
+                text("rei.ruined_portal_overhaul.portal_shard.title"))
+            .lines(List.of(
+                text("rei.ruined_portal_overhaul.portal_shard.line1"),
+                text("rei.ruined_portal_overhaul.portal_shard.line2"),
+                text("rei.ruined_portal_overhaul.portal_shard.line3")
+            ));
+    }
+
+    private static DefaultInformationDisplay corruptedNetheriteDisplay() {
+        return DefaultInformationDisplay.createFromEntries(
+                EntryIngredients.ofItems(List.of(
+                    ModItems.CORRUPTED_NETHERITE_INGOT,
+                    ModItems.CORRUPTED_NETHERITE_CHESTPLATE,
+                    Items.NETHERITE_CHESTPLATE,
+                    Items.ECHO_SHARD
+                )),
+                text("rei.ruined_portal_overhaul.corrupted_netherite.title"))
+            .lines(List.of(
+                text("rei.ruined_portal_overhaul.corrupted_netherite.line1"),
+                text("rei.ruined_portal_overhaul.corrupted_netherite.line2"),
+                text("rei.ruined_portal_overhaul.corrupted_netherite.line3"),
+                text("rei.ruined_portal_overhaul.corrupted_netherite.line4")
+            ));
+    }
+
+    private static DefaultInformationDisplay netherTideDisplay() {
+        return DefaultInformationDisplay.createFromEntry(
+                EntryStacks.of(ModItems.MUSIC_DISC_NETHER_TIDE),
+                text("rei.ruined_portal_overhaul.nether_tide.title"))
+            .lines(List.of(
+                text("rei.ruined_portal_overhaul.nether_tide.line1"),
+                text("rei.ruined_portal_overhaul.nether_tide.line2"),
+                text("rei.ruined_portal_overhaul.nether_tide.line3")
             ));
     }
 

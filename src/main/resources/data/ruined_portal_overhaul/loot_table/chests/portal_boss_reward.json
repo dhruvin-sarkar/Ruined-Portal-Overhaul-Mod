@@ -283,38 +283,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "minecraft:echo_shard",
-          "functions": [
-            {
-              "function": "minecraft:set_name",
-              "name": {
-                "translate": "loot.ruined_portal_overhaul.artifact.shard_of_the_nether.name",
-                "italic": false,
-                "color": "gold"
-              }
-            },
-            {
-              "function": "minecraft:set_lore",
-              "mode": "replace_all",
-              "lore": [
-                {
-                  "translate": "loot.ruined_portal_overhaul.artifact.shard_of_the_nether.line1",
-                  "italic": false,
-                  "color": "gray"
-                },
-                {
-                  "translate": "loot.ruined_portal_overhaul.artifact.shard_of_the_nether.line2",
-                  "italic": false,
-                  "color": "dark_red"
-                },
-                {
-                  "translate": "loot.ruined_portal_overhaul.artifact.shard_of_the_nether.line3",
-                  "italic": false,
-                  "color": "dark_purple"
-                }
-              ]
-            }
-          ]
+          "name": "ruined_portal_overhaul:portal_shard"
         }
       ]
     }

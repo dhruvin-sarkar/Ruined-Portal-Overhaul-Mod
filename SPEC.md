@@ -1,4 +1,4 @@
-# Ruined Portal Overhaul - Implementation Spec v1.10
+# Ruined Portal Overhaul - Implementation Spec v1.11
 
 ## Source Of Truth
 
@@ -6,7 +6,7 @@
 
 ## Mod Description
 
-Ruined Portal Overhaul transforms every overworld ruined portal encounter into a Massive Portal Dungeon: a radius-136 corrupted scar with calm Nether-like surface undulation, grouped basalt formations, a protected pit hub, worm-carved corrupted caves, frequent underground caches, lava runs, red storm atmosphere, a territory aether boon, advancement progression, tiered loot, and a five-wave raid encounter.
+Ruined Portal Overhaul transforms every overworld ruined portal encounter into a Massive Portal Dungeon: a radius-136 corrupted scar with calm Nether-like surface undulation, grouped basalt formations, a protected pit hub, worm-carved corrupted caves, frequent underground caches, special underground rooms, lava runs, red storm atmosphere, a territory aether boon, advancement progression, tiered loot, and a five-wave raid encounter.
 
 Explorers who enter the approach zone feel the portal stir, receive the red-aether protective boon while inside the territory, and get one starter Totem of Undying per portal. Standing near the frame awakens five escalating waves of Piglin Illager variants with crossbows, axes, ravagers, evocation magic, boss-bar progress, inter-wave warnings, ring-based spawns, red thunder, server-side corruption atmosphere, and Hard-mode upgrades.
 
@@ -31,6 +31,8 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
    - Cave tunnels are worm-carved: gradual direction blending, radius variation from independent smooth noise, vertical drift, side pockets, and finite path lengths.
    - The cave graph is denser than the first worm pass, with more nodes, more side branches, stronger cross-linking, and many cave-node treasure caches.
    - Deep caves bias toward blackstone/basalt, more lava runs, ceiling lava drips, larger rooms, and ghast-ready volume.
+   - `StructureBlockPalette` adds weighted YUNG-style material variation for ritual floors, cache pads, deep walls, and room shells.
+   - Masterwork rooms now include a guaranteed Wither Shrine plus selected Gold Vault, Blaze Chamber, and hidden Ancient Vault templates wired into the deep chest/spawner flow.
 3. Runtime Portal-Zone Spawns
    - `GoldRaidManager` owns structure-local ambient spawns; global biome modifications remain only low-density lore hints.
    - Incomplete, inactive portal zones attempt natural-style spawns by distance/depth band.
@@ -64,8 +66,9 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
 9. Loot
    - `portal_surface`: 9-12 rolls with six surface prep chests, including stronger potion frequency, golden apples/carrots, emergency totems, enchanted gold gear, diamonds, and rare scrap.
    - `portal_deep`: 12-16 rolls with frequent underground caches, netherite scraps, ancient debris, templates, rare netherite ingots, diamond gear, totems, enchanted apples, Mending, Efficiency V, Sharpness V, Protection IV, Thorns III, and survival potions.
-   - `portal_boss_reward`: 16-20 rolls plus a two-roll high-weight totem/enchanted-golden-apple bonus pool and guaranteed `Shard of the Nether`; includes 1-2 netherite ingots and the weighted `Corrupted Portal Key`.
+   - `portal_boss_reward`: 16-20 rolls plus a two-roll high-weight totem/enchanted-golden-apple bonus pool, guaranteed Nether Star, guaranteed Portal Shard, and the weighted `Corrupted Portal Key`.
    - Custom combat mob drops are richer across the board, with more gold, food, ammunition, equipment, books, totems from high-threat mobs, and rare netherite/debris drops from deeper wave threats.
+   - Runtime loot hooks add config-scaled Nether Star drops, a 5% Piglin Evoker Nether Tide disc roll, and an optional Patchouli Corrupted Chronicle guide book when Patchouli is loaded.
 10. Advancements
    - Advancements live under `data/ruined_portal_overhaul/advancement/`.
    - Custom criteria live in `com.ruinedportaloverhaul.advancement`.
@@ -83,6 +86,17 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
    - When the Nether Dragon config toggle is disabled, completed ritual pedestals reject new crystal placements instead of consuming the offering for a boss that cannot spawn.
    - Completing the ritual summons the Nether Dragon, which suppresses End-only behavior, drops Nether rewards, and shatters the pedestals on death.
    - Ritual summon titles, dragon-progression triggers, boss-bar viewers, and the phase-two flash all use horizontal portal distance so players in the pit or cave stack remain included in the fight cues.
+14. Masterwork Rewards And Discovery
+   - The boss chest guarantees `ruined_portal_overhaul:portal_shard`, a server-side locator for the nearest uncompleted ruined portal with a 30-second component cooldown.
+   - The Nether Dragon drops 1-2 Corrupted Netherite Ingots, has a 30% Nether Dragon Scale trophy roll, and performs the world's first Nether Tide disc roll at 15%.
+   - Corrupted Netherite armor is made through smithing with Corrupted Netherite Ingot, matching vanilla netherite armor, and echo shard. Two pieces grant Fire Resistance, three add Resistance, and four add +4 armor toughness plus ember particles.
+   - `music_disc_nether_tide` uses custom jukebox song metadata, vanilla placeholder audio, and emits nether ember particles from jukeboxes near completed portals.
+15. Optional Discovery Integrations
+   - REI pages explain the Portal Shard, Corrupted Netherite, Nether Tide, Nether Star drops, Conduit, Crystal, and Necklace progression.
+   - Patchouli is suggested, not required. Corrupted Chronicle book data ships under `patchouli_books/corrupted_chronicle`, and the guide is injected into boss chest drops only when Patchouli is installed.
+16. Custom Particles
+   - `ModParticles` registers `nether_ember`, `corruption_rune`, and `dragon_blood`.
+   - `nether_ember` is used for armor and Nether Tide jukebox shimmer; `corruption_rune` is used for Portal Shard trails and ritual shatter effects; `dragon_blood` is reserved for later dragon hit polish.
 
 ## Advancement Tree
 
@@ -128,6 +142,7 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
 - Java `21`
 - Mojang mappings
 - Resource paths use modern singular names such as `loot_table/` and `advancement/`.
+- Optional suggested integrations now include Patchouli and Roughly Enough Items. Neither is a hard dependency.
 - Accessories is intentionally not required for the Lunar-compatible build. Re-verified Wisp Maven metadata still has no `1.21.11` Accessories build as of 2026-04-23, and the newest public `1.4.3-beta+1.21.10` jar still declares `"minecraft": "~1.21.10"` in its own `fabric.mod.json`, so the Ghast Tear Necklace stays implemented as a native carried item on this `1.21.11` branch.
 
 ## Validation
@@ -135,13 +150,15 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
 - `./gradlew.bat build` succeeds with Java 21 when `JAVA_HOME` points at `C:\Users\dhruv\.codex\jdks\temurin-21`.
 - JSON data files in resources parse successfully.
 - Language keys, sound subtitles, registered sound ids, and GeckoLib asset references pass static audits.
+- Latest verified build date: 2026-04-28.
 
 ## Remaining Work
 
 1. Run a full in-game `runClient` survival smoke test with log review.
 2. Use `/locate structure minecraft:ruined_portal` across multiple seeds to confirm all three structure variants appear with readable transitions in-game.
-3. Replace generated entity textures with hand-polished art if a future visual pass has time.
-4. Add custom `.ogg` sounds only if a later asset pass wants unique audio; the current release uses vanilla sounds intentionally.
+3. Replace generated entity and particle placeholder art with hand-polished art if a future visual pass has time.
+4. Add custom `.ogg` sounds only if a later asset pass wants unique audio; the current release uses vanilla sounds intentionally, including Nether Tide's placeholder disc audio.
+5. Wire `dragon_blood` into dragon damage events if the next visual polish pass wants stronger boss feedback.
 
 ## Guardrails
 

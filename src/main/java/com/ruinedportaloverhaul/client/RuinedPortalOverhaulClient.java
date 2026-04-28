@@ -2,6 +2,7 @@ package com.ruinedportaloverhaul.client;
 
 import com.ruinedportaloverhaul.block.entity.ModBlockEntities;
 import com.ruinedportaloverhaul.client.atmosphere.PortalAtmosphereClient;
+import com.ruinedportaloverhaul.client.particle.ModParticleFactories;
 import com.ruinedportaloverhaul.client.render.geo.ExiledPiglinGeoRenderer;
 import com.ruinedportaloverhaul.client.render.geo.NetherConduitGeoRenderer;
 import com.ruinedportaloverhaul.client.render.geo.NetherCrystalGeoRenderer;
@@ -24,6 +25,7 @@ public final class RuinedPortalOverhaulClient implements ClientModInitializer {
         // Fix: block animations were missing a block-entity renderer hookup, so the conduit could never use GeckoLib on the client even after the animatable logic existed. The client bootstrap now registers the conduit renderer beside the mob renderers.
         PortalAtmosphereClient.initialize();
         NetherFireballKeybinds.initialize();
+        ModParticleFactories.initialize();
         BlockEntityRenderers.register(
             ModBlockEntities.NETHER_CONDUIT,
             context -> new NetherConduitGeoRenderer<>()

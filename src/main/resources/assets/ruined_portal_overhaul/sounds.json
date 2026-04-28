@@ -377,6 +377,24 @@
       }
     ]
   },
+  "item.portal_shard.locate": {
+    "subtitle": "subtitle.ruined_portal_overhaul.item.portal_shard.locate",
+    "sounds": [
+      {
+        "name": "minecraft:entity.enderman.teleport",
+        "type": "event"
+      }
+    ]
+  },
+  "music.disc.nether_tide": {
+    "subtitle": "subtitle.ruined_portal_overhaul.music.disc.nether_tide",
+    "sounds": [
+      {
+        "name": "minecraft:music_disc.13",
+        "type": "event"
+      }
+    ]
+  },
   "raid.approach": {
     "subtitle": "subtitle.ruined_portal_overhaul.raid.approach",
     "sounds": [

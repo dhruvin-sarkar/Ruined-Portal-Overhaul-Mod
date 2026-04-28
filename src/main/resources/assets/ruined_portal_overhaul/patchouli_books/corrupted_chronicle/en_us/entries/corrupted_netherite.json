@@ -1,0 +1,15 @@
+{
+  "name": "Corrupted Netherite",
+  "icon": "ruined_portal_overhaul:corrupted_netherite_ingot",
+  "category": "ruined_portal_overhaul:the_rewards",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "The Nether Dragon drops Corrupted Netherite Ingots. Use smithing with netherite armor and echo shards to make the four-piece set."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Two pieces give Fire Resistance. Three add Resistance. Four add armor toughness and ember shimmer."
+    }
+  ]
+}

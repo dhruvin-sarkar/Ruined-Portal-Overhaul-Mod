@@ -1,0 +1,11 @@
+{
+  "name": "Dragon Rewards",
+  "icon": "ruined_portal_overhaul:nether_dragon_scale",
+  "category": "ruined_portal_overhaul:the_dragon",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Expected drops: 2 nether stars, 1-3 ancient debris, 1-2 Corrupted Netherite Ingots, a 30% scale roll, and the world's first Nether Tide roll."
+    }
+  ]
+}

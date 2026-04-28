@@ -1,0 +1,15 @@
+{
+  "name": "Deep Caches",
+  "icon": "minecraft:chest",
+  "category": "ruined_portal_overhaul:the_encounter",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "The caves hide frequent cache platforms and special rooms: a wither shrine, gold vaults, blaze chambers, and ancient vaults behind false walls."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Exactly one generated deep chest receives a Nether Conduit directly after chest placement."
+    }
+  ]
+}
