@@ -2,6 +2,7 @@
   "name": "Nether Dragon",
   "icon": "minecraft:dragon_head",
   "category": "ruined_portal_overhaul:the_dragon",
+  "advancement": "ruined_portal_overhaul:the_final_offering",
   "pages": [
     {
       "type": "patchouli:text",

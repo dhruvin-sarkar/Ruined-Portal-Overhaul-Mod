@@ -2,6 +2,7 @@
   "name": "The Final Offering",
   "icon": "ruined_portal_overhaul:nether_crystal",
   "category": "ruined_portal_overhaul:the_dragon",
+  "advancement": "ruined_portal_overhaul:the_final_offering",
   "pages": [
     {
       "type": "patchouli:text",

@@ -228,9 +228,10 @@ Recipes live in singular `data/ruined_portal_overhaul/recipe/`.
 ## Patchouli Guide Data
 
 - Patchouli remains optional and is listed under `suggests`, not `depends`.
-- The data-driven book lives at `data/ruined_portal_overhaul/patchouli_books/corrupted_chronicle/book.json`.
-- English categories/entries live under `assets/ruined_portal_overhaul/patchouli_books/corrupted_chronicle/en_us/`.
-- `ModLootEvents` adds a `patchouli:guide_book` with `patchouli:book = ruined_portal_overhaul:corrupted_chronicle` to surface and boss chest drops only when Patchouli is actually loaded and the guide item exists. This keeps first-structure discovery useful without making Patchouli a hard dependency.
+- The data-driven registration file lives at `data/ruined_portal_overhaul/patchouli_books/corrupted_chronicle/book.json` and sets `use_resource_pack: true`.
+- English categories/entries live under `assets/ruined_portal_overhaul/patchouli_books/corrupted_chronicle/en_us/`, matching Patchouli's resource-pack loading path.
+- Dragon-category entries are locked with the entry-level `advancement` field against `ruined_portal_overhaul:the_final_offering`; do not use `flag` for advancement gates.
+- `ModLootEvents` adds a Patchouli guide stack with `patchouli:book = ruined_portal_overhaul:corrupted_chronicle` to surface and boss chest drops only when Patchouli is actually loaded and a guide item exists. It checks `patchouli:guide_book` first and falls back to `patchouli:book`, keeping the optional integration tolerant of Patchouli item id drift without making Patchouli a hard dependency.
 
 ## Structure Generation
 

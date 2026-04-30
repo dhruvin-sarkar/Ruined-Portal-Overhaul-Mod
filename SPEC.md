@@ -95,7 +95,7 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
    - `music_disc_nether_tide` uses custom jukebox song metadata, vanilla placeholder audio, and emits nether ember particles from jukeboxes near completed portals.
 15. Optional Discovery Integrations
    - REI pages explain the Portal Shard, Corrupted Netherite, Nether Tide, Nether Star drops, Conduit, Crystal, and Necklace progression.
-   - Patchouli is suggested, not required. Corrupted Chronicle book data ships under `patchouli_books/corrupted_chronicle`, and the guide is injected into surface and boss chest drops only when Patchouli is installed.
+   - Patchouli is suggested, not required. Corrupted Chronicle registers through `data/ruined_portal_overhaul/patchouli_books/corrupted_chronicle/book.json`, loads its visible content from `assets/.../patchouli_books/corrupted_chronicle/en_us/` with `use_resource_pack: true`, and locks Dragon entries behind `ruined_portal_overhaul:the_final_offering`. The guide is injected into surface and boss chest drops only when Patchouli is installed and a compatible guide item id exists.
 16. Custom Particles
    - `ModParticles` registers `nether_ember`, `corruption_rune`, and `dragon_blood`.
    - `nether_ember` is used for portal frame ambience, raid start cues, armor shimmer, Nether Tide jukebox shimmer, Ravager roar particles, and dragon phase/slam embers.

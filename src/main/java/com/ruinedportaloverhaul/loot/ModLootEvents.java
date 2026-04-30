@@ -30,6 +30,9 @@ public final class ModLootEvents {
     private static final double RAVAGER_NETHER_STAR_CHANCE = 0.03;
     private static final double ILLUSIONER_NETHER_STAR_CHANCE = 0.01;
     private static final double EVOKER_NETHER_TIDE_DISC_CHANCE = 0.05;
+    private static final String CORRUPTED_CHRONICLE_BOOK_ID = RuinedPortalOverhaul.MOD_ID + ":corrupted_chronicle";
+    private static final Identifier PATCHOULI_GUIDE_BOOK_ID = Identifier.fromNamespaceAndPath("patchouli", "guide_book");
+    private static final Identifier PATCHOULI_BOOK_ID = Identifier.fromNamespaceAndPath("patchouli", "book");
     private static final ResourceKey<LootTable> PORTAL_BOSS_REWARD = ResourceKey.create(
         Registries.LOOT_TABLE,
         Identifier.fromNamespaceAndPath(RuinedPortalOverhaul.MOD_ID, "chests/portal_boss_reward")
@@ -101,16 +104,25 @@ public final class ModLootEvents {
             return;
         }
 
-        Identifier guideBookId = Identifier.fromNamespaceAndPath("patchouli", "guide_book");
-        if (!BuiltInRegistries.ITEM.containsKey(guideBookId)) {
+        Item guideBook = findPatchouliGuideBookItem();
+        if (guideBook == null) {
             return;
         }
 
-        Item guideBook = BuiltInRegistries.ITEM.getValue(guideBookId);
         ItemStack stack = new ItemStack(guideBook);
         CompoundTag tag = new CompoundTag();
-        tag.putString("patchouli:book", RuinedPortalOverhaul.MOD_ID + ":corrupted_chronicle");
+        tag.putString("patchouli:book", CORRUPTED_CHRONICLE_BOOK_ID);
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
         drops.add(stack);
+    }
+
+    private static Item findPatchouliGuideBookItem() {
+        if (BuiltInRegistries.ITEM.containsKey(PATCHOULI_GUIDE_BOOK_ID)) {
+            return BuiltInRegistries.ITEM.getValue(PATCHOULI_GUIDE_BOOK_ID);
+        }
+        if (BuiltInRegistries.ITEM.containsKey(PATCHOULI_BOOK_ID)) {
+            return BuiltInRegistries.ITEM.getValue(PATCHOULI_BOOK_ID);
+        }
+        return null;
     }
 }
