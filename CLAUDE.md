@@ -414,7 +414,7 @@ Incomplete portal territories now give players a protective red-aether boon whil
 
 | Entity ID | Class | Base | Behavior |
 |---|---|---|---|
-| `piglin_pillager` | `PiglinPillagerEntity` | Pillager | Fire immune, Quick Charge III crossbow with Piercing II or Multishot variation, 44 HP, 9.5 arrow damage |
+| `piglin_pillager` | `PiglinPillagerEntity` | Pillager | Fire immune, Quick Charge III crossbow with Piercing II or Multishot variation, crossbow loadouts kite away when players get inside 7 blocks, melee fallback runs only for sword/axe loadouts, 44 HP, 9.5 arrow damage |
 | `piglin_vindicator` | `PiglinVindicatorEntity` | Vindicator | Fire immune, golden axe/sword, guaranteed Sharpness III-V, chance of Fire Aspect and Knockback, successful melee hits trigger `attack.swing`, 58 HP, 16.5 attack |
 | `piglin_brute_pillager` | `PiglinBrutePillagerEntity` | Pillager | Fire immune, mostly melee golden axe/sword loadouts with Sharpness IV-V, rare Multishot + Quick Charge II crossbow variant, priority-2 close-range melee fallback for crossbow brutes so swimming/float movement remains unblocked, successful melee hits trigger `attack.swing`, 88 HP, 20 attack, 11 arrow damage |
 | `piglin_illusioner` | `PiglinIllusionerEntity` | Illusioner | Fire immune, Flame + Power III bow with Punch I variation, 54 HP, 8 arrow damage, and Nether combat sounds for arrows |

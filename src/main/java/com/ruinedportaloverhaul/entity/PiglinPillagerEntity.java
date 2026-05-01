@@ -1,5 +1,7 @@
 package com.ruinedportaloverhaul.entity;
 
+import com.ruinedportaloverhaul.sound.ModSounds;
+import java.util.EnumSet;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
@@ -16,6 +18,7 @@ import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
+import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.monster.illager.Pillager;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
@@ -31,7 +34,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
-import com.ruinedportaloverhaul.sound.ModSounds;
+import net.minecraft.world.phys.Vec3;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animatable.manager.AnimatableManager;
@@ -39,6 +42,8 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 public class PiglinPillagerEntity extends Pillager implements GeoEntity, TextureVariantMob {
     private static final float ARROW_DAMAGE = 9.5f;
+    private static final double KITE_START_RANGE_SQUARED = 7.0 * 7.0;
+    private static final double KITE_STOP_RANGE_SQUARED = 10.0 * 10.0;
     private static final int TEXTURE_VARIANT_COUNT = 3;
     private static final EntityDataAccessor<Integer> TEXTURE_VARIANT = SynchedEntityData.defineId(PiglinPillagerEntity.class, EntityDataSerializers.INT);
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
@@ -66,7 +71,8 @@ public class PiglinPillagerEntity extends Pillager implements GeoEntity, Texture
         // Fix: water/lava escape was inherited implicitly, so the custom raid mob now pins an explicit float goal at the requested top priority.
         super.registerGoals();
         this.goalSelector.addGoal(1, new FloatGoal(this));
-        this.goalSelector.addGoal(2, new MeleeAttackGoal(this, 1.08, false));
+        this.goalSelector.addGoal(2, new KiteCloseTargetGoal());
+        this.goalSelector.addGoal(3, new MeleeFallbackGoal());
     }
 
     @Override
@@ -175,6 +181,10 @@ public class PiglinPillagerEntity extends Pillager implements GeoEntity, Texture
         return RuinedPortalSwingAnimations.withHumanoidAttackTiming(weapon);
     }
 
+    private boolean isHoldingCrossbow() {
+        return this.getMainHandItem().is(Items.CROSSBOW);
+    }
+
     @Override
     public void performRangedAttack(LivingEntity target, float distanceFactor) {
         // Fix: ranged attack audio previously mixed raw vanilla sounds into an otherwise custom sound set. The shot cue now stays inside the mod registry so packs can replace encounter audio consistently.
@@ -183,6 +193,9 @@ public class PiglinPillagerEntity extends Pillager implements GeoEntity, Texture
         }
 
         ItemStack weapon = this.getMainHandItem();
+        if (!weapon.is(Items.CROSSBOW)) {
+            return;
+        }
         ItemStack ammo = new ItemStack(Items.ARROW);
         AbstractArrow arrow = ProjectileUtil.getMobArrow(this, ammo, distanceFactor, weapon);
         double dx = target.getX() - this.getX();
@@ -230,5 +243,60 @@ public class PiglinPillagerEntity extends Pillager implements GeoEntity, Texture
     @Override
     public int getTextureVariantCount() {
         return TEXTURE_VARIANT_COUNT;
+    }
+
+    private final class KiteCloseTargetGoal extends Goal {
+        private KiteCloseTargetGoal() {
+            this.setFlags(EnumSet.of(Goal.Flag.MOVE));
+        }
+
+        @Override
+        public boolean canUse() {
+            LivingEntity target = PiglinPillagerEntity.this.getTarget();
+            return PiglinPillagerEntity.this.isHoldingCrossbow()
+                && target != null
+                && target.isAlive()
+                && PiglinPillagerEntity.this.distanceToSqr(target) <= KITE_START_RANGE_SQUARED;
+        }
+
+        @Override
+        public boolean canContinueToUse() {
+            LivingEntity target = PiglinPillagerEntity.this.getTarget();
+            return PiglinPillagerEntity.this.isHoldingCrossbow()
+                && target != null
+                && target.isAlive()
+                && PiglinPillagerEntity.this.distanceToSqr(target) < KITE_STOP_RANGE_SQUARED;
+        }
+
+        @Override
+        public void tick() {
+            LivingEntity target = PiglinPillagerEntity.this.getTarget();
+            if (target == null) {
+                return;
+            }
+
+            Vec3 away = PiglinPillagerEntity.this.position().subtract(target.position());
+            if (away.lengthSqr() < 0.001) {
+                away = PiglinPillagerEntity.this.getLookAngle().scale(-1.0);
+            }
+            Vec3 retreat = PiglinPillagerEntity.this.position().add(away.normalize().scale(4.0));
+            PiglinPillagerEntity.this.getNavigation().moveTo(retreat.x, retreat.y, retreat.z, 1.18);
+        }
+    }
+
+    private final class MeleeFallbackGoal extends MeleeAttackGoal {
+        private MeleeFallbackGoal() {
+            super(PiglinPillagerEntity.this, 1.08, false);
+        }
+
+        @Override
+        public boolean canUse() {
+            return !PiglinPillagerEntity.this.isHoldingCrossbow() && super.canUse();
+        }
+
+        @Override
+        public boolean canContinueToUse() {
+            return !PiglinPillagerEntity.this.isHoldingCrossbow() && super.canContinueToUse();
+        }
     }
 }
