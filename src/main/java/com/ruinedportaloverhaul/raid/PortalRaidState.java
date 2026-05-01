@@ -213,10 +213,14 @@ public final class PortalRaidState extends SavedData {
         BlockPos origin = portalOrigin.immutable();
         BlockPos pedestal = pedestalPos.immutable();
         List<BlockPos> expectedPedestals = PortalStructureHelper.ritualPedestalPositions(origin);
-        Set<BlockPos> filledPedestals = this.ritualCrystals.computeIfAbsent(origin, ignored -> new HashSet<>());
+        Set<BlockPos> filledPedestals = this.ritualCrystals.get(origin);
+        if (filledPedestals == null) {
+            filledPedestals = new HashSet<>();
+        }
         boolean wasComplete = filledPedestals.containsAll(expectedPedestals);
 
         if (expectedPedestals.contains(pedestal) && filledPedestals.add(pedestal)) {
+            this.ritualCrystals.put(origin, filledPedestals);
             this.setDirty();
         }
 
