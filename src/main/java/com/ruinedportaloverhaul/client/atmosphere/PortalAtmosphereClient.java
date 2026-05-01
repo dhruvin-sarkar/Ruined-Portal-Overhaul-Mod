@@ -24,7 +24,7 @@ public final class PortalAtmosphereClient {
     private static final long PACKET_FADE_NANOS = 1_600_000_000L;
     private static final long STORM_UPDATE_MIN_NANOS = 1_000_000L;
     private static final long FLASH_TICK_NANOS = 50_000_000L;
-    private static final double PULSE_PERIOD_NANOS = 4_200_000_000.0;
+    private static final double PULSE_PERIOD_NANOS = 2_800_000_000.0;
     private static final float PULSE_FLOOR = 0.72f;
     private static final float PULSE_RANGE = 0.28f;
     private static final RandomSource STORM_RANDOM = RandomSource.create();

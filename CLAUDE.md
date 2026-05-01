@@ -389,7 +389,7 @@ The red storm is a client-side visual/audio system driven by server proximity pa
 - `GoldRaidManager` sends `PortalAtmospherePayload` every `20` ticks while a player is horizontally inside the radius-136 zone, including after raid completion so the claimed portal remains visibly corrupted.
 - Packet intensity uses horizontal distance and never falls below `0.22` while in-zone.
 - Packet descent uses how far the player is below the portal frame, making pit and cave atmosphere tighter and more intense.
-- `PortalAtmosphereClient` eases target intensity/descent, fades when packets stop, applies a 4.2-second breathing pulse, and renders the HUD tint. Current tint strength is about 15-20% more pronounced than the earlier storm pass.
+- `PortalAtmosphereClient` eases target intensity/descent, fades when packets stop, applies a 2.8-second breathing pulse, and renders the HUD tint. Current tint strength is about 15-20% more pronounced than the earlier storm pass.
 - `ClientLevelStormMixin` makes the local client report rain/thunder gradients during the storm and now ignores integrated-server `Level` instances so fake weather stays client-visual only.
 - `WeatherEffectRendererMixin` forces red rain visuals.
 - `SkyRendererMixin` tints the sky toward a dark red storm color and dims rain brightness.
