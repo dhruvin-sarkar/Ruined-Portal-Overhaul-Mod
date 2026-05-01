@@ -42,8 +42,8 @@ import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.phys.AABB;
 
 public final class NetherDragonRituals {
-    private static final double RITUAL_MESSAGE_RANGE_SQUARED = 64.0 * 64.0;
     private static final double BOSS_BAR_RANGE_SQUARED = 96.0 * 96.0;
+    private static final double RITUAL_MESSAGE_RANGE_SQUARED = BOSS_BAR_RANGE_SQUARED;
     private static final int TITLE_TICK = 40;
     private static final int SPAWN_TICK = 80;
     private static final int RITUAL_RECONCILE_INTERVAL_TICKS = 20;
