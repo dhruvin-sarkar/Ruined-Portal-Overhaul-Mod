@@ -16,6 +16,9 @@
     "announce_to_chat": true,
     "hidden": false
   },
+  "rewards": {
+    "experience": 350
+  },
   "criteria": {
     "ritual_complete": {
       "trigger": "ruined_portal_overhaul:nether_crystal_ritual_complete"

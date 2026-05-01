@@ -16,6 +16,9 @@
     "announce_to_chat": true,
     "hidden": false
   },
+  "rewards": {
+    "experience": 200
+  },
   "criteria": {
     "level_2": {
       "trigger": "ruined_portal_overhaul:nether_conduit_level_2"
