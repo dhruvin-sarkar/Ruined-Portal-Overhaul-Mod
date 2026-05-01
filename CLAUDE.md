@@ -67,10 +67,10 @@ src/main/resources/fabric.mod.json
 src/main/resources/ruined_portal_overhaul.mixins.json
 src/main/resources/ruined_portal_overhaul.client.mixins.json
 src/main/resources/assets/ruined_portal_overhaul/lang/en_us.json
-src/main/resources/assets/ruined_portal_overhaul/animations/block/*.json
-src/main/resources/assets/ruined_portal_overhaul/animations/entity/*.json
-src/main/resources/assets/ruined_portal_overhaul/geo/block/*.geo.json
-src/main/resources/assets/ruined_portal_overhaul/geo/entity/*.geo.json
+src/main/resources/assets/ruined_portal_overhaul/geckolib/animations/block/*.json
+src/main/resources/assets/ruined_portal_overhaul/geckolib/animations/entity/*.json
+src/main/resources/assets/ruined_portal_overhaul/geckolib/models/block/*.geo.json
+src/main/resources/assets/ruined_portal_overhaul/geckolib/models/entity/*.geo.json
 src/main/resources/assets/ruined_portal_overhaul/models/block/*.json
 src/main/resources/assets/ruined_portal_overhaul/models/item/*.json
 src/main/resources/assets/ruined_portal_overhaul/particles/*.json
@@ -268,7 +268,7 @@ Vanilla Nether ruined portals are preserved through `data/minecraft/worldgen/str
 
 ## Entity Presentation
 
-GeckoLib now renders all combat mobs, the Exiled Piglin, the Nether Crystal, the Nether Conduit block entity, and the Nether Dragon. The Nether Conduit swaps slow/fast inner-core spin loops from synced blockstate and adds an active-only emissive inner-core render layer. The Dragon no longer uses the vanilla `EnderDragonRenderer`; its placeholder model lives at `assets/ruined_portal_overhaul/geo/entity/nether_dragon.geo.json`, and its flight, phase-two, and slam animations live at `assets/ruined_portal_overhaul/animations/entity/nether_dragon.animation.json`. Piglin Pillager melee fallback, Piglin Vindicator, Brute Pillager melee fallback, Piglin Vex, and Piglin Ravager successful melee hits now trigger their GeckoLib attack clips, while Piglin Ravager Hard wall-impact roars trigger the matching `action.roar` animation in addition to the custom roar sound and Slowness II pulse.
+GeckoLib now renders all combat mobs, the Exiled Piglin, the Nether Crystal, the Nether Conduit block entity, and the Nether Dragon. Assets use the GeckoLib 5 layout: models live under `assets/ruined_portal_overhaul/geckolib/models/`, animations live under `assets/ruined_portal_overhaul/geckolib/animations/`, and the GeoModel resource IDs use the bare `entity/...` or `block/...` subpath without the directory prefix or file suffix. The Nether Conduit swaps slow/fast inner-core spin loops from synced blockstate, returns `RenderShape.INVISIBLE` so the registered block entity renderer owns the visual in the current Mojang mappings, and adds an active-only emissive inner-core render layer. The Dragon no longer uses the vanilla `EnderDragonRenderer`; its placeholder model lives at `assets/ruined_portal_overhaul/geckolib/models/entity/nether_dragon.geo.json`, and its flight, phase-two, and slam animations live at `assets/ruined_portal_overhaul/geckolib/animations/entity/nether_dragon.animation.json`. Piglin Pillager melee fallback, Piglin Vindicator, Brute Pillager melee fallback, Piglin Vex, and Piglin Ravager successful melee hits now trigger their GeckoLib attack clips, while Piglin Ravager Hard wall-impact roars trigger the matching `action.roar` animation in addition to the custom roar sound and Slowness II pulse.
 
 Visual variant support is active for:
 

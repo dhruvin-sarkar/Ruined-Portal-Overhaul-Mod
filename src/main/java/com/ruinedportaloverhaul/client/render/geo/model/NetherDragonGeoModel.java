@@ -7,9 +7,9 @@ import software.bernie.geckolib.model.GeoModel;
 import software.bernie.geckolib.renderer.base.GeoRenderState;
 
 public final class NetherDragonGeoModel extends GeoModel<NetherDragonEntity> {
-    private static final Identifier MODEL_RESOURCE = id("geo/entity/nether_dragon.geo.json");
+    private static final Identifier MODEL_RESOURCE = id("entity/nether_dragon");
     private static final Identifier TEXTURE_RESOURCE = Identifier.withDefaultNamespace("textures/entity/enderdragon/dragon.png");
-    private static final Identifier ANIMATION_RESOURCE = id("animations/entity/nether_dragon.animation.json");
+    private static final Identifier ANIMATION_RESOURCE = id("entity/nether_dragon");
 
     @Override
     public Identifier getModelResource(GeoRenderState renderState) {

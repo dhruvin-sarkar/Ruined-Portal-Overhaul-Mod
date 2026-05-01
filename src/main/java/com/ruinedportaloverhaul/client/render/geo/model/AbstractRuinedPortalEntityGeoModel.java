@@ -19,9 +19,9 @@ abstract class AbstractRuinedPortalEntityGeoModel<T extends GeoAnimatable> exten
 
     protected AbstractRuinedPortalEntityGeoModel(String assetName, int textureVariantCount) {
         super(Identifier.fromNamespaceAndPath(RuinedPortalOverhaul.MOD_ID, assetName), "head");
-        this.modelResource = id("geo/entity/" + assetName + ".geo.json");
+        this.modelResource = id("entity/" + assetName);
         this.textureResources = createTextureResources(assetName, textureVariantCount);
-        this.animationResource = id("animations/entity/" + assetName + ".animation.json");
+        this.animationResource = id("entity/" + assetName);
     }
 
     @Override

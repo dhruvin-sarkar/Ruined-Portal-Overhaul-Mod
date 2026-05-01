@@ -7,9 +7,9 @@ import software.bernie.geckolib.model.GeoModel;
 import software.bernie.geckolib.renderer.base.GeoRenderState;
 
 public final class NetherConduitGeoModel extends GeoModel<NetherConduitBlockEntity> {
-    private static final Identifier MODEL_RESOURCE = id("geo/block/nether_conduit.geo.json");
+    private static final Identifier MODEL_RESOURCE = id("block/nether_conduit");
     private static final Identifier TEXTURE_RESOURCE = Identifier.withDefaultNamespace("textures/block/obsidian.png");
-    private static final Identifier ANIMATION_RESOURCE = id("animations/block/nether_conduit.animation.json");
+    private static final Identifier ANIMATION_RESOURCE = id("block/nether_conduit");
 
     @Override
     public Identifier getModelResource(GeoRenderState renderState) {
