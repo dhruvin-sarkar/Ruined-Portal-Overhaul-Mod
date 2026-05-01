@@ -152,7 +152,7 @@ public class PiglinBrutePillagerEntity extends Pillager implements GeoEntity, Te
         if (randomSource.nextFloat() < 0.34f) {
             weapon.enchant(enchantment(Enchantments.KNOCKBACK), 1);
         }
-        return weapon;
+        return RuinedPortalSwingAnimations.withHumanoidAttackTiming(weapon);
     }
 
     private Holder.Reference<Enchantment> enchantment(ResourceKey<Enchantment> key) {

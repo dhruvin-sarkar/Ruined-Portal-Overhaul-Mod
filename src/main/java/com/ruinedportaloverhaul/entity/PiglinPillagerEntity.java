@@ -172,7 +172,7 @@ public class PiglinPillagerEntity extends Pillager implements GeoEntity, Texture
                 .getOrThrow(Enchantments.FIRE_ASPECT);
             weapon.enchant(fireAspect, 1);
         }
-        return weapon;
+        return RuinedPortalSwingAnimations.withHumanoidAttackTiming(weapon);
     }
 
     @Override

@@ -131,7 +131,7 @@ public class PiglinVindicatorEntity extends Vindicator implements GeoEntity, Tex
                 .getOrThrow(Enchantments.KNOCKBACK);
             weapon.enchant(knockback, 1);
         }
-        this.setItemSlot(EquipmentSlot.MAINHAND, weapon);
+        this.setItemSlot(EquipmentSlot.MAINHAND, RuinedPortalSwingAnimations.withHumanoidAttackTiming(weapon));
     }
 
     @Override
