@@ -162,6 +162,7 @@
           "functions": [
             {
               "function": "minecraft:set_name",
+              "mode": "replace_all",
               "name": {
                 "translate": "loot.ruined_portal_overhaul.artifact.embered_grimoire.name",
                 "italic": false,

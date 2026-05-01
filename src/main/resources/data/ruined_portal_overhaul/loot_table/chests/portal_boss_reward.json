@@ -222,6 +222,7 @@
           "functions": [
             {
               "function": "minecraft:set_name",
+              "mode": "replace_all",
               "name": {
                 "translate": "loot.ruined_portal_overhaul.artifact.corrupted_portal_key.name",
                 "italic": false,

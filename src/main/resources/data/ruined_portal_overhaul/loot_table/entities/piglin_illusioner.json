@@ -67,6 +67,7 @@
             },
             {
               "function": "minecraft:set_name",
+              "mode": "replace_all",
               "name": {
                 "translate": "loot.ruined_portal_overhaul.artifact.voidash_powder.name",
                 "italic": false,

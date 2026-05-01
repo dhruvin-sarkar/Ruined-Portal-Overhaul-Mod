@@ -71,6 +71,7 @@
             },
             {
               "function": "minecraft:set_name",
+              "mode": "replace_all",
               "name": {
                 "translate": "loot.ruined_portal_overhaul.artifact.corrupted_ravager_hide.name",
                 "italic": false,
