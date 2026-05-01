@@ -11,49 +11,65 @@ public final class ClothRuntimeConfig implements ConfigData, ModConfigAccess {
     // Fix: the config screen originally exposed every value in one flat list, so options are now grouped by gameplay system for pack-author tuning.
     @ConfigEntry.Category("world_generation")
     @ConfigEntry.BoundedDiscrete(min = 16, max = 64)
+    @ConfigEntry.Gui.Tooltip
     public int structureRarity = 32;
 
     @ConfigEntry.Category("world_generation")
+    @ConfigEntry.Gui.Tooltip
     public boolean enableAmbientNetherSpawns = true;
     @ConfigEntry.Category("world_generation")
+    @ConfigEntry.Gui.Tooltip
     public boolean enableOuterZoneScatter = true;
 
     @ConfigEntry.Category("raid")
+    @ConfigEntry.Gui.Tooltip
     public double raidTriggerRadius = 24.0;
     @ConfigEntry.Category("raid")
+    @ConfigEntry.Gui.Tooltip
     public double waveCountMultiplier = 1.0;
 
     @ConfigEntry.Category("raid")
     @ConfigEntry.BoundedDiscrete(min = 100, max = 600)
+    @ConfigEntry.Gui.Tooltip
     public int interWaveDelayTicks = 300;
 
     @ConfigEntry.Category("raid")
+    @ConfigEntry.Gui.Tooltip
     public boolean enableBossBar = true;
 
     @ConfigEntry.Category("atmosphere")
+    @ConfigEntry.Gui.Tooltip
     public boolean enableRedStorm = true;
     @ConfigEntry.Category("atmosphere")
+    @ConfigEntry.Gui.Tooltip
     public double stormIntensity = 0.6;
 
     @ConfigEntry.Category("atmosphere")
     @ConfigEntry.BoundedDiscrete(min = 40, max = 200)
+    @ConfigEntry.Gui.Tooltip
     public int thunderFrequency = 80;
 
     @ConfigEntry.Category("difficulty")
+    @ConfigEntry.Gui.Tooltip
     public double mobHealthMultiplier = 1.0;
     @ConfigEntry.Category("difficulty")
+    @ConfigEntry.Gui.Tooltip
     public double mobDamageMultiplier = 1.0;
 
     @ConfigEntry.Category("difficulty")
     @ConfigEntry.BoundedDiscrete(min = 50, max = 400)
+    @ConfigEntry.Gui.Tooltip
     public int ambientMobCap = 180;
 
     @ConfigEntry.Category("difficulty")
+    @ConfigEntry.Gui.Tooltip
     public boolean enablePostRaidSuppression = true;
 
     @ConfigEntry.Category("rewards")
+    @ConfigEntry.Gui.Tooltip
     public double netherStarDropRate = 1.0;
     @ConfigEntry.Category("rewards")
+    @ConfigEntry.Gui.Tooltip
     public boolean enableNetherDragon = true;
 
     @Override
