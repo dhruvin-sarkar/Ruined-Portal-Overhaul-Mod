@@ -181,6 +181,29 @@ public final class GoldRaidManager {
             state.bossBar.removePlayer(player);
             state.trackedPlayers.remove(playerId);
         }
+        releaseExiledPiglinCustomer(player, playerId);
+    }
+
+    private static void releaseExiledPiglinCustomer(ServerPlayer player, UUID playerId) {
+        if (!(player.level() instanceof ServerLevel level)) {
+            return;
+        }
+        releaseExiledPiglinCustomersIn(level, new AABB(player.blockPosition()).inflate(96.0), playerId);
+
+        PortalRaidState portalRaidState = PortalRaidState.get(level.getServer());
+        for (BlockPos portalOrigin : portalRaidState.completedPortalOrigins()) {
+            releaseExiledPiglinCustomersIn(
+                level,
+                new AABB(portalOrigin).inflate(BOSS_BAR_PLAYER_RANGE, 48.0, BOSS_BAR_PLAYER_RANGE),
+                playerId
+            );
+        }
+    }
+
+    private static void releaseExiledPiglinCustomersIn(ServerLevel level, AABB searchArea, UUID playerId) {
+        for (ExiledPiglinTraderEntity trader : level.getEntities(ModEntities.EXILED_PIGLIN, searchArea, ExiledPiglinTraderEntity::isAlive)) {
+            trader.releaseCustomerIfTrading(playerId);
+        }
     }
 
     private static void suppressCompletedPortalMobLoad(Entity entity, ServerLevel level) {

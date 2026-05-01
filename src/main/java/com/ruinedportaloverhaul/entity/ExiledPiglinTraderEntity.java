@@ -4,6 +4,7 @@ import com.ruinedportaloverhaul.advancement.ModAdvancementTriggers;
 import com.ruinedportaloverhaul.sound.ModSounds;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -142,6 +143,13 @@ public class ExiledPiglinTraderEntity extends WanderingTrader implements GeoEnti
     public boolean stillValid(Player player) {
         Player tradingPlayer = this.getTradingPlayer();
         return super.stillValid(player) && (tradingPlayer == null || tradingPlayer == player);
+    }
+
+    public void releaseCustomerIfTrading(UUID playerId) {
+        Player tradingPlayer = this.getTradingPlayer();
+        if (tradingPlayer != null && tradingPlayer.getUUID().equals(playerId)) {
+            this.setTradingPlayer(null);
+        }
     }
 
     @Override
