@@ -1,6 +1,6 @@
 {
   "type": "ruined_portal_overhaul:portal_dungeon",
-  "biomes": "#minecraft:has_structure/ruined_portal_swamp",
+  "biomes": "#ruined_portal_overhaul:portal_dungeon_overworld",
   "step": "surface_structures",
   "spawn_overrides": {}
 }
