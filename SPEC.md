@@ -154,7 +154,7 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
 - `./gradlew.bat build` succeeds with Java 21 when `JAVA_HOME` points at `C:\Users\dhruv\.codex\jdks\temurin-21`.
 - JSON data files in resources parse successfully.
 - Language keys, sound subtitles, registered sound ids, and GeckoLib asset references pass static audits.
-- Latest verified build date: 2026-04-28.
+- Latest verified build date: 2026-05-01.
 
 ## Remaining Work
 
