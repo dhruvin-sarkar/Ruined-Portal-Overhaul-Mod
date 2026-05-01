@@ -17,7 +17,7 @@ public final class NetherFireballHandler {
     private NetherFireballHandler() {
     }
 
-    public static void handle(ServerPlayer player) {
+    public static void handle(ServerPlayer player, NetherFireballPayload payload) {
         if (!(player.level() instanceof ServerLevel serverLevel)) {
             return;
         }
@@ -37,13 +37,25 @@ public final class NetherFireballHandler {
             return;
         }
 
-        spawnFireball(serverLevel, player);
+        spawnFireball(serverLevel, player, validatedLook(payload, player.getLookAngle()));
         stack.set(ModDataComponents.LAST_NECKLACE_FIREBALL_TICK, now);
         ModAdvancementTriggers.trigger(ModAdvancementTriggers.NETHER_FIREBALL_USED, player);
     }
 
-    private static void spawnFireball(ServerLevel level, ServerPlayer player) {
-        Vec3 look = player.getLookAngle().normalize();
+    private static Vec3 validatedLook(NetherFireballPayload payload, Vec3 fallback) {
+        Vec3 requestedLook = new Vec3(payload.lookX(), payload.lookY(), payload.lookZ());
+        double lengthSquared = requestedLook.lengthSqr();
+        if (!Double.isFinite(requestedLook.x)
+            || !Double.isFinite(requestedLook.y)
+            || !Double.isFinite(requestedLook.z)
+            || lengthSquared < 1.0E-6
+            || lengthSquared > 4.0) {
+            return fallback.normalize();
+        }
+        return requestedLook.normalize();
+    }
+
+    private static void spawnFireball(ServerLevel level, ServerPlayer player, Vec3 look) {
         Vec3 spawnPos = player.getEyePosition().add(look.scale(1.2));
         SmallFireball fireball = new SmallFireball(level, player, look);
         fireball.setOwner(player);

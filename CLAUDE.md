@@ -156,9 +156,9 @@ The Ghast Tear Necklace is a native carried charm:
 - `GhastTearNecklaceItem`: extends `Item`, exposes carried-stack lookup helpers, and applies Speed II plus Jump Boost II.
 - `GhastTearNecklaceEvents`: server tick hook that applies passive effects while carried and triggers the first-carry advancement.
 - `ModDataComponents`: registers `last_necklace_fireball_tick` as a persistent/networked long component on the carried stack.
-- `NetherFireballPayload`: empty C2S payload for the keybind ability.
+- `NetherFireballPayload`: C2S keybind payload carrying the client look vector sampled at keypress time.
 - `ModPackets`: central common packet hub. It registers typed 1.21.11 play payloads and wraps the fireball C2S receiver back onto the server executor before gameplay state changes.
-- `NetherFireballHandler`: server-side carried-stack lookup, alive/spectator validation, cooldown check, fireball spawn, sound, stack component update, and advancement trigger. Invalid C2S requests are silently dropped.
+- `NetherFireballHandler`: server-side carried-stack lookup, alive/spectator validation, cooldown check, finite look-vector validation, fireball spawn, sound, stack component update, and advancement trigger. Invalid C2S requests are silently dropped.
 - `NetherFireballKeybinds`: client keybind registration, default key `G`, sends the payload only when the server supports it.
 - `RuinedPortalOverhaulClient`: registers the keybind from the client initializer.
 

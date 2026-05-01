@@ -17,7 +17,7 @@ public final class ModPackets {
         PayloadTypeRegistry.playS2C().register(PortalAtmospherePayload.TYPE, PortalAtmospherePayload.CODEC);
         PayloadTypeRegistry.playC2S().register(NetherFireballPayload.TYPE, NetherFireballPayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(NetherFireballPayload.TYPE, (payload, context) ->
-            context.player().level().getServer().execute(() -> NetherFireballHandler.handle(context.player()))
+            context.player().level().getServer().execute(() -> NetherFireballHandler.handle(context.player(), payload))
         );
         registered = true;
     }
