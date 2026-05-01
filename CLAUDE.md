@@ -174,7 +174,7 @@ The Nether Crystal ritual is the endgame loop:
 - `PortalStructureHelper`: places four netherite pedestals at offsets north/south/east/west six blocks from the portal center and exposes `ritualPedestalPositions(...)`.
 - `PortalRaidState`: persists discovered portal variants, filled ritual pedestals, and active dragon portals.
 - `NetherDragonRituals`: tracks crystal placement, starts the summoning sequence, keeps ritual titles, advancement triggers, and the Nether Dragon boss bar aligned to horizontal portal distance, drops death rewards, and shatters pedestals.
-- `NetherDragonEntity`, `NetherDragonGeoRenderer`, and `NetherDragonGeoModel`: extend vanilla `EnderDragon` for combat semantics, suppress End fight hooks and crystal healing, set 300 HP, delegate custom death rewards to `NetherDragonRituals`, apply permanent movement and flying-speed boosts during phase two, send the phase-two flash to players by horizontal portal distance, and render through GeckoLib with a vanilla dragon texture, crimson tint, flight loop, phase-two transition trigger, and Nether Slam trigger.
+- `NetherDragonEntity`, `NetherDragonGeoRenderer`, and `NetherDragonGeoModel`: extend vanilla `EnderDragon` for combat semantics, suppress End fight hooks and crystal healing, purge nearby vanilla `minecraft:end_crystal` entities every second while preserving this mod's Nether Crystal ritual entities, set 300 HP, delegate custom death rewards to `NetherDragonRituals`, apply permanent movement and flying-speed boosts during phase two, send the phase-two flash to players by horizontal portal distance, and render through GeckoLib with a vanilla dragon texture, crimson tint, flight loop, phase-two transition trigger, and Nether Slam trigger.
 - Phase two starts at 150 HP. Nether Slam uses a visual-only non-griefing explosion and then applies the intended 15 damage once through the explicit six-block radius hit, so players are not double-hit by vanilla explosion damage plus scripted damage.
 
 Ritual conditions:
@@ -196,7 +196,7 @@ Death behavior:
 
 - After the 60-tick death cinematic, removes the four Nether Crystals, shatters the four netherite pedestals, plays the ritual victory sting, then drops 2 Nether Stars and 1-3 Ancient Debris.
 - The dragon also drops 1-2 Corrupted Netherite Ingots, has a 30% Nether Dragon Scale roll, and performs the world's one Nether Tide disc roll at 15% through `PortalRaidState.nether_tide_disc_rolled`.
-- Awards a single 1500 XP burst from `NetherDragonEntity.tickDeath()`; `here_be_dragons.json` intentionally has no extra XP reward so the finale does not double-pay.
+- Awards a 1500 XP burst from `NetherDragonEntity.tickDeath()` plus challenge advancement XP for the ritual and dragon milestones.
 - Does not spawn an End portal and does not use End-crystal healing.
 - The Nether Dragon boss bar is rebuilt from players horizontally within 96 blocks of the portal each tick, so pit and cave players keep the bar while walking away or changing dimensions still removes the viewer cleanly.
 

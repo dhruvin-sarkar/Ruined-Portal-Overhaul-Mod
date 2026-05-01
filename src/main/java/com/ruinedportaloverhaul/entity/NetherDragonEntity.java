@@ -78,7 +78,10 @@ public class NetherDragonEntity extends EnderDragon implements GeoEntity {
     private static final int NETHER_SLAM_TOTAL_TICKS = NETHER_SLAM_ASCENT_TICKS + NETHER_SLAM_DIVE_TICKS;
     private static final int DEATH_REWARD_DELAY_TICKS = 60;
     private static final int DEATH_XP_REWARD = 1500;
+    private static final int CRYSTAL_SUPPRESSION_INTERVAL_TICKS = 20;
     private static final double PLAYER_EVENT_RANGE = 96.0;
+    private static final double CRYSTAL_SUPPRESSION_RADIUS = 96.0;
+    private static final double CRYSTAL_SUPPRESSION_VERTICAL_RADIUS = 96.0;
     private static final double NETHER_SLAM_EXPLOSION_POWER = 8.0;
     private static final double NETHER_SLAM_DAMAGE_RADIUS = 6.0;
     private static final SimpleExplosionDamageCalculator NETHER_SLAM_VISUAL_EXPLOSION =
@@ -184,8 +187,12 @@ public class NetherDragonEntity extends EnderDragon implements GeoEntity {
     @Override
     public void aiStep() {
         // Fix: the custom dragon only inherited vanilla phase timing, so the server now drives the enraged transition, guardian summon, projectile pressure, and slam attack off health thresholds.
+        ServerLevel serverLevel = this.level() instanceof ServerLevel level ? level : null;
+        if (serverLevel != null && this.tickCount % CRYSTAL_SUPPRESSION_INTERVAL_TICKS == 0) {
+            this.discardNearbyVanillaEndCrystals(serverLevel);
+        }
         super.aiStep();
-        if (!(this.level() instanceof ServerLevel serverLevel) || this.isDeadOrDying()) {
+        if (serverLevel == null || this.isDeadOrDying()) {
             return;
         }
         if (!this.enraged && this.getHealth() <= PHASE_TWO_HEALTH_THRESHOLD) {
@@ -195,6 +202,21 @@ public class NetherDragonEntity extends EnderDragon implements GeoEntity {
             this.summonPhaseTwoGuardians(serverLevel);
         }
         this.tickPhaseTwoAttacks(serverLevel);
+    }
+
+    private void discardNearbyVanillaEndCrystals(ServerLevel level) {
+        // Vanilla End Crystals heal through EnderDragon.nearestCrystal; custom Nether Crystal ritual entities stay for the death finale.
+        AABB suppressionBox = new AABB(this.portalOrigin).inflate(
+            CRYSTAL_SUPPRESSION_RADIUS,
+            CRYSTAL_SUPPRESSION_VERTICAL_RADIUS,
+            CRYSTAL_SUPPRESSION_RADIUS
+        );
+        for (EndCrystal crystal : level.getEntitiesOfClass(EndCrystal.class, suppressionBox, crystal -> crystal.getType() == EntityType.END_CRYSTAL)) {
+            if (crystal == this.nearestCrystal) {
+                this.nearestCrystal = null;
+            }
+            crystal.discard();
+        }
     }
 
     @Override
