@@ -116,6 +116,7 @@
           "functions": [
             {
               "function": "minecraft:set_enchantments",
+              "add": false,
               "enchantments": {
                 "minecraft:mending": 1
               }
@@ -129,6 +130,7 @@
           "functions": [
             {
               "function": "minecraft:set_enchantments",
+              "add": false,
               "enchantments": {
                 "minecraft:unbreaking": 3
               }
@@ -142,6 +144,7 @@
           "functions": [
             {
               "function": "minecraft:set_enchantments",
+              "add": false,
               "enchantments": {
                 "minecraft:fortune": 3
               }
@@ -155,6 +158,7 @@
           "functions": [
             {
               "function": "minecraft:set_enchantments",
+              "add": false,
               "enchantments": {
                 "minecraft:looting": 3
               }
@@ -168,6 +172,7 @@
           "functions": [
             {
               "function": "minecraft:set_enchantments",
+              "add": false,
               "enchantments": {
                 "minecraft:protection": 4
               }
@@ -181,6 +186,7 @@
           "functions": [
             {
               "function": "minecraft:set_enchantments",
+              "add": false,
               "enchantments": {
                 "minecraft:fire_protection": 4
               }
@@ -194,6 +200,7 @@
           "functions": [
             {
               "function": "minecraft:set_enchantments",
+              "add": false,
               "enchantments": {
                 "minecraft:protection": 4,
                 "minecraft:unbreaking": 3
@@ -208,6 +215,7 @@
           "functions": [
             {
               "function": "minecraft:set_enchantments",
+              "add": false,
               "enchantments": {
                 "minecraft:sharpness": 5,
                 "minecraft:fire_aspect": 2

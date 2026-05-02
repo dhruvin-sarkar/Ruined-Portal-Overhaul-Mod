@@ -248,6 +248,7 @@
           "functions": [
             {
               "function": "minecraft:set_enchantments",
+              "add": false,
               "enchantments": {
                 "minecraft:fire_protection": 4
               }

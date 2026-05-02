@@ -76,6 +76,7 @@
           "functions": [
             {
               "function": "minecraft:set_enchantments",
+              "add": false,
               "enchantments": {
                 "minecraft:fire_protection": 4
               }
@@ -89,6 +90,7 @@
           "functions": [
             {
               "function": "minecraft:set_enchantments",
+              "add": false,
               "enchantments": {
                 "minecraft:blast_protection": 4
               }
@@ -102,6 +104,7 @@
           "functions": [
             {
               "function": "minecraft:set_enchantments",
+              "add": false,
               "enchantments": {
                 "minecraft:mending": 1
               }
@@ -115,6 +118,7 @@
           "functions": [
             {
               "function": "minecraft:set_enchantments",
+              "add": false,
               "enchantments": {
                 "minecraft:sharpness": 5
               }
