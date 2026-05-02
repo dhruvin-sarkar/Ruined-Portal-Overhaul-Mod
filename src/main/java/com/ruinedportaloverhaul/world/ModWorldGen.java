@@ -21,6 +21,7 @@ public final class ModWorldGen {
     private static final TagKey<Biome> TERRALITH_SKYLANDS = TagKey.create(Registries.BIOME, Identifier.fromNamespaceAndPath("terralith", "skylands"));
     private static final TagKey<Biome> TERRALITH_ALL_SKYLANDS = TagKey.create(Registries.BIOME, Identifier.fromNamespaceAndPath("terralith", "all_skylands"));
     private static final TagKey<Biome> TERRALITH_CAVES = TagKey.create(Registries.BIOME, Identifier.fromNamespaceAndPath("terralith", "caves"));
+    private static final TagKey<Biome> TERRALITH_ALL_CAVES = TagKey.create(Registries.BIOME, Identifier.fromNamespaceAndPath("terralith", "all_caves"));
     private static final Predicate<BiomeSelectionContext> AMBIENT_CORRUPTION_SELECTOR =
         BiomeSelectors.foundInOverworld().and(context -> !isCompatExcludedBiome(context));
 
@@ -51,6 +52,7 @@ public final class ModWorldGen {
         return context.hasTag(TERRALITH_SKYLANDS)
             || context.hasTag(TERRALITH_ALL_SKYLANDS)
             || context.hasTag(TERRALITH_CAVES)
+            || context.hasTag(TERRALITH_ALL_CAVES)
             || isExcludedBiomeId(context.getBiomeKey().identifier());
     }
 
@@ -58,6 +60,7 @@ public final class ModWorldGen {
         return biome.is(TERRALITH_SKYLANDS)
             || biome.is(TERRALITH_ALL_SKYLANDS)
             || biome.is(TERRALITH_CAVES)
+            || biome.is(TERRALITH_ALL_CAVES)
             || biome.unwrapKey().map(ResourceKey::identifier).map(ModWorldGen::isExcludedBiomeId).orElse(false);
     }
 
