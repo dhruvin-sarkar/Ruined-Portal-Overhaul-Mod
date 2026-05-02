@@ -9,7 +9,7 @@ This file is the single source of truth for the project. `SPEC.md` is the concis
 - Minecraft: `1.21.11`
 - Fabric Loader: `0.18.6`
 - Fabric API: `0.141.3+1.21.11`
-- Loom: `1.15-SNAPSHOT`
+- Loom: declared as `1.15-SNAPSHOT`, resolved by Gradle as Fabric Loom `1.15.5`
 - Java: 21 toolchain, `sourceCompatibility`, and `targetCompatibility`
 - Mappings: Mojang official mappings through `mappings loom.officialMojangMappings()`
 - External accessory dependencies: none
@@ -507,7 +507,7 @@ Global biome modifications no longer add blaze or zombified piglin spawn tables.
 
 `ModNaturalSpawnGuards` is now strictly the post-raid suppression layer. It only blocks natural hostile spawns inside completed overworld portal territories when `ModConfigManager.enablePostRaidSuppression()` is enabled, and it does not participate in pre-completion ambient portal spawning.
 
-Global terrain corruption intentionally excludes Terralith skylands and Terralith cave biomes so the underground lore features stay on grounded overworld terrain. The compat filter checks `#terralith:skylands`, `#terralith:all_skylands`, `#terralith:caves`, and id fallbacks for older/newer Terralith packs. The portal dungeon structure performs the same center-biome compatibility check from `PortalDungeonStructure.findGenerationPoint(...)` after honoring the structure JSON biome predicate, so the full dungeon replacement also avoids floating skylands and underground Terralith cave biomes.
+Global terrain corruption intentionally excludes Terralith skylands and Terralith cave biomes so the underground lore features stay on grounded overworld terrain. The compat filter checks `#terralith:skylands`, `#terralith:all_skylands`, `#terralith:caves`, `#terralith:all_caves`, and id fallbacks for older/newer Terralith packs. The portal dungeon structure performs the same center-biome compatibility check from `PortalDungeonStructure.findGenerationPoint(...)` after honoring the structure JSON biome predicate, so the full dungeon replacement also avoids floating skylands and underground Terralith cave biomes.
 
 Do not use global biome modifications for structure-local proximity gradients.
 
@@ -534,12 +534,13 @@ Structure rarity note:
 - Optional REI integration is isolated behind the `rei_client` entrypoint and an explicit `FabricLoader.isModLoaded("roughlyenoughitems")` guard. The plugin adds progression information pages for the Conduit, Crystal, Necklace, Nether Star drops, Portal Shard, Corrupted Netherite, and Nether Tide while normal recipes remain data-driven JSON.
 - Common mixin config: `ruined_portal_overhaul.mixins.json`
 - Client mixin config: `ruined_portal_overhaul.client.mixins.json`
+- Minecraft `1.21.11` reports pack versions `resource 75.0` and `data 94.1` in its local `version.json`. This mod intentionally does not commit a single root `pack.mcmeta` because the same mod jar carries both `assets/` and `data/`; one root `pack` section would necessarily advertise either the resource format or the data format incorrectly. Keep this absent unless the project later splits client resources and server data into separate explicit pack roots.
 
 ## Implementation Notes
 
 - Use `Identifier.fromNamespaceAndPath(...)` in this Mojang-mapped codebase.
 - Use Mojang names from local mappings. Do not paste Yarn-only method or field names into this project.
-- Research references checked during the 2026-05-02 pass: GeckoLib 5 RenderStates (`https://wiki.geckolib.com/docs/geckolib5/concepts/rendering/renderstates/`), Fabric networking (`https://docs.fabricmc.net/develop/networking`), Fabric saved data (`https://docs.fabricmc.net/develop/saved-data`), Cloth Config AutoConfig (`https://shedaniel.gitbook.io/cloth-config/auto-config/registering-the-config`), Minecraft loot tables (`https://minecraft.wiki/w/Loot_table`), Ender Dragon mechanics (`https://minecraft.wiki/w/Ender_Dragon`), and Terralith biome/compat context (`https://modrinth.com/mod/terralith` and `https://stardustlabs.miraheze.org/wiki/Terralith`).
+- Research references checked during the 2026-05-02 pass: GeckoLib 5 RenderStates (`https://wiki.geckolib.com/docs/geckolib5/concepts/rendering/renderstates/`), Fabric networking (`https://docs.fabricmc.net/develop/networking`), Fabric saved data (`https://docs.fabricmc.net/develop/saved-data`), Cloth Config AutoConfig (`https://shedaniel.gitbook.io/cloth-config/auto-config/registering-the-config`), Minecraft loot tables (`https://minecraft.wiki/w/Loot_table`), advancement JSON (`https://minecraft.wiki/w/Advancement/JSON_format`), conduit mechanics (`https://minecraft.wiki/w/Conduit`), Ender Dragon mechanics (`https://minecraft.wiki/w/Ender_Dragon`), pack metadata/version data (`https://minecraft.wiki/w/Pack.mcmeta` plus the local `1.21.11` `version.json`), and Terralith biome/compat context (`https://modrinth.com/mod/terralith` and `https://stardustlabs.miraheze.org/wiki/Terralith`).
 - GeckoLib 5 render-pass data that affects texture, glow, or tint should be copied into `GeoRenderState` through data tickets during state compilation; do not add new renderer logic that depends on consulting the live entity during the later render pass.
 - Use `level()` / `ServerLevel` guarded server logic.
 - Use `Attributes.MAX_HEALTH`, `Attributes.MOVEMENT_SPEED`, and `Attributes.ATTACK_DAMAGE`, not old `GENERIC_*` names.
@@ -606,13 +607,14 @@ Structure rarity note:
 | `./gradlew build` with Java 21 | COMPLETE |
 | Full interactive `runClient` survival smoke test with log review | PENDING |
 
-## Project Status
+## READY FOR IN-GAME VERIFICATION
 
 Current build/static verification:
 
 - `./gradlew build` succeeds on Java 21 with `JAVA_HOME=C:\Users\dhruv\.codex\jdks\temurin-21`.
 - JSON resources parse successfully, registered sounds match `sounds.json`, sound subtitles exist in `en_us.json`, advancement custom triggers match registration, and enchantment loot functions explicitly use `add: false`.
 - GeckoLib assets use the 5.x `geckolib/models` and `geckolib/animations` layout, with render-pass tint data moved into render-state tickets.
+- Minecraft `1.21.11` pack versions were verified from the local game jar as resource `75.0` and data `94.1`; no root `pack.mcmeta` is committed for the combined mod jar because it cannot truthfully declare both formats at once.
 
 Implemented but still needs an interactive in-game smoke pass:
 
@@ -624,7 +626,7 @@ Remaining known limitations and future polish:
 
 - The entity texture variants and particle sprites are generated release art, not hand-painted final art.
 - The mod registers replaceable sound events with vanilla fallback event mappings instead of shipping bespoke `.ogg` assets.
-- The Nether Dragon Scale remains a trophy item until a verified Accessories-compatible `1.21.11` release exists for this branch.
+- The Nether Dragon Scale remains a trophy item until a verified Accessories-compatible `1.21.11` release exists for this branch; its tooltip now states that the back-slot role is intentionally deferred.
 
 Recommended first in-game test:
 
