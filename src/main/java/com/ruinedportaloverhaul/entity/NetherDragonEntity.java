@@ -192,8 +192,11 @@ public class NetherDragonEntity extends EnderDragon implements GeoEntity {
     public void aiStep() {
         // Fix: the custom dragon only inherited vanilla phase timing, so the server now drives the enraged transition, guardian summon, projectile pressure, and slam attack off health thresholds.
         ServerLevel serverLevel = this.level() instanceof ServerLevel level ? level : null;
-        if (serverLevel != null && this.tickCount % CRYSTAL_SUPPRESSION_INTERVAL_TICKS == 0) {
-            this.discardNearbyVanillaEndCrystals(serverLevel);
+        if (serverLevel != null) {
+            this.setFightOrigin(this.portalOrigin);
+            if (this.tickCount % CRYSTAL_SUPPRESSION_INTERVAL_TICKS == 0) {
+                this.discardNearbyVanillaEndCrystals(serverLevel);
+            }
         }
         super.aiStep();
         if (serverLevel == null || this.isDeadOrDying()) {
@@ -210,7 +213,7 @@ public class NetherDragonEntity extends EnderDragon implements GeoEntity {
 
     private void discardNearbyVanillaEndCrystals(ServerLevel level) {
         // Vanilla End Crystals heal through EnderDragon.nearestCrystal; custom Nether Crystal ritual entities stay for the death finale.
-        AABB suppressionBox = new AABB(this.portalOrigin).inflate(
+        AABB suppressionBox = this.getBoundingBox().inflate(
             CRYSTAL_SUPPRESSION_RADIUS,
             CRYSTAL_SUPPRESSION_VERTICAL_RADIUS,
             CRYSTAL_SUPPRESSION_RADIUS
