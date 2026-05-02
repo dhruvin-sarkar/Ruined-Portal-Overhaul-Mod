@@ -55,6 +55,7 @@ import net.minecraft.world.entity.decoration.LeashFenceKnotEntity;
 import net.minecraft.world.entity.monster.Ghast;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.NetherPortalBlock;
@@ -93,6 +94,9 @@ public final class GoldRaidManager {
     private static final int COMPLETION_TRADER_TICK = 60;
     private static final int TERRITORY_BOON_DURATION_TICKS = 260;
     private static final float MIN_PORTAL_ATMOSPHERE_INTENSITY = 0.22f;
+    private static final float RAID_PORTAL_ATMOSPHERE_INTENSITY = 0.90f;
+    private static final float COMPLETED_PORTAL_ATMOSPHERE_INTENSITY = 0.28f;
+    private static final float COMPLETED_PORTAL_DESCENT_SCALE = 0.35f;
     private static final double AMBIENT_PARTICLE_RANGE_SQUARED = AMBIENT_PARTICLE_RANGE * AMBIENT_PARTICLE_RANGE;
     private static final double OUTER_RADIUS_SQUARED = PortalStructureHelper.OUTER_RADIUS * PortalStructureHelper.OUTER_RADIUS;
     private static final double BOSS_BAR_PLAYER_RANGE_SQUARED = BOSS_BAR_PLAYER_RANGE * BOSS_BAR_PLAYER_RANGE;
@@ -829,13 +833,17 @@ public final class GoldRaidManager {
     private static void tickPortalZoneStormPayloads(ServerLevel level, PortalRaidState portalRaidState) {
         // Fix: completed portals used to silence the storm entirely, contradicting the claimed-but-corrupted end state. Completed packets now keep the red weather visible while suppressing music and boon effects client-side.
         for (ServerPlayer player : level.players()) {
+            if (player.level().dimension() != Level.OVERWORLD) {
+                continue;
+            }
             BlockPos portal = findNearbyGeneratedPortal(level, player, PortalStructureHelper.OUTER_RADIUS);
             if (portal == null) {
                 continue;
             }
             boolean completed = portalRaidState.isCompleted(portal);
+            boolean raidActive = portalRaidState.isRaidActive(portal) || ACTIVE_RAIDS.containsKey(raidKey(level, portal));
             if (ModConfigManager.enableRedStorm()) {
-                sendPortalAtmosphere(player, portal, completed);
+                sendPortalAtmosphere(player, portal, completed, raidActive);
             }
             if (!completed) {
                 applyPortalTerritoryBoon(player, portal);
@@ -868,9 +876,12 @@ public final class GoldRaidManager {
         player.displayClientMessage(Component.translatable("message.ruined_portal_overhaul.raid.totem").withStyle(ChatFormatting.GOLD), true);
     }
 
-    private static void sendPortalAtmosphere(ServerPlayer player, BlockPos origin, boolean completed) {
+    private static void sendPortalAtmosphere(ServerPlayer player, BlockPos origin, boolean completed, boolean raidActive) {
         // Fix: storm payloads now honor the live toggle on the server too, which prevents needless traffic once the client storm is disabled.
         if (!ModConfigManager.enableRedStorm()) {
+            return;
+        }
+        if (player.level().dimension() != Level.OVERWORLD) {
             return;
         }
         if (!ServerPlayNetworking.canSend(player, PortalAtmospherePayload.TYPE)) {
@@ -880,6 +891,12 @@ public final class GoldRaidManager {
         float baseIntensity = (float) clamp01(1.0 - distance / PortalStructureHelper.OUTER_RADIUS);
         float intensity = MIN_PORTAL_ATMOSPHERE_INTENSITY + (1.0f - MIN_PORTAL_ATMOSPHERE_INTENSITY) * baseIntensity;
         float descent = (float) clamp01((origin.getY() - player.getY()) / PortalStructureHelper.PIT_DEPTH);
+        if (completed) {
+            intensity = Math.min(intensity, COMPLETED_PORTAL_ATMOSPHERE_INTENSITY);
+            descent *= COMPLETED_PORTAL_DESCENT_SCALE;
+        } else if (raidActive) {
+            intensity = Math.max(intensity, RAID_PORTAL_ATMOSPHERE_INTENSITY);
+        }
         double belowPortal = origin.getY() - player.getY();
         if (distance <= PortalStructureHelper.INNER_RADIUS + 10 && belowPortal >= 8.0) {
             ModAdvancementTriggers.trigger(ModAdvancementTriggers.PIT_DESCENT, player);
