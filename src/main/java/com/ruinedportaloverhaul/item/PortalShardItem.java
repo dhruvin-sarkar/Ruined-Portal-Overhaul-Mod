@@ -4,9 +4,7 @@ import com.ruinedportaloverhaul.component.ModDataComponents;
 import com.ruinedportaloverhaul.raid.PortalRaidState;
 import com.ruinedportaloverhaul.sound.ModSounds;
 import com.ruinedportaloverhaul.world.ModParticles;
-import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.List;
 import java.util.function.Consumer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -106,28 +104,24 @@ public class PortalShardItem extends Item {
 
     private static BlockPos findNearestUncompletedPortal(ServerLevel level, BlockPos playerPos) {
         PortalRaidState state = PortalRaidState.get(level.getServer());
-        List<BlockPos> candidates = new ArrayList<>();
-        addCandidate(level, candidates, playerPos);
-        int[] radii = {512, 1536, 3072, 6144};
-        for (int radius : radii) {
-            addCandidate(level, candidates, playerPos.offset(radius, 0, 0));
-            addCandidate(level, candidates, playerPos.offset(-radius, 0, 0));
-            addCandidate(level, candidates, playerPos.offset(0, 0, radius));
-            addCandidate(level, candidates, playerPos.offset(0, 0, -radius));
+        BlockPos knownPortal = state.knownUncompletedPortalOrigins().stream()
+            .min(Comparator.comparingDouble(candidate -> horizontalDistanceSqr(candidate, playerPos)))
+            .orElse(null);
+        if (knownPortal != null) {
+            return knownPortal;
         }
 
-        return candidates.stream()
-            .distinct()
-            .filter(candidate -> !state.isCompleted(candidate))
-            .min(Comparator.comparingDouble(candidate -> candidate.distSqr(playerPos)))
-            .orElse(null);
+        BlockPos found = level.findNearestMapStructure(StructureTags.RUINED_PORTAL, playerPos, SEARCH_RADIUS_CHUNKS, false);
+        return found != null && !isInsideCompletedPortalFootprint(found, state) ? found.immutable() : null;
     }
 
-    private static void addCandidate(ServerLevel level, List<BlockPos> candidates, BlockPos searchOrigin) {
-        BlockPos found = level.findNearestMapStructure(StructureTags.RUINED_PORTAL, searchOrigin, SEARCH_RADIUS_CHUNKS, false);
-        if (found != null) {
-            candidates.add(found.immutable());
+    private static boolean isInsideCompletedPortalFootprint(BlockPos pos, PortalRaidState state) {
+        for (BlockPos completedPortal : state.completedPortalOrigins()) {
+            if (horizontalDistanceSqr(pos, completedPortal) <= 64.0 * 64.0) {
+                return true;
+            }
         }
+        return false;
     }
 
     private static void spawnGuideTrail(ServerLevel level, Vec3 from, Vec3 to) {
@@ -157,6 +151,12 @@ public class PortalShardItem extends Item {
         double dx = to.x - from.x;
         double dz = to.z - from.z;
         return Math.sqrt(dx * dx + dz * dz);
+    }
+
+    private static double horizontalDistanceSqr(BlockPos first, BlockPos second) {
+        double dx = first.getX() - second.getX();
+        double dz = first.getZ() - second.getZ();
+        return dx * dx + dz * dz;
     }
 
     private static String formatDuration(int ticks) {

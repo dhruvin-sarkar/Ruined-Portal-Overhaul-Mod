@@ -133,6 +133,19 @@ public final class PortalRaidState extends SavedData {
         return Set.copyOf(this.completedPortals);
     }
 
+    public Set<BlockPos> knownUncompletedPortalOrigins() {
+        Set<BlockPos> origins = new HashSet<>();
+        origins.addAll(this.activatedPortals);
+        origins.addAll(this.activeRaidLocations);
+        origins.addAll(this.portalSpawners.keySet());
+        origins.addAll(this.portalVariants.keySet());
+        origins.addAll(this.ritualCrystals.keySet());
+        origins.addAll(this.activeDragonPortals);
+        origins.addAll(this.exiledPiglinSpawnTimes.keySet());
+        origins.removeAll(this.completedPortals);
+        return Set.copyOf(origins);
+    }
+
     public boolean isRaidActive(BlockPos portalOrigin) {
         return this.activeRaidLocations.contains(portalOrigin.immutable());
     }
