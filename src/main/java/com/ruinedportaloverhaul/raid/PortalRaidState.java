@@ -33,7 +33,7 @@ public final class PortalRaidState extends SavedData {
 
     public static final Codec<PortalRaidState> CODEC = RecordCodecBuilder.create(instance -> instance.group(
         BlockPos.CODEC.listOf()
-            .fieldOf(COMPLETED_PORTALS_KEY)
+            .optionalFieldOf(COMPLETED_PORTALS_KEY, List.of())
             .forGetter(state -> new ArrayList<>(state.completedPortals)),
         ActiveRaidData.CODEC.listOf()
             .optionalFieldOf(ACTIVE_RAIDS_KEY, List.of())
