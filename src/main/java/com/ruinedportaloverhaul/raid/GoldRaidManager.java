@@ -606,23 +606,26 @@ public final class GoldRaidManager {
     }
 
     private static BlockPos findWaveSpawnPosition(RaidState state, EntityType<? extends LivingEntity> type, int offsetIndex, int totalMobs) {
-        double radius = 14.0 + Math.min(10.0, totalMobs * 0.45);
-        for (int attempt = 0; attempt < 18; attempt++) {
-            int slot = offsetIndex + attempt;
+        double baseRadius = 14.0 + Math.min(10.0, totalMobs * 0.45);
+        for (int angleAttempt = 0; angleAttempt < 18; angleAttempt++) {
+            int slot = offsetIndex + angleAttempt;
             double angle = (Math.PI * 2.0) * (slot / (double) Math.max(1, totalMobs));
-            BlockPos horizontal = state.origin.offset(
-                (int) Math.round(Math.cos(angle) * radius),
-                0,
-                (int) Math.round(Math.sin(angle) * radius)
-            );
-            if (!state.level.hasChunk(horizontal.getX() >> 4, horizontal.getZ() >> 4)) {
-                continue;
-            }
-            BlockPos surface = state.level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING, horizontal);
-            for (int yOffset = 0; yOffset <= 2; yOffset++) {
-                BlockPos candidate = surface.above(yOffset);
-                if (canSpawnWaveMobAt(state.level, type, candidate)) {
-                    return candidate;
+            for (int radialAttempt = 0; radialAttempt < 4; radialAttempt++) {
+                double radius = baseRadius + radialAttempt * 3.0;
+                BlockPos horizontal = state.origin.offset(
+                    (int) Math.round(Math.cos(angle) * radius),
+                    0,
+                    (int) Math.round(Math.sin(angle) * radius)
+                );
+                if (!state.level.hasChunk(horizontal.getX() >> 4, horizontal.getZ() >> 4)) {
+                    continue;
+                }
+                BlockPos surface = state.level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING, horizontal);
+                for (int yOffset = 0; yOffset <= 2; yOffset++) {
+                    BlockPos candidate = surface.above(yOffset);
+                    if (canSpawnWaveMobAt(state.level, type, candidate)) {
+                        return candidate;
+                    }
                 }
             }
         }
