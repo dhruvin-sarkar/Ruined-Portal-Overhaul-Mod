@@ -88,6 +88,9 @@ public final class GoldRaidManager {
     private static final double GHAST_ANCHOR_RADIUS_SQUARED = GHAST_ANCHOR_RADIUS * GHAST_ANCHOR_RADIUS;
     private static final int GHAST_ANCHOR_TICKS = 20 * 180;
     private static final int INTER_WAVE_PULSE_INTERVAL_TICKS = 60;
+    private static final int COMPLETION_PORTAL_LIGHT_TICK = 20;
+    private static final int COMPLETION_BOSS_CHEST_TICK = 40;
+    private static final int COMPLETION_TRADER_TICK = 60;
     private static final int TERRITORY_BOON_DURATION_TICKS = 260;
     private static final float MIN_PORTAL_ATMOSPHERE_INTENSITY = 0.22f;
     private static final double AMBIENT_PARTICLE_RANGE_SQUARED = AMBIENT_PARTICLE_RANGE * AMBIENT_PARTICLE_RANGE;
@@ -116,6 +119,7 @@ public final class GoldRaidManager {
     private static final Map<Long, Long> NEXT_AMBIENT_SPAWN_TICK = new HashMap<>();
     private static final Map<Long, Long> NEXT_GHAST_SPAWN_TICK = new HashMap<>();
     private static final Map<UUID, PortalGhastAnchor> ANCHORED_GHASTS = new HashMap<>();
+    private static final Map<Long, CompletionSequence> COMPLETION_SEQUENCES = new HashMap<>();
 
     private static final List<AmbientSpawnEntry> OUTER_AMBIENT_SPAWNS = List.of(
         new AmbientSpawnEntry(EntityType.ZOMBIFIED_PIGLIN, 8),
@@ -249,6 +253,7 @@ public final class GoldRaidManager {
         long gameTime = level.getGameTime();
         PortalRaidState portalRaidState = PortalRaidState.get(level.getServer());
         restorePersistedRaids(level, portalRaidState);
+        tickCompletionSequences(level, gameTime);
 
         if (gameTime % COMPLETED_SPAWNER_RETRY_INTERVAL_TICKS == 0) {
             retryCompletedPortalSpawnerCleanup(level, portalRaidState);
@@ -309,7 +314,7 @@ public final class GoldRaidManager {
         for (PortalRaidState.ActiveRaidSnapshot snapshot : portalRaidState.activeRaidSnapshots()) {
             BlockPos origin = snapshot.portalOrigin().immutable();
             long key = raidKey(level, origin);
-            if (ACTIVE_RAIDS.containsKey(key)) {
+            if (ACTIVE_RAIDS.containsKey(key) || COMPLETION_SEQUENCES.containsKey(key)) {
                 continue;
             }
             if (portalRaidState.isCompleted(origin)) {
@@ -659,8 +664,12 @@ public final class GoldRaidManager {
     }
 
     private static void finishRaid(RaidState state) {
-        // Fix: completion side effects had drifted out of order, nearby players could miss the final trigger, and crystals staged before portal completion never joined the dragon ritual. The portal now keeps the required reward order, grants the completion handoff to the same participant footprint that stayed on the raid bar, and reconciles any waiting pedestal crystals after the completion scene finishes.
-        List<ServerPlayer> nearbyPlayers = state.level.getPlayers(player -> horizontalDistanceSqr(player.blockPosition(), state.origin) <= BOSS_BAR_PLAYER_RANGE_SQUARED);
+        // Keep the final handoff readable: the bar drops first, then portal/chest/trader beats land over the next few seconds.
+        long key = raidKey(state.level, state.origin);
+        if (COMPLETION_SEQUENCES.containsKey(key)) {
+            return;
+        }
+        Set<UUID> participantIds = completionAudienceIds(state.level, state.origin);
         List<BlockPos> completionSpawners = knownOrScannedPreRaidSpawners(state.level, state.portalRaidState, state.origin);
         if (!completionSpawners.isEmpty()) {
             state.portalRaidState.setPortalSpawners(state.origin, completionSpawners);
@@ -668,22 +677,81 @@ public final class GoldRaidManager {
         state.bossBar.removeAllPlayers();
         state.trackedPlayers.clear();
         state.bossBar.setVisible(false);
-        ignitePortal(state.level, state.origin);
-        spawnBossChest(state.level, state.origin);
-        long exiledSpawnGameTime = spawnExiledTrader(state.level, state.origin);
-        state.portalRaidState.markCompleted(state.origin);
-        if (exiledSpawnGameTime >= 0L) {
-            state.portalRaidState.rememberExiledPiglinSpawn(state.origin, exiledSpawnGameTime);
-        }
         disableSpawnerBlocks(state.level, completionSpawners);
         playCompletionFanfare(state.level, state.origin);
+        broadcastRaidCompletionTitle(state.level, state.origin);
 
+        COMPLETION_SEQUENCES.put(key, new CompletionSequence(
+            state.level,
+            state.portalRaidState,
+            state.origin,
+            Set.copyOf(participantIds),
+            state.level.getGameTime()
+        ));
+    }
+
+    private static Set<UUID> completionAudienceIds(ServerLevel level, BlockPos origin) {
+        Set<UUID> audience = new HashSet<>();
+        for (ServerPlayer player : level.getPlayers(player -> horizontalDistanceSqr(player.blockPosition(), origin) <= BOSS_BAR_PLAYER_RANGE_SQUARED)) {
+            audience.add(player.getUUID());
+        }
+        return audience;
+    }
+
+    private static void tickCompletionSequences(ServerLevel level, long gameTime) {
+        Iterator<Map.Entry<Long, CompletionSequence>> iterator = COMPLETION_SEQUENCES.entrySet().iterator();
+        while (iterator.hasNext()) {
+            CompletionSequence sequence = iterator.next().getValue();
+            if (sequence.level != level) {
+                continue;
+            }
+            if (tickCompletionSequence(sequence, gameTime)) {
+                iterator.remove();
+            }
+        }
+    }
+
+    private static boolean tickCompletionSequence(CompletionSequence sequence, long gameTime) {
+        long elapsed = gameTime - sequence.startTick;
+        if (!sequence.portalLit && elapsed >= COMPLETION_PORTAL_LIGHT_TICK) {
+            sequence.portalLit = true;
+            ignitePortal(sequence.level, sequence.origin);
+            spawnAmbientPortalFrameParticles(sequence.level, sequence.origin);
+            sequence.level.playSound(null, sequence.origin, ModSounds.AMBIENT_PORTAL_LAVA, SoundSource.BLOCKS, 1.0f, 0.75f);
+        }
+        if (!sequence.bossChestSpawned && elapsed >= COMPLETION_BOSS_CHEST_TICK) {
+            sequence.bossChestSpawned = true;
+            spawnBossChest(sequence.level, sequence.origin);
+            spawnRandomizedParticleBurst(sequence.level, sequence.origin.offset(3, 1, 0), ParticleTypes.TOTEM_OF_UNDYING, 28, 2.5, 0.02);
+            sequence.level.playSound(null, sequence.origin.offset(3, 1, 0), ModSounds.RAID_COMPLETE, SoundSource.PLAYERS, 0.8f, 1.2f);
+        }
+        if (!sequence.traderSpawned && elapsed >= COMPLETION_TRADER_TICK) {
+            sequence.traderSpawned = true;
+            long exiledSpawnGameTime = spawnExiledTrader(sequence.level, sequence.origin);
+            sequence.portalRaidState.markCompleted(sequence.origin);
+            if (exiledSpawnGameTime >= 0L) {
+                sequence.portalRaidState.rememberExiledPiglinSpawn(sequence.origin, exiledSpawnGameTime);
+            }
+            grantCompletionCredit(sequence);
+            NetherDragonRituals.onPortalCompleted(sequence.level, sequence.origin);
+            return true;
+        }
+        return false;
+    }
+
+    private static void grantCompletionCredit(CompletionSequence sequence) {
         Component message = Component.translatable("message.ruined_portal_overhaul.raid.complete");
-        for (ServerPlayer player : nearbyPlayers) {
+        for (UUID playerId : sequence.participantIds) {
+            ServerPlayer player = sequence.level.getServer().getPlayerList().getPlayer(playerId);
+            if (player == null || player.level() != sequence.level) {
+                continue;
+            }
+            if (horizontalDistanceSqr(player.blockPosition(), sequence.origin) > BOSS_BAR_PLAYER_RANGE_SQUARED) {
+                continue;
+            }
             ModAdvancementTriggers.trigger(ModAdvancementTriggers.RAID_COMPLETED, player);
             player.displayClientMessage(message, true);
         }
-        NetherDragonRituals.onPortalCompleted(state.level, state.origin);
     }
 
     private static int restoredWaveIndex(PortalRaidState.ActiveRaidSnapshot snapshot) {
@@ -1222,7 +1290,16 @@ public final class GoldRaidManager {
         for (ServerPlayer player : level.getPlayers(player -> horizontalDistanceSqr(player.blockPosition(), origin) <= rangeSquared)) {
             player.connection.send(new ClientboundSetTitlesAnimationPacket(10, 40, 20));
             player.connection.send(new ClientboundSetTitleTextPacket(Component.translatable("title.ruined_portal_overhaul.raid.start").withStyle(ChatFormatting.DARK_RED)));
-            player.connection.send(new ClientboundSetSubtitleTextPacket(Component.translatable("subtitle.ruined_portal_overhaul.raid.start").withStyle(ChatFormatting.RED)));
+            player.connection.send(new ClientboundSetSubtitleTextPacket(Component.translatable("subtitle.ruined_portal_overhaul.raid.start_title").withStyle(ChatFormatting.RED)));
+        }
+    }
+
+    private static void broadcastRaidCompletionTitle(ServerLevel level, BlockPos origin) {
+        double rangeSquared = RAID_TITLE_PLAYER_RANGE * RAID_TITLE_PLAYER_RANGE;
+        for (ServerPlayer player : level.getPlayers(player -> horizontalDistanceSqr(player.blockPosition(), origin) <= rangeSquared)) {
+            player.connection.send(new ClientboundSetTitlesAnimationPacket(5, 35, 15));
+            player.connection.send(new ClientboundSetTitleTextPacket(Component.translatable("title.ruined_portal_overhaul.raid.complete").withStyle(ChatFormatting.GOLD)));
+            player.connection.send(new ClientboundSetSubtitleTextPacket(Component.translatable("subtitle.ruined_portal_overhaul.raid.complete_title").withStyle(ChatFormatting.RED)));
         }
     }
 
@@ -1492,6 +1569,7 @@ public final class GoldRaidManager {
         NEXT_AMBIENT_SPAWN_TICK.clear();
         NEXT_GHAST_SPAWN_TICK.clear();
         ANCHORED_GHASTS.clear();
+        COMPLETION_SEQUENCES.clear();
     }
 
     private static int expectedWaveSize(ServerLevel level, int waveIndex) {
@@ -1616,5 +1694,30 @@ public final class GoldRaidManager {
     }
 
     private record PortalInterior(Direction.Axis axis, List<BlockPos> blocks, List<BlockPos> frameBlocks) {
+    }
+
+    private static final class CompletionSequence {
+        private final ServerLevel level;
+        private final PortalRaidState portalRaidState;
+        private final BlockPos origin;
+        private final Set<UUID> participantIds;
+        private final long startTick;
+        private boolean portalLit;
+        private boolean bossChestSpawned;
+        private boolean traderSpawned;
+
+        private CompletionSequence(
+            ServerLevel level,
+            PortalRaidState portalRaidState,
+            BlockPos origin,
+            Set<UUID> participantIds,
+            long startTick
+        ) {
+            this.level = level;
+            this.portalRaidState = portalRaidState;
+            this.origin = origin.immutable();
+            this.participantIds = participantIds;
+            this.startTick = startTick;
+        }
     }
 }
