@@ -25,5 +25,6 @@ public class DragonScaleItem extends Item {
         super.appendHoverText(stack, context, tooltipDisplay, tooltip, flag);
         tooltip.accept(Component.translatable("item.ruined_portal_overhaul.nether_dragon_scale.tooltip.line1").withStyle(ChatFormatting.DARK_RED));
         tooltip.accept(Component.translatable("item.ruined_portal_overhaul.nether_dragon_scale.tooltip.line2").withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
+        tooltip.accept(Component.translatable("item.ruined_portal_overhaul.nether_dragon_scale.tooltip.line3").withStyle(ChatFormatting.DARK_GRAY));
     }
 }

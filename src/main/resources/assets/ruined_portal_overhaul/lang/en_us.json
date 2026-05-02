@@ -39,6 +39,7 @@
   "item.ruined_portal_overhaul.nether_dragon_scale": "Nether Dragon Scale",
   "item.ruined_portal_overhaul.nether_dragon_scale.tooltip.line1": "Proof that the storm bled.",
   "item.ruined_portal_overhaul.nether_dragon_scale.tooltip.line2": "A trophy scale from the Nether Dragon.",
+  "item.ruined_portal_overhaul.nether_dragon_scale.tooltip.line3": "Trophy only; back-slot support waits on compatible Accessories.",
   "item.ruined_portal_overhaul.music_disc_nether_tide": "Music Disc",
   "item.ruined_portal_overhaul.music_disc_nether_tide.desc": "Nether Tide",
   "item.ruined_portal_overhaul.music_disc_nether_tide.tooltip.line1": "A melody older than the portal itself.",
