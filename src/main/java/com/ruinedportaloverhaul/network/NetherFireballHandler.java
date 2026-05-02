@@ -13,6 +13,7 @@ import net.minecraft.world.phys.Vec3;
 
 public final class NetherFireballHandler {
     public static final int COOLDOWN_TICKS = 2 * 60 * 20;
+    private static final double MIN_LOOK_ALIGNMENT = 0.2;
 
     private NetherFireballHandler() {
     }
@@ -42,7 +43,8 @@ public final class NetherFireballHandler {
         ModAdvancementTriggers.trigger(ModAdvancementTriggers.NETHER_FIREBALL_USED, player);
     }
 
-    private static Vec3 validatedLook(NetherFireballPayload payload, Vec3 fallback) {
+    private static Vec3 validatedLook(NetherFireballPayload payload, Vec3 serverLook) {
+        Vec3 fallback = safeNormalize(serverLook);
         Vec3 requestedLook = new Vec3(payload.lookX(), payload.lookY(), payload.lookZ());
         double lengthSquared = requestedLook.lengthSqr();
         if (!Double.isFinite(requestedLook.x)
@@ -50,9 +52,17 @@ public final class NetherFireballHandler {
             || !Double.isFinite(requestedLook.z)
             || lengthSquared < 1.0E-6
             || lengthSquared > 4.0) {
-            return fallback.normalize();
+            return fallback;
         }
-        return requestedLook.normalize();
+        Vec3 normalizedLook = requestedLook.normalize();
+        return normalizedLook.dot(fallback) < MIN_LOOK_ALIGNMENT ? fallback : normalizedLook;
+    }
+
+    private static Vec3 safeNormalize(Vec3 look) {
+        if (!Double.isFinite(look.x) || !Double.isFinite(look.y) || !Double.isFinite(look.z) || look.lengthSqr() < 1.0E-6) {
+            return new Vec3(0.0, 0.0, 1.0);
+        }
+        return look.normalize();
     }
 
     private static void spawnFireball(ServerLevel level, ServerPlayer player, Vec3 look) {
