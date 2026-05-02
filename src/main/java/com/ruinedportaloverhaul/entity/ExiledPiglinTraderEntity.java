@@ -233,6 +233,7 @@ public class ExiledPiglinTraderEntity extends WanderingTrader implements GeoEnti
         }
         this.spawnGameTime = valueInput.getLongOr("SpawnGameTime", -1L);
         this.lastRestockGameTime = valueInput.getLongOr("LastRestockGameTime", -1L);
+        this.setTradingPlayer(null);
         this.setInvulnerable(true);
         this.setDespawnDelay(0);
     }
