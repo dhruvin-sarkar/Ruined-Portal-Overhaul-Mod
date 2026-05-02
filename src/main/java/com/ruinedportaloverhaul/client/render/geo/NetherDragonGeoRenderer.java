@@ -7,6 +7,7 @@ import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.resources.Identifier;
+import software.bernie.geckolib.constant.DataTickets;
 import software.bernie.geckolib.renderer.GeoEntityRenderer;
 import software.bernie.geckolib.renderer.base.GeoRenderState;
 
@@ -21,8 +22,8 @@ public final class NetherDragonGeoRenderer<R extends EntityRenderState & GeoRend
     }
 
     @Override
-    public int getRenderColor(NetherDragonEntity animatable, Void relatedObject, float partialTick) {
-        return animatable.isEnragedPhase() ? ENRAGED_TINT : BASE_TINT;
+    public void addRenderData(NetherDragonEntity animatable, Void relatedObject, R renderState, float partialTick) {
+        renderState.addGeckolibData(DataTickets.RENDER_COLOR, animatable.isEnragedPhase() ? ENRAGED_TINT : BASE_TINT);
     }
 
     @Override

@@ -7,6 +7,7 @@ import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.resources.Identifier;
+import software.bernie.geckolib.constant.DataTickets;
 import software.bernie.geckolib.renderer.GeoEntityRenderer;
 import software.bernie.geckolib.renderer.base.GeoRenderState;
 
@@ -19,8 +20,8 @@ public final class NetherCrystalGeoRenderer<R extends EntityRenderState & GeoRen
     }
 
     @Override
-    public int getRenderColor(NetherCrystalEntity animatable, Void relatedObject, float partialTick) {
-        return CRIMSON_TINT;
+    public void addRenderData(NetherCrystalEntity animatable, Void relatedObject, R renderState, float partialTick) {
+        renderState.addGeckolibData(DataTickets.RENDER_COLOR, CRIMSON_TINT);
     }
 
     @Override
