@@ -12,7 +12,9 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.Music;
 import net.minecraft.sounds.SoundSource;
@@ -40,6 +42,7 @@ public final class PortalAtmosphereClient {
     private static long redFlashEndNanos;
     private static boolean musicPlaying;
     private static boolean completedPortalStorm;
+    private static StormRumbleSound stormRumbleSound;
 
     private PortalAtmosphereClient() {
     }
@@ -177,9 +180,11 @@ public final class PortalAtmosphereClient {
                 client.getMusicManager().stopPlaying(RED_STORM_MUSIC);
             }
             musicPlaying = false;
+            stopStormRumble();
             return;
         }
 
+        updateStormRumble(client);
         if (ModConfigManager.enableRedStorm() && stormIntensity > 0.18f && !completedPortalStorm) {
             if (!musicPlaying || !client.getMusicManager().isPlayingMusic(RED_STORM_MUSIC)) {
                 client.getMusicManager().startPlaying(RED_STORM_MUSIC);
@@ -191,6 +196,25 @@ public final class PortalAtmosphereClient {
         if (musicPlaying) {
             client.getMusicManager().stopPlaying(RED_STORM_MUSIC);
             musicPlaying = false;
+        }
+    }
+
+    private static void updateStormRumble(Minecraft client) {
+        if (ModConfigManager.enableRedStorm() && stormIntensity > 0.03f) {
+            if (stormRumbleSound == null || stormRumbleSound.isStopped()) {
+                stormRumbleSound = new StormRumbleSound(client);
+                client.getSoundManager().play(stormRumbleSound);
+            }
+            return;
+        }
+
+        stopStormRumble();
+    }
+
+    private static void stopStormRumble() {
+        if (stormRumbleSound != null) {
+            stormRumbleSound.requestStop();
+            stormRumbleSound = null;
         }
     }
 
@@ -256,6 +280,55 @@ public final class PortalAtmosphereClient {
         double cycle = (now % (long) PULSE_PERIOD_NANOS) / PULSE_PERIOD_NANOS;
         double wave = (Math.sin(cycle * Math.PI * 2.0 - Math.PI / 2.0) + 1.0) * 0.5;
         return PULSE_FLOOR + (float) wave * PULSE_RANGE;
+    }
+
+    private static final class StormRumbleSound extends AbstractTickableSoundInstance {
+        private final Minecraft client;
+
+        private StormRumbleSound(Minecraft client) {
+            super(ModSounds.WEATHER_RED_STORM_RUMBLE, SoundSource.WEATHER, STORM_RANDOM);
+            this.client = client;
+            this.looping = true;
+            this.delay = 0;
+            this.attenuation = SoundInstance.Attenuation.NONE;
+            this.relative = true;
+            this.volume = 0.01f;
+            this.pitch = 0.55f;
+        }
+
+        @Override
+        public void tick() {
+            if (this.client.level == null
+                || this.client.player == null
+                || !ModConfigManager.enableRedStorm()
+                || stormIntensity < 0.015f) {
+                this.stop();
+                return;
+            }
+
+            this.x = this.client.player.getX();
+            this.y = this.client.player.getY();
+            this.z = this.client.player.getZ();
+            float pressure = clamp01(stormIntensity * stormPulse);
+            float baseVolume = completedPortalStorm ? 0.03f : 0.05f;
+            float volumeRange = completedPortalStorm ? 0.18f : 0.42f;
+            this.volume = baseVolume + pressure * volumeRange;
+            this.pitch = 0.50f + stormPulse * 0.07f + displayDescent * 0.04f;
+        }
+
+        @Override
+        public boolean canStartSilent() {
+            return true;
+        }
+
+        @Override
+        public boolean canPlaySound() {
+            return ModConfigManager.enableRedStorm();
+        }
+
+        private void requestStop() {
+            this.stop();
+        }
     }
 
     private static float clamp01(float value) {

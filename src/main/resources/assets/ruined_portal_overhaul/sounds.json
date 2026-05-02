@@ -8,6 +8,15 @@
       }
     ]
   },
+  "weather.red_storm.rumble": {
+    "subtitle": "subtitle.ruined_portal_overhaul.weather.red_storm.rumble",
+    "sounds": [
+      {
+        "name": "minecraft:block.portal.ambient",
+        "type": "event"
+      }
+    ]
+  },
   "weather.red_thunder": {
     "subtitle": "subtitle.ruined_portal_overhaul.weather.red_thunder",
     "sounds": [

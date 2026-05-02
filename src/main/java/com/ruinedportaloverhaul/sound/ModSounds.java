@@ -8,6 +8,7 @@ import net.minecraft.sounds.SoundEvent;
 
 public final class ModSounds {
     public static final SoundEvent WEATHER_RED_STORM_MUSIC = register("weather.red_storm.music");
+    public static final SoundEvent WEATHER_RED_STORM_RUMBLE = register("weather.red_storm.rumble");
     public static final SoundEvent WEATHER_RED_THUNDER = register("weather.red_thunder");
     public static final SoundEvent WEATHER_RED_THUNDER_LOW = register("weather.red_thunder_low");
     public static final SoundEvent WEATHER_RED_THUNDER_PORTAL = register("weather.red_thunder_portal");
