@@ -101,11 +101,15 @@ public final class NetherDragonRituals {
         }
     }
 
-    public static void onNetherDragonDeath(ServerLevel level, NetherDragonEntity dragon) {
-        // Fix: rewards used to appear before the ritual collapse and ignored doMobLoot. The finale now shatters first, then only drops items when vanilla mob loot is enabled.
+    public static void onNetherDragonFinaleStart(ServerLevel level, NetherDragonEntity dragon) {
         BlockPos portalOrigin = dragon.portalOrigin();
         shatterPedestals(level, portalOrigin);
         level.playSound(null, portalOrigin, ModSounds.RITUAL_VICTORY, SoundSource.HOSTILE, 1.2f, 0.9f);
+    }
+
+    public static void onNetherDragonDeath(ServerLevel level, NetherDragonEntity dragon) {
+        // Rewards land after the pedestal shatter beat so the boss death reads as a finale instead of one overloaded tick.
+        BlockPos portalOrigin = dragon.portalOrigin();
         if (level.getGameRules().get(GameRules.MOB_DROPS)) {
             // Fix: spawnAtLocation(dragon) dropped loot at the dragon's body position, which is ~5 blocks above the portal by end of the 60-tick death rise and often scattered outside the arena. Loot now lands at the pedestal ring so players fighting from the ritual floor can actually pick it up.
             dropRitualLoot(level, portalOrigin, new ItemStack(Items.NETHER_STAR, 2));

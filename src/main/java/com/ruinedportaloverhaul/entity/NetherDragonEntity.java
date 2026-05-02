@@ -58,6 +58,7 @@ public class NetherDragonEntity extends EnderDragon implements GeoEntity {
     private static final RawAnimation SLAM_ANIMATION = RawAnimation.begin().thenPlay("attack.nether_slam");
     private static final String PORTAL_ORIGIN_KEY = "RpoPortalOrigin";
     private static final String DEATH_REWARDS_HANDLED_KEY = "RpoDeathRewardsHandled";
+    private static final String DEATH_PEDESTALS_SHATTERED_KEY = "RpoDeathPedestalsShattered";
     private static final String ENRAGED_KEY = "RpoEnraged";
     private static final String GUARDIANS_SUMMONED_KEY = "RpoGuardiansSummoned";
     private static final String STRAFE_COOLDOWN_KEY = "RpoStrafeCooldown";
@@ -76,7 +77,9 @@ public class NetherDragonEntity extends EnderDragon implements GeoEntity {
     private static final int NETHER_SLAM_ASCENT_TICKS = 20;
     private static final int NETHER_SLAM_DIVE_TICKS = 18;
     private static final int NETHER_SLAM_TOTAL_TICKS = NETHER_SLAM_ASCENT_TICKS + NETHER_SLAM_DIVE_TICKS;
-    private static final int DEATH_REWARD_DELAY_TICKS = 60;
+    private static final int DEATH_PEDESTAL_SHATTER_DELAY_TICKS = 60;
+    private static final int DEATH_REWARD_DELAY_TICKS = 90;
+    private static final int DEATH_REMOVE_DELAY_TICKS = 120;
     private static final int DEATH_XP_REWARD = 1500;
     private static final int CRYSTAL_SUPPRESSION_INTERVAL_TICKS = 20;
     private static final double PLAYER_EVENT_RANGE = 96.0;
@@ -93,6 +96,7 @@ public class NetherDragonEntity extends EnderDragon implements GeoEntity {
 
     private BlockPos portalOrigin = BlockPos.ZERO;
     private boolean deathRewardsHandled;
+    private boolean deathPedestalsShattered;
     private boolean enraged;
     private boolean guardiansSummoned;
     private int strafeCooldown = STRAFE_INTERVAL_TICKS;
@@ -243,12 +247,20 @@ public class NetherDragonEntity extends EnderDragon implements GeoEntity {
             part.setPos(part.position().add(rise));
         }
 
+        if (!this.deathPedestalsShattered && this.dragonDeathTime >= DEATH_PEDESTAL_SHATTER_DELAY_TICKS) {
+            this.deathPedestalsShattered = true;
+            NetherDragonRituals.onNetherDragonFinaleStart(serverLevel, this);
+        }
+
         if (!this.deathRewardsHandled && this.dragonDeathTime >= DEATH_REWARD_DELAY_TICKS) {
             this.deathRewardsHandled = true;
             NetherDragonRituals.onNetherDragonDeath(serverLevel, this);
             if (serverLevel.getGameRules().get(GameRules.MOB_DROPS)) {
                 ExperienceOrb.award(serverLevel, this.position(), DEATH_XP_REWARD);
             }
+        }
+
+        if (this.deathRewardsHandled && this.dragonDeathTime >= DEATH_REMOVE_DELAY_TICKS) {
             this.remove(RemovalReason.KILLED);
             this.gameEvent(net.minecraft.world.level.gameevent.GameEvent.ENTITY_DIE);
         }
@@ -274,6 +286,7 @@ public class NetherDragonEntity extends EnderDragon implements GeoEntity {
         super.addAdditionalSaveData(output);
         output.putLong(PORTAL_ORIGIN_KEY, this.portalOrigin.asLong());
         output.putBoolean(DEATH_REWARDS_HANDLED_KEY, this.deathRewardsHandled);
+        output.putBoolean(DEATH_PEDESTALS_SHATTERED_KEY, this.deathPedestalsShattered);
         output.putBoolean(ENRAGED_KEY, this.enraged);
         output.putBoolean(GUARDIANS_SUMMONED_KEY, this.guardiansSummoned);
         output.putInt(STRAFE_COOLDOWN_KEY, this.strafeCooldown);
@@ -288,6 +301,7 @@ public class NetherDragonEntity extends EnderDragon implements GeoEntity {
         super.readAdditionalSaveData(input);
         this.setPortalOrigin(BlockPos.of(input.getLongOr(PORTAL_ORIGIN_KEY, BlockPos.ZERO.asLong())));
         this.deathRewardsHandled = input.getBooleanOr(DEATH_REWARDS_HANDLED_KEY, false);
+        this.deathPedestalsShattered = input.getBooleanOr(DEATH_PEDESTALS_SHATTERED_KEY, false);
         this.enraged = input.getBooleanOr(ENRAGED_KEY, false);
         this.guardiansSummoned = input.getBooleanOr(GUARDIANS_SUMMONED_KEY, false);
         this.strafeCooldown = input.getIntOr(STRAFE_COOLDOWN_KEY, STRAFE_INTERVAL_TICKS);
