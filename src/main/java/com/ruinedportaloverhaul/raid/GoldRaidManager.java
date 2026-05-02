@@ -645,7 +645,7 @@ public final class GoldRaidManager {
             && level.noCollision(type.getSpawnAABB(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5));
     }
 
-    private static boolean isNetherSpawnFloor(BlockState state) {
+    private static boolean isUndergroundAmbientSpawnFloor(BlockState state) {
         return state.is(Blocks.NETHERRACK)
             || state.is(Blocks.BLACKSTONE)
             || state.is(Blocks.BASALT)
@@ -1101,7 +1101,7 @@ public final class GoldRaidManager {
             int baseY = clamp((int) Math.round(player.getY()) + random.nextInt(13) - 6, minY, maxY);
             for (int yOffset = 5; yOffset >= -6; yOffset--) {
                 BlockPos candidate = new BlockPos(x, clamp(baseY + yOffset, minY, maxY), z);
-                if (canSpawnWaveMobAt(level, type, candidate) && isNetherSpawnFloor(level.getBlockState(candidate.below()))) {
+                if (canSpawnWaveMobAt(level, type, candidate) && isUndergroundAmbientSpawnFloor(level.getBlockState(candidate.below()))) {
                     return candidate;
                 }
             }
