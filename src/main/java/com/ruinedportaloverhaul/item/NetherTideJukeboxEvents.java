@@ -8,6 +8,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.JukeboxBlock;
 import net.minecraft.world.level.block.entity.JukeboxBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -36,6 +37,9 @@ public final class NetherTideJukeboxEvents {
         }
 
         for (ServerLevel level : server.getAllLevels()) {
+            if (level.dimension() != Level.OVERWORLD) {
+                continue;
+            }
             for (ServerPlayer player : level.players()) {
                 spawnNearbyDiscParticles(level, player, state);
             }
@@ -65,10 +69,16 @@ public final class NetherTideJukeboxEvents {
 
     private static boolean nearCompletedPortal(BlockPos pos, PortalRaidState state) {
         for (BlockPos portalOrigin : state.completedPortalOrigins()) {
-            if (portalOrigin.distSqr(pos) <= PORTAL_FOOTPRINT_RADIUS_SQUARED) {
+            if (horizontalDistanceSqr(portalOrigin, pos) <= PORTAL_FOOTPRINT_RADIUS_SQUARED) {
                 return true;
             }
         }
         return false;
+    }
+
+    private static double horizontalDistanceSqr(BlockPos first, BlockPos second) {
+        double dx = first.getX() - second.getX();
+        double dz = first.getZ() - second.getZ();
+        return dx * dx + dz * dz;
     }
 }
