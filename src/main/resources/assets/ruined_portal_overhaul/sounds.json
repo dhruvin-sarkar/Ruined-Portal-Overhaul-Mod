@@ -152,6 +152,15 @@
       }
     ]
   },
+  "entity.piglin_vindicator.attack": {
+    "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_vindicator.attack",
+    "sounds": [
+      {
+        "name": "minecraft:entity.player.attack.crit",
+        "type": "event"
+      }
+    ]
+  },
   "entity.piglin_brute_pillager.ambient": {
     "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_brute_pillager.ambient",
     "sounds": [

@@ -1,12 +1,10 @@
 package com.ruinedportaloverhaul.entity;
 
 import com.ruinedportaloverhaul.sound.ModSounds;
-import com.ruinedportaloverhaul.world.ModParticles;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.DifficultyInstance;
@@ -26,7 +24,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.Vec3;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animatable.manager.AnimatableManager;
@@ -111,9 +108,6 @@ public class PiglinRavagerEntity extends Ravager implements GeoEntity {
         } else if (serverLevel.getDifficulty() == Difficulty.HARD && this.hasHardWallImpact(serverLevel)) {
             this.hardWallRoarCooldown = 80;
             this.triggerAnim(RuinedPortalGeoAnimations.ACTION_CONTROLLER, RuinedPortalGeoAnimations.ATTACK_ROAR);
-            serverLevel.playSound(null, this.blockPosition(), ModSounds.ENTITY_PIGLIN_RAVAGER_ROAR, SoundSource.HOSTILE, 1.4f, 0.75f);
-            Vec3 mouth = this.getEyePosition().add(this.getLookAngle().normalize().scale(1.4));
-            serverLevel.sendParticles(ModParticles.NETHER_EMBER, mouth.x, mouth.y, mouth.z, 10, 0.35, 0.2, 0.35, 0.025);
             for (Player target : serverLevel.getEntitiesOfClass(Player.class, this.getBoundingBox().inflate(7.0))) {
                 target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 60, 1), this);
             }

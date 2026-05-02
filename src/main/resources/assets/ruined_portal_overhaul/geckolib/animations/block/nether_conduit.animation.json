@@ -16,6 +16,12 @@
     "misc.active": {
       "animation_length": 0.5,
       "loop": true,
+      "particle_effects": {
+        "0.25": {
+          "effect": "ruined_portal_overhaul:nether_ember",
+          "pre_effect_script": "conduit_pulse"
+        }
+      },
       "bones": {
         "inner": {
           "rotation": {

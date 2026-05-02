@@ -26,6 +26,7 @@ public final class ModSounds {
     public static final SoundEvent ENTITY_PIGLIN_VINDICATOR_AMBIENT = register("entity.piglin_vindicator.ambient");
     public static final SoundEvent ENTITY_PIGLIN_VINDICATOR_HURT = register("entity.piglin_vindicator.hurt");
     public static final SoundEvent ENTITY_PIGLIN_VINDICATOR_DEATH = register("entity.piglin_vindicator.death");
+    public static final SoundEvent ENTITY_PIGLIN_VINDICATOR_ATTACK = register("entity.piglin_vindicator.attack");
     public static final SoundEvent ENTITY_PIGLIN_BRUTE_PILLAGER_AMBIENT = register("entity.piglin_brute_pillager.ambient");
     public static final SoundEvent ENTITY_PIGLIN_BRUTE_PILLAGER_HURT = register("entity.piglin_brute_pillager.hurt");
     public static final SoundEvent ENTITY_PIGLIN_BRUTE_PILLAGER_DEATH = register("entity.piglin_brute_pillager.death");

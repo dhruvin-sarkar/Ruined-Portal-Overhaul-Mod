@@ -4,6 +4,7 @@ import com.ruinedportaloverhaul.block.NetherConduitBlock;
 import com.ruinedportaloverhaul.component.ModDataComponents;
 import com.ruinedportaloverhaul.damage.ModDamageTypes;
 import com.ruinedportaloverhaul.entity.ModEntities;
+import com.ruinedportaloverhaul.entity.RuinedPortalGeoAnimations;
 import com.ruinedportaloverhaul.sound.ModSounds;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -136,7 +137,9 @@ public class NetherConduitBlockEntity extends BlockEntity implements GeoBlockEnt
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         // Fix: the first pass used GeckoLib 4-style controller imports and constructor overloads, which do not exist in the 1.21.11 GeckoLib 5 runtime. The conduit now uses the current callback form so the renderer can compile and still swap loops from synced blockstate.
-        controllers.add(new AnimationController<>(ROTATION_CONTROLLER, 0, state -> state.setAndContinue(this.isActiveClientSide() ? ACTIVE_ROTATION : INACTIVE_ROTATION)));
+        controllers.add(RuinedPortalGeoAnimations.withEncounterKeyframes(
+            new AnimationController<>(ROTATION_CONTROLLER, 0, state -> state.setAndContinue(this.isActiveClientSide() ? ACTIVE_ROTATION : INACTIVE_ROTATION))
+        ));
     }
 
     @Override
