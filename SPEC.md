@@ -60,6 +60,7 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
    - Red thunder is roughly twice as frequent and uses a brief 2-3 tick deep-red HUD flash instead of the vanilla white sky flash.
    - Sky, rain, weather state, and fog are handled through client mixins; `ClientLevelStormMixin` only affects real `ClientLevel` instances so fake storm weather does not leak into integrated-server logic, and fog is tighter underground through descent-scaled intensity.
    - Storm music stops on zone exit, completion, or client world/player unload so combat music cannot leak across disconnects or dimension swaps.
+   - A separate tickable red-storm rumble follows the player, scales volume/pitch with storm intensity and pulse, and settles to a quieter completed-portal level.
 8. Territory Boon
    - While a portal is incomplete, players horizontally inside its radius-136 territory receive Regeneration II, Resistance I, Fire Resistance I, and Absorption IV every 20 ticks with a 260-tick duration.
    - The boon uses the same horizontal zone logic as the atmosphere, so it works on the surface, in the pit, and throughout the caves.
@@ -69,6 +70,7 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
    - `portal_deep`: 12-16 rolls with frequent underground caches, netherite scraps, ancient debris, templates, rare netherite ingots, diamond gear, totems, enchanted apples, Mending, Efficiency V, Sharpness V, Protection IV, Thorns III, and survival potions.
    - `portal_boss_reward`: 16-20 rolls plus a two-roll high-weight totem/enchanted-golden-apple bonus pool, guaranteed Nether Star, guaranteed Portal Shard, and the weighted `Corrupted Portal Key`.
    - Custom combat mob drops are richer across the board, with more gold, food, ammunition, equipment, books, totems from high-threat mobs, and rare netherite/debris drops from deeper wave threats.
+   - Enchantment functions use namespaced `minecraft:set_enchantments` with explicit `"add": false`, matching the vanilla 1.21.11 loot-table shape.
    - Runtime loot hooks add config-scaled Nether Star drops, a 5% Piglin Evoker Nether Tide disc roll, and an optional Patchouli Corrupted Chronicle guide book when Patchouli is loaded.
 10. Advancements
    - Advancements live under `data/ruined_portal_overhaul/advancement/`.
@@ -79,13 +81,13 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
    - Exactly one conduit is inserted directly into a generated structure chest, with additional rare drops from custom raid mobs.
 12. Ghast Tear Necklace
    - Native carried charm item with no external accessory dependency.
-   - While carried, it grants Speed II and Jump Boost II; the client keybind sends a typed server packet that is thread-wrapped, validates the carried necklace, alive/spectator state, and cooldown server-side, then silently drops invalid packets.
+   - While carried, it grants Speed II and Jump Boost II; the client keybind sends a typed server packet that is thread-wrapped, validates the carried necklace, alive/spectator state, cooldown, finite look vector, and server-look alignment server-side, then silently drops invalid packets or falls back to the server-authoritative look direction.
 13. Nether Crystal Ritual And Dragon
    - Nether Crystals place on netherite blocks or obsidian.
    - Four generated netherite pedestals around a completed portal track crystal placement in persistent raid state.
    - Ritual state is reconciled from the loaded pedestal crystals; broken crystals clear saved progress, interrupted summoning only resumes when all four crystals are still present, raid completion backfills any crystals that were staged before the portal was lit, and the persistent dragon-active flag means a live dragon rather than a queued summon.
    - When the Nether Dragon config toggle is disabled, completed ritual pedestals reject new crystal placements instead of consuming the offering for a boss that cannot spawn.
-   - Completing the ritual summons the Nether Dragon, which suppresses End-only behavior, drops Nether rewards, and shatters the pedestals on death.
+   - Completing the ritual summons the Nether Dragon, which suppresses End-only behavior, shatters pedestals, drops Nether rewards, and removes itself through staggered death-finale beats instead of doing everything in one tick.
    - Ritual summon titles, dragon-progression triggers, boss-bar viewers, and the phase-two flash all use horizontal portal distance so players in the pit or cave stack remain included in the fight cues.
 14. Masterwork Rewards And Discovery
    - The boss chest guarantees `ruined_portal_overhaul:portal_shard`, a server-side locator for the nearest uncompleted ruined portal with a 30-second component cooldown.
@@ -136,7 +138,7 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
 4. Runtime portal discovery also persists the discovered structure variant through `PortalRaidState` without mutating save data during chunk generation.
 5. Active raids rehydrate after server restart, preserve inter-wave pacing when saved wave UUIDs exist, and pause mob-death evaluation while the portal area is not entity-ticking.
 6. Wave completion advances through five boss-bar waves.
-7. Final completion hides and clears the boss bar, lights the portal, spawns the boss chest, summons the Exiled Piglin, marks the portal complete, disables any remaining spawner blocks, then plays completion effects, grants nearby players the raid-complete trigger, and reconciles any ritual crystals that were already staged on the pedestals.
+7. Final completion hides and clears the boss bar, disables any remaining spawner blocks, then staggers the fanfare/title, portal lighting, boss chest burst, Exiled Piglin spawn, persistent completion mark, nearby raid-complete trigger, and ritual-crystal reconciliation over readable reward beats.
 
 ## Compatibility
 
@@ -153,8 +155,8 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
 
 - `./gradlew.bat build` succeeds with Java 21 when `JAVA_HOME` points at `C:\Users\dhruv\.codex\jdks\temurin-21`.
 - JSON data files in resources parse successfully.
-- Language keys, sound subtitles, registered sound ids, and GeckoLib asset references pass static audits.
-- Latest verified build date: 2026-05-01.
+- Language keys, sound subtitles, registered sound ids, GeckoLib asset references, advancement custom triggers, and loot enchantment function shape pass static audits.
+- Latest verified build date: 2026-05-02.
 
 ## Remaining Work
 

@@ -1,6 +1,6 @@
 # Ruined Portal Overhaul - Canonical Project Context
 
-Last reconciled: 2026-04-28. Current build status: `./gradlew build` succeeds with Java 21 when `JAVA_HOME` points at `C:\Users\dhruv\.codex\jdks\temurin-21`; resource processing, language keys, sound subtitles, GeckoLib assets, custom particles, Patchouli data files, and recipe data all pass the Gradle build pipeline.
+Last reconciled: 2026-05-02. Current build status: `./gradlew build` succeeds with Java 21 when `JAVA_HOME` points at `C:\Users\dhruv\.codex\jdks\temurin-21`; resource processing, language keys, sound subtitles, GeckoLib assets, custom particles, Patchouli data files, loot tables, and recipe data all pass the Gradle build pipeline and static JSON/resource checks.
 
 This file is the single source of truth for the project. `SPEC.md` is the concise companion and must stay aligned with this file.
 
@@ -158,11 +158,11 @@ The Ghast Tear Necklace is a native carried charm:
 - `ModDataComponents`: registers `last_necklace_fireball_tick` as a persistent/networked long component on the carried stack.
 - `NetherFireballPayload`: C2S keybind payload carrying the client look vector sampled at keypress time.
 - `ModPackets`: central common packet hub. It registers typed 1.21.11 play payloads and wraps the fireball C2S receiver back onto the server executor before gameplay state changes.
-- `NetherFireballHandler`: server-side carried-stack lookup, alive/spectator validation, cooldown check, finite look-vector validation, fireball spawn, sound, stack component update, and advancement trigger. Invalid C2S requests are silently dropped.
+- `NetherFireballHandler`: server-side carried-stack lookup, alive/spectator validation, cooldown check, finite look-vector validation, server-look alignment fallback, fireball spawn, sound, stack component update, and advancement trigger. Invalid or strongly misaligned C2S requests are silently dropped back to the server-authoritative look direction.
 - `NetherFireballKeybinds`: client keybind registration, default key `G`, sends the payload only when the server supports it.
 - `RuinedPortalOverhaulClient`: registers the keybind from the client initializer.
 
-Passive effects refresh every 40 ticks with 80-tick duration while the necklace is carried. The fireball ability has a 2400-tick cooldown, spawns a vanilla `SmallFireball` owned by the player, and routes audio through `ModSounds.ITEM_GHAST_TEAR_NECKLACE_FIREBALL`.
+Passive effects refresh every 40 ticks with 80-tick duration while the necklace is carried. The fireball ability has a 2400-tick cooldown, spawns a vanilla `SmallFireball` owned by the player from the current server-side look direction, persists cooldown state on the carried stack component, and routes audio through `ModSounds.ITEM_GHAST_TEAR_NECKLACE_FIREBALL`.
 
 ## Nether Crystal And Nether Dragon
 
@@ -173,8 +173,8 @@ The Nether Crystal ritual is the endgame loop:
 - `ModEntities`: registers `nether_crystal` and `nether_dragon`.
 - `PortalStructureHelper`: places four netherite pedestals at offsets north/south/east/west six blocks from the portal center and exposes `ritualPedestalPositions(...)`.
 - `PortalRaidState`: persists discovered portal variants, filled ritual pedestals, and active dragon portals.
-- `NetherDragonRituals`: tracks crystal placement, starts the summoning sequence, keeps ritual titles, advancement triggers, and the Nether Dragon boss bar aligned to the same 96-block horizontal portal fight radius, drops death rewards, and shatters pedestals.
-- `NetherDragonEntity`, `NetherDragonGeoRenderer`, and `NetherDragonGeoModel`: extend vanilla `EnderDragon` for combat semantics, suppress End fight hooks and crystal healing, purge nearby vanilla `minecraft:end_crystal` entities every second while preserving this mod's Nether Crystal ritual entities, set 300 HP, delegate custom death rewards to `NetherDragonRituals`, apply permanent movement and flying-speed boosts during phase two, send the phase-two flash to players by horizontal portal distance, and render through GeckoLib with a vanilla dragon texture, crimson tint, flight loop, phase-two transition trigger, and Nether Slam trigger.
+- `NetherDragonRituals`: tracks crystal placement, starts the summoning sequence, keeps ritual titles, advancement triggers, and the Nether Dragon boss bar aligned to the same 96-block horizontal portal fight radius, shatters pedestals at the opening death beat, drops death rewards on the later reward beat, and clears ritual state once rewards are handled.
+- `NetherDragonEntity`, `NetherDragonGeoRenderer`, and `NetherDragonGeoModel`: extend vanilla `EnderDragon` for combat semantics, suppress End fight hooks and crystal healing, purge nearby vanilla `minecraft:end_crystal` entities every second while preserving this mod's Nether Crystal ritual entities, set 300 HP, delegate the staggered death finale to `NetherDragonRituals`, apply permanent movement and flying-speed boosts during phase two, send the phase-two flash to players by horizontal portal distance, and render through GeckoLib with a vanilla dragon texture, render-state crimson/enraged tint, flight loop, phase-two transition trigger, and Nether Slam trigger.
 - Phase two starts at 150 HP. Nether Slam uses a visual-only non-griefing explosion and then applies the intended 15 damage once through the explicit six-block radius hit, so players are not double-hit by vanilla explosion damage plus scripted damage.
 
 Ritual conditions:
@@ -194,7 +194,7 @@ Summoning sequence:
 
 Death behavior:
 
-- After the 60-tick death cinematic, removes the four Nether Crystals, shatters the four netherite pedestals, plays the ritual victory sting, then drops 2 Nether Stars and 1-3 Ancient Debris.
+- The death finale is staggered: around death tick 60 it removes the four Nether Crystals, shatters the four netherite pedestals, and plays the ritual victory sting; around tick 90 it drops 2 Nether Stars, 1-3 Ancient Debris, dragon rewards, and nearby advancement credit; around tick 120 it removes the dragon entity.
 - The dragon also drops 1-2 Corrupted Netherite Ingots, has a 30% Nether Dragon Scale roll, and performs the world's one Nether Tide disc roll at 15% through `PortalRaidState.nether_tide_disc_rolled`.
 - Awards a 1500 XP burst from `NetherDragonEntity.tickDeath()` plus challenge advancement XP for the ritual and dragon milestones.
 - Does not spawn an End portal and does not use End-crystal healing.
@@ -284,6 +284,7 @@ Implementation notes:
 - Variant selection is deterministic from the entity UUID through `TextureVariantHelper`.
 - GeckoLib texture selection is driven through `RuinedPortalGeoRenderData.TEXTURE_VARIANT`, captured during model state compilation.
 - Nether Conduit glow state is driven through `RuinedPortalGeoRenderData.CONDUIT_ACTIVE` and `CONDUIT_LEVEL`, captured during block-entity render compilation.
+- Nether Conduit, Nether Crystal, and Nether Dragon tint values are written to `DataTickets.RENDER_COLOR` during GeckoLib render-state compilation instead of consulting the entity again during the later render pass.
 - Piglin Vex uses `move.fly` while moving and `misc.idle.flying` while hovering; the shared `flyIdleController()` is intentionally custom because GeckoLib's stock helper falls back to `misc.idle`.
 - Placeholder `_0/_1/_2` PNGs are generated derivatives of the base texture sheets and are safe for later artist replacement.
 
@@ -359,12 +360,12 @@ Current wave table:
 Completion order:
 
 1. Remove all boss-bar players and hide the bar.
-2. Ignite the portal.
-3. Spawn the boss reward chest.
-4. Spawn the Exiled Piglin trader leashed to the nether-brick fence anchor.
-5. Mark the portal completed in persistent state.
-6. Disable any remaining known/scanned pre-raid spawner blocks without re-adding spawner positions to persistent state.
-7. Play completion fanfare.
+2. Disable any remaining known/scanned pre-raid spawner blocks without re-adding spawner positions to persistent state.
+3. Play completion fanfare and completion title immediately.
+4. Tick 20: ignite the portal with portal particles and sound.
+5. Tick 40: spawn the boss reward chest with a separate reward burst.
+6. Tick 60: spawn the Exiled Piglin trader leashed to the nether-brick fence anchor.
+7. Mark the portal completed in persistent state and remember the trader spawn time.
 8. Grant players who are still within the 48-block boss-bar radius the raid-complete custom advancement trigger and action-bar feedback: `The tribute is over. The scar remains.`
 9. Reconcile any already-placed ritual crystals on the four pedestals so a pre-built offering can flow straight into the Nether Dragon summoning sequence.
 
@@ -396,6 +397,7 @@ The red storm is a client-side visual/audio system driven by server proximity pa
 - `FogRendererMixin` tints fog red and tightens fog distance, especially underground.
 - Red thunder is generated on a client-side storm timer that is roughly twice as frequent as the earlier storm pass. Thunder uses a 2-3 tick deep-red HUD flash and now routes all layered thunder accents through `ModSounds`, so packs can replace the storm stack without touching logic. It does not rely on real world weather.
 - Storm music starts when storm intensity rises through the custom `weather.red_storm.music` event and is stopped when the player leaves the zone, the portal is completed, or the client world/player unloads. Completed portal packets carry a `completed` flag so the red weather remains while combat music and territory boon effects stop.
+- A separate `weather.red_storm.rumble` tickable client sound loops while storm intensity is active, follows the player, scales volume and pitch from storm intensity/pulse/descent, and settles to a lower volume for completed portals so the claimed scar still feels corrupted without combat music.
 - Custom mob voices use mod-owned sound ids plus explicit volume and pitch overrides, avoiding inherited pillager/illager identity audio while keeping resource-pack replacement simple.
 - `assets/ruined_portal_overhaul/sounds.json` maps every custom sound id to vanilla fallback sound events with `"type": "event"`, so the mod has audible defaults without bundling `.ogg` files and resource packs can still replace each id cleanly.
 
@@ -433,6 +435,7 @@ Loot table files contain `_comment` fields documenting reward intent.
 - `chests/portal_boss_reward`: `16-20` rolls plus a two-roll high-weight totem/enchanted-golden-apple bonus pool, a guaranteed Nether Star pool, and a guaranteed `Portal Shard`. Includes 1-2 netherite ingots, larger netherite scrap and ancient debris stacks, multiple upgrade templates, enchanted golden apples, common totems, diamonds, gold blocks, high-tier books, enchanted diamond gear, and a weighted named `Corrupted Portal Key`.
 - Entity loot tables are under `data/ruined_portal_overhaul/loot_table/entities/`. All custom combat mob drops are now richer, with more gold, food, ammunition, gear, potion ingredients, books, totems from high-threat mobs, and rare netherite/debris drops from deeper wave threats.
 - Named reward artifacts now use translated `set_name` plus `set_lore` loot functions with `mode: "replace_all"` instead of raw `minecraft:custom_name` strings, so the boss key, Nether shard, ravager hide, embered grimoire, and voidash powder all localize cleanly and carry multi-line atmospheric lore.
+- Enchantment loot functions use namespaced `minecraft:set_enchantments` with explicit `"add": false`, matching vanilla 1.21.11 data shape instead of relying on parser defaults.
 - Nether Star entity drops: `ModLootEvents` adds runtime-configured killed-by-player Nether Star rolls after entity loot generation. Base odds remain Piglin Evoker 5%, Piglin Ravager 3%, and Piglin Illusioner 1%, multiplied by `ModConfigManager.netherStarDropRate()` so ModMenu/Cloth changes can reduce or boost the economy without editing data packs.
 - Nether Conduit entity drops: all seven custom combat mobs have a 2% killed-by-player chance.
 - Nether Tide entity drops: Piglin Evokers have a separate killed-by-player 5% runtime roll for `music_disc_nether_tide`.
@@ -536,6 +539,8 @@ Structure rarity note:
 
 - Use `Identifier.fromNamespaceAndPath(...)` in this Mojang-mapped codebase.
 - Use Mojang names from local mappings. Do not paste Yarn-only method or field names into this project.
+- Research references checked during the 2026-05-02 pass: GeckoLib 5 RenderStates (`https://wiki.geckolib.com/docs/geckolib5/concepts/rendering/renderstates/`), Fabric networking (`https://docs.fabricmc.net/develop/networking`), Fabric saved data (`https://docs.fabricmc.net/develop/saved-data`), Cloth Config AutoConfig (`https://shedaniel.gitbook.io/cloth-config/auto-config/registering-the-config`), Minecraft loot tables (`https://minecraft.wiki/w/Loot_table`), Ender Dragon mechanics (`https://minecraft.wiki/w/Ender_Dragon`), and Terralith biome/compat context (`https://modrinth.com/mod/terralith` and `https://stardustlabs.miraheze.org/wiki/Terralith`).
+- GeckoLib 5 render-pass data that affects texture, glow, or tint should be copied into `GeoRenderState` through data tickets during state compilation; do not add new renderer logic that depends on consulting the live entity during the later render pass.
 - Use `level()` / `ServerLevel` guarded server logic.
 - Use `Attributes.MAX_HEALTH`, `Attributes.MOVEMENT_SPEED`, and `Attributes.ATTACK_DAMAGE`, not old `GENERIC_*` names.
 - Use the 1.21.11 server damage override pattern `hurtServer(ServerLevel, DamageSource, float)`.
@@ -600,6 +605,32 @@ Structure rarity note:
 | New advancements for conduit, necklace, crystal ritual, and dragon fight | COMPLETE |
 | `./gradlew build` with Java 21 | COMPLETE |
 | Full interactive `runClient` survival smoke test with log review | PENDING |
+
+## Project Status
+
+Current build/static verification:
+
+- `./gradlew build` succeeds on Java 21 with `JAVA_HOME=C:\Users\dhruv\.codex\jdks\temurin-21`.
+- JSON resources parse successfully, registered sounds match `sounds.json`, sound subtitles exist in `en_us.json`, advancement custom triggers match registration, and enchantment loot functions explicitly use `add: false`.
+- GeckoLib assets use the 5.x `geckolib/models` and `geckolib/animations` layout, with render-pass tint data moved into render-state tickets.
+
+Implemented but still needs an interactive in-game smoke pass:
+
+- Full survival path from `/locate structure minecraft:ruined_portal` through approach storm, five-wave raid, completion beats, Exiled Piglin trade, Nether Conduit use, Ghast Tear Necklace fireball, crystal ritual, Nether Dragon phase two, and dragon death finale.
+- Dedicated server multiplayer checks for two players entering the raid trigger together, disconnecting during boss bars/trades, and participating in the dragon fight from different heights in the portal cave stack.
+- Visual review for generated textures, placeholder sound mappings, red storm sky/fog/rain mixins, GeckoLib entity animations, and conduit block-entity rendering.
+
+Remaining known limitations and future polish:
+
+- The entity texture variants and particle sprites are generated release art, not hand-painted final art.
+- The mod registers replaceable sound events with vanilla fallback event mappings instead of shipping bespoke `.ogg` assets.
+- The Nether Dragon Scale remains a trophy item until a verified Accessories-compatible `1.21.11` release exists for this branch.
+
+Recommended first in-game test:
+
+1. Start a fresh overworld, run `/locate structure minecraft:ruined_portal`, teleport to the result, and walk from the outer scar into the pit to verify storm activation, horizontal-distance behavior underground, structure blending, pre-raid spawners, and approach feedback.
+2. Trigger and finish the five-wave raid, then confirm the staggered completion sequence: boss bar removal, fanfare/title, portal lighting, boss chest burst, Exiled Piglin spawn, spawner silence, and no post-raid hostile repopulation.
+3. Place four Nether Crystals on the generated pedestals, fight the dragon through phase two, kill it, and confirm the pedestal shatter, delayed reward drop, advancement credit for nearby players, and absence of any End portal blocks.
 
 ## Known Limitations
 
