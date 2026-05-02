@@ -135,10 +135,8 @@
           "weight": 12,
           "functions": [
             {
-              "function": "minecraft:set_components",
-              "components": {
-                "minecraft:potion_contents": "minecraft:fire_resistance"
-              }
+              "function": "minecraft:set_potion",
+              "id": "minecraft:fire_resistance"
             }
           ]
         },
@@ -148,10 +146,8 @@
           "weight": 5,
           "functions": [
             {
-              "function": "minecraft:set_components",
-              "components": {
-                "minecraft:potion_contents": "minecraft:strong_strength"
-              }
+              "function": "minecraft:set_potion",
+              "id": "minecraft:strong_strength"
             }
           ]
         },
@@ -161,10 +157,8 @@
           "weight": 4,
           "functions": [
             {
-              "function": "minecraft:set_components",
-              "components": {
-                "minecraft:potion_contents": "minecraft:strong_regeneration"
-              }
+              "function": "minecraft:set_potion",
+              "id": "minecraft:strong_regeneration"
             }
           ]
         },
@@ -174,10 +168,8 @@
           "weight": 6,
           "functions": [
             {
-              "function": "minecraft:set_components",
-              "components": {
-                "minecraft:potion_contents": "minecraft:healing"
-              }
+              "function": "minecraft:set_potion",
+              "id": "minecraft:healing"
             }
           ]
         },

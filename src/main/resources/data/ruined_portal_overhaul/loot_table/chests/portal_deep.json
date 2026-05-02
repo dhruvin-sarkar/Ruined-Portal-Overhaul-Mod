@@ -315,10 +315,8 @@
           "weight": 7,
           "functions": [
             {
-              "function": "minecraft:set_components",
-              "components": {
-                "minecraft:potion_contents": "minecraft:strong_strength"
-              }
+              "function": "minecraft:set_potion",
+              "id": "minecraft:strong_strength"
             }
           ]
         },
@@ -328,10 +326,8 @@
           "weight": 7,
           "functions": [
             {
-              "function": "minecraft:set_components",
-              "components": {
-                "minecraft:potion_contents": "minecraft:long_fire_resistance"
-              }
+              "function": "minecraft:set_potion",
+              "id": "minecraft:long_fire_resistance"
             }
           ]
         }
