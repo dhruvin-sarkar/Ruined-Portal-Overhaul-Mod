@@ -27,7 +27,7 @@ public final class NetherConduitGeoRenderer<R extends BlockEntityRenderState & G
 
     @Override
     public int getRenderColor(NetherConduitBlockEntity animatable, Void relatedObject, float partialTick) {
-        // Fix: the animated conduit previously looked identical while dormant and awakened. The placeholder vanilla texture now tints grey while incomplete and warms by upgrade level when active.
+        // Tint the shared conduit texture so inactive and upgraded states read clearly in-world.
         if (!animatable.isActiveClientSide()) {
             return INACTIVE_TINT;
         }
