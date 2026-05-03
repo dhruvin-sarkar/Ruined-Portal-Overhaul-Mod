@@ -69,6 +69,7 @@ src/main/resources/ruined_portal_overhaul.mixins.json
 src/main/resources/ruined_portal_overhaul.client.mixins.json
 README.md
 src/main/resources/assets/ruined_portal_overhaul/lang/en_us.json
+src/main/resources/assets/ruined_portal_overhaul/lang/{de_de,es_es,fr_fr,ja_jp,pt_br,ru_ru,zh_cn}.json
 src/main/resources/assets/ruined_portal_overhaul/geckolib/animations/block/*.json
 src/main/resources/assets/ruined_portal_overhaul/geckolib/animations/entity/*.json
 src/main/resources/assets/ruined_portal_overhaul/geckolib/models/block/*.geo.json
@@ -605,6 +606,7 @@ Structure rarity note:
 | StructureBlockPalette and Masterwork underground room templates | COMPLETE |
 | Custom registered particles and generated placeholder sprites | COMPLETE |
 | Nether Tide music disc, drops, jukebox particle effect, and jukebox song metadata | COMPLETE |
+| English-valued localization skeletons for German, Spanish, French, Japanese, Brazilian Portuguese, Russian, and Simplified Chinese | COMPLETE |
 | Expanded optional REI information pages for Masterwork progression | COMPLETE |
 | New advancements for conduit, necklace, crystal ritual, and dragon fight | COMPLETE |
 | Operator-only `/rpo` admin command suite for locating, resetting, completing, wave-forcing, and dragon-forcing known portals | COMPLETE |
@@ -618,6 +620,7 @@ Current build/static verification:
 
 - `./gradlew build` succeeds on Java 21 with `JAVA_HOME=C:\Users\dhruv\.codex\jdks\temurin-21`.
 - `/rpo` admin commands are registered through Fabric command API v2 with level-2 gamemaster permissions. They use saved `PortalRaidState` origins and provide `/rpo locate`, `/rpo status`, `/rpo reset`, `/rpo wave <1-5>`, `/rpo complete`, and `/rpo dragon` to speed up verification.
+- Locale stubs exist for `de_de`, `es_es`, `fr_fr`, `ja_jp`, `pt_br`, `ru_ru`, and `zh_cn`. They intentionally mirror `en_us` with a JSON-safe `_comment` marker so translators have complete key coverage without invalid JSON comments.
 - `./gradlew runServer --no-daemon` reaches server-side mod initialization in the development environment, registering sounds, particles, data components, items, blocks, block entities, entity hooks, and structure hooks before Minecraft stops at `eula=false`.
 - A bounded `./gradlew runClient --no-daemon` startup smoke reaches client-side mod initialization, renderer/resource reload, sound engine startup, texture atlas creation, recipe/advancement load, biome modifications, and integrated-server startup without mod-relevant errors before timeout. Realms and profile fetch errors in this smoke are expected development-login noise, not mod failures.
 - JSON resources parse successfully, registered sounds match `sounds.json`, sound subtitles exist in `en_us.json`, advancement custom triggers match registration, and enchantment loot functions explicitly use `add: false`.

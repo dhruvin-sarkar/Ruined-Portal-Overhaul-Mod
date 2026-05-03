@@ -108,6 +108,9 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
    - `/rpo` is registered through Fabric command API v2 from the common initializer and requires gamemaster permission level 2.
    - `/rpo locate` and `/rpo status` read nearest saved portal origins from `PortalRaidState`.
    - `/rpo reset`, `/rpo wave <1-5>`, `/rpo complete`, and `/rpo dragon` provide server-admin and tester shortcuts for replaying raids, isolating late waves, testing the completion scene, and starting the dragon summoning sequence.
+18. Localization Skeleton
+   - `de_de`, `es_es`, `fr_fr`, `ja_jp`, `pt_br`, `ru_ru`, and `zh_cn` mirror the complete `en_us` key set with English values.
+   - Each non-English locale carries a JSON-safe `_comment` marker explaining that it is a stub pending real translation.
 
 ## Advancement Tree
 
@@ -164,6 +167,7 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
 - `./gradlew.bat runServer --no-daemon` reaches Fabric/GeckoLib/mod initialization on a dedicated server and stops cleanly at the unaccepted Minecraft EULA gate; this verifies server-side class loading without accepting the EULA on the user's behalf.
 - A bounded `./gradlew.bat runClient --no-daemon` startup smoke reaches client mod initialization, resource reload, sound engine startup, texture atlas creation, recipe/advancement loading, biome modifications, and integrated-server startup without mod-relevant errors before timeout.
 - `/rpo` admin commands are implemented for the next interactive test pass so late waves, completion, and dragon behavior can be reproduced without repeatedly clearing the full encounter chain.
+- Seven non-English locale JSON files parse and mirror the English key set for translator handoff.
 - JSON data files in resources parse successfully.
 - Language keys, sound subtitles, registered sound ids, GeckoLib asset references, advancement custom triggers, and loot enchantment function shape pass static audits.
 - The local Minecraft `1.21.11` jar reports resource pack format `75.0` and data pack format `94.1`; this combined mod jar intentionally has no single root `pack.mcmeta` because one root pack declaration cannot truthfully represent both `assets/` and `data/`.

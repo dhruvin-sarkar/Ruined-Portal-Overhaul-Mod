@@ -22,6 +22,7 @@ Ruined Portal Overhaul replaces overworld ruined portal encounters with large co
 - Rewards include Portal Shards, Nether Conduit progression, Ghast Tear Necklace fireballs, Corrupted Netherite armor, Nether Dragon Scale trophies, and the Nether Tide music disc.
 - Four Nether Crystals placed on generated pedestals summon the Nether Dragon, which is anchored to the portal, suppresses End Crystal healing, and avoids vanilla End portal death output.
 - Operator-only `/rpo` admin commands help testers and server owners locate saved portals, inspect status, reset a portal, force waves, complete a raid scene, or start the dragon sequence.
+- Localization-ready resource files are present for seven major locales as English stubs pending community translation.
 
 ## Verification
 
