@@ -24,6 +24,44 @@ Ruined Portal Overhaul replaces overworld ruined portal encounters with large co
 - Operator-only `/rpo` admin commands help testers and server owners locate saved portals, inspect status, reset a portal, force waves, complete a raid scene, or start the dragon sequence.
 - Localization-ready resource files are present for seven major locales as English stubs pending community translation.
 
+## Screenshots To Capture
+
+- [Screenshot: red storm forming around a corrupted ruined portal scar]
+- [Screenshot: underground pit and corrupted cave network]
+- [Screenshot: five-wave Piglin Illager raid in progress]
+- [Screenshot: Nether Conduit activated in a nether-brick frame]
+- [Screenshot: Nether Dragon circling the completed portal arena]
+
+## Installation
+
+1. Install Minecraft `1.21.11` with Fabric Loader `0.18.6` or newer for the same Minecraft line.
+2. Install Fabric API `0.141.3+1.21.11`.
+3. Use Java `21`.
+4. Place the Ruined Portal Overhaul jar in the `mods` folder.
+5. Optional: add GeckoLib `5.4.5`, Cloth Config, ModMenu, REI, and Patchouli as shown in the compatibility table.
+
+## Compatibility
+
+| Mod or Tool | Status | Notes |
+|---|---|---|
+| Fabric API | Required | Built and verified against `0.141.3+1.21.11`. |
+| GeckoLib | Required | Entity and block animations use GeckoLib `5.4.5`. |
+| Cloth Config + ModMenu | Optional | Opens the config screen when installed. |
+| REI | Optional | Adds progression information pages. |
+| Patchouli | Optional | Guide book data is included and injected only when Patchouli is present. |
+| Terralith | Supported | Skylands and cave biomes are excluded from structure/scatter placement. |
+| Biomes O' Plenty | Expected compatible | Uses normal overworld biome tagging paths. |
+| Regions Unexplored | Expected compatible | Uses normal overworld biome tagging paths. |
+| Accessories | Not used | Deferred until a verified `1.21.11` build exists for this branch and Lunar Client. |
+
+## Config Overview
+
+- Structure rarity and outer-zone scatter.
+- Raid trigger radius, wave size multiplier, inter-wave delay, boss bar toggle.
+- Red storm intensity and thunder cadence.
+- Mob health, damage, ambient mob cap, and post-raid suppression.
+- Nether Star drop rate and Nether Dragon enable toggle.
+
 ## Verification
 
 Current static verification:
@@ -46,6 +84,10 @@ Recommended first gameplay smoke:
 - Entity texture variants and particle sprites are generated release art, not hand-painted final art.
 - Custom sound events currently map to vanilla fallback sounds so resource packs can replace them cleanly.
 - Nether Dragon Scale is intentionally a trophy item until a compatible Accessories build is verified for Minecraft `1.21.11` and Lunar Client.
+
+## Issues
+
+Report bugs and gameplay feedback at https://github.com/dhruvin-sarkar/Ruined-Portal-Overhaul-Mod/issues.
 
 ## Development Notes
 
