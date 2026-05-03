@@ -92,6 +92,7 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
 14. Masterwork Rewards And Discovery
    - The boss chest guarantees `ruined_portal_overhaul:portal_shard`, a server-side locator for the nearest uncompleted ruined portal with a 30-second component cooldown.
    - The Nether Dragon drops 1-2 Corrupted Netherite Ingots, has a 30% Nether Dragon Scale trophy roll, and performs the world's first Nether Tide disc roll at 15%.
+   - The Nether Dragon Scale tooltip explicitly states that it is trophy-only in this branch and that back-slot support waits on a compatible Accessories release.
    - Corrupted Netherite Ingots carry `CUSTOM_DATA` marker `ruined_portal_overhaul:dragon_infused` and explain the smithing path in their tooltip.
    - Corrupted Netherite armor is made through smithing with Corrupted Netherite Ingot, matching vanilla netherite armor, and echo shard. Two pieces grant Fire Resistance, three add Resistance, and four add +4 armor toughness plus ember particles.
    - `music_disc_nether_tide` uses custom jukebox song metadata, vanilla placeholder audio, and emits nether ember particles from jukeboxes near completed portals.
@@ -145,17 +146,20 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
 - Minecraft `1.21.11`
 - Fabric Loader `0.18.6`
 - Fabric API `0.141.3+1.21.11`
+- Fabric Loom declared as `1.15-SNAPSHOT`, resolving as `1.15.5`
 - Java `21`
 - Mojang mappings
 - Resource paths use modern singular names such as `loot_table/` and `advancement/`.
 - Optional suggested integrations now include Patchouli and Roughly Enough Items. Neither is a hard dependency.
 - Accessories is intentionally not required for the Lunar-compatible build. Re-verified Wisp Maven metadata still has no `1.21.11` Accessories build as of 2026-04-23, and the newest public `1.4.3-beta+1.21.10` jar still declares `"minecraft": "~1.21.10"` in its own `fabric.mod.json`, so the Ghast Tear Necklace stays implemented as a native carried item on this `1.21.11` branch.
+- Terralith skylands and cave biomes are excluded from global scatter and structure placement using `#terralith:skylands`, `#terralith:all_skylands`, `#terralith:caves`, `#terralith:all_caves`, plus id fallbacks for tag drift.
 
 ## Validation
 
 - `./gradlew.bat build` succeeds with Java 21 when `JAVA_HOME` points at `C:\Users\dhruv\.codex\jdks\temurin-21`.
 - JSON data files in resources parse successfully.
 - Language keys, sound subtitles, registered sound ids, GeckoLib asset references, advancement custom triggers, and loot enchantment function shape pass static audits.
+- The local Minecraft `1.21.11` jar reports resource pack format `75.0` and data pack format `94.1`; this combined mod jar intentionally has no single root `pack.mcmeta` because one root pack declaration cannot truthfully represent both `assets/` and `data/`.
 - Latest verified build date: 2026-05-02.
 
 ## Remaining Work
