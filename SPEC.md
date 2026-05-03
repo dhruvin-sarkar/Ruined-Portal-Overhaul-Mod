@@ -157,10 +157,11 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
 ## Validation
 
 - `./gradlew.bat build` succeeds with Java 21 when `JAVA_HOME` points at `C:\Users\dhruv\.codex\jdks\temurin-21`.
+- `./gradlew.bat runServer --no-daemon` reaches Fabric/GeckoLib/mod initialization on a dedicated server and stops cleanly at the unaccepted Minecraft EULA gate; this verifies server-side class loading without accepting the EULA on the user's behalf.
 - JSON data files in resources parse successfully.
 - Language keys, sound subtitles, registered sound ids, GeckoLib asset references, advancement custom triggers, and loot enchantment function shape pass static audits.
 - The local Minecraft `1.21.11` jar reports resource pack format `75.0` and data pack format `94.1`; this combined mod jar intentionally has no single root `pack.mcmeta` because one root pack declaration cannot truthfully represent both `assets/` and `data/`.
-- Latest verified build date: 2026-05-02.
+- Latest verified build date: 2026-05-03.
 
 ## Remaining Work
 

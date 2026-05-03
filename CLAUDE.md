@@ -1,6 +1,6 @@
 # Ruined Portal Overhaul - Canonical Project Context
 
-Last reconciled: 2026-05-02. Current build status: `./gradlew build` succeeds with Java 21 when `JAVA_HOME` points at `C:\Users\dhruv\.codex\jdks\temurin-21`; resource processing, language keys, sound subtitles, GeckoLib assets, custom particles, Patchouli data files, loot tables, and recipe data all pass the Gradle build pipeline and static JSON/resource checks.
+Last reconciled: 2026-05-03. Current build status: `./gradlew build` succeeds with Java 21 when `JAVA_HOME` points at `C:\Users\dhruv\.codex\jdks\temurin-21`; resource processing, language keys, sound subtitles, GeckoLib assets, custom particles, Patchouli data files, loot tables, and recipe data all pass the Gradle build pipeline and static JSON/resource checks. A bounded dedicated-server dry start on 2026-05-03 loaded Fabric, GeckoLib, and `ruined_portal_overhaul` initialization on the server side, then stopped cleanly at the unaccepted Minecraft EULA gate.
 
 This file is the single source of truth for the project. `SPEC.md` is the concise companion and must stay aligned with this file.
 
@@ -612,6 +612,7 @@ Structure rarity note:
 Current build/static verification:
 
 - `./gradlew build` succeeds on Java 21 with `JAVA_HOME=C:\Users\dhruv\.codex\jdks\temurin-21`.
+- `./gradlew runServer --no-daemon` reaches server-side mod initialization in the development environment, registering sounds, particles, data components, items, blocks, block entities, entity hooks, and structure hooks before Minecraft stops at `eula=false`.
 - JSON resources parse successfully, registered sounds match `sounds.json`, sound subtitles exist in `en_us.json`, advancement custom triggers match registration, and enchantment loot functions explicitly use `add: false`.
 - GeckoLib assets use the 5.x `geckolib/models` and `geckolib/animations` layout, with render-pass tint data moved into render-state tickets.
 - Minecraft `1.21.11` pack versions were verified from the local game jar as resource `75.0` and data `94.1`; no root `pack.mcmeta` is committed for the combined mod jar because it cannot truthfully declare both formats at once.
@@ -619,6 +620,7 @@ Current build/static verification:
 Implemented but still needs an interactive in-game smoke pass:
 
 - Full survival path from `/locate structure minecraft:ruined_portal` through approach storm, five-wave raid, completion beats, Exiled Piglin trade, Nether Conduit use, Ghast Tear Necklace fireball, crystal ritual, Nether Dragon phase two, and dragon death finale.
+- Full interactive `runClient` survival smoke testing remains pending; the server dry start does not verify visuals, rendered GeckoLib animation timing, client atmosphere mixins, or player-controlled combat flow.
 - Dedicated server multiplayer checks for two players entering the raid trigger together, disconnecting during boss bars/trades, and participating in the dragon fight from different heights in the portal cave stack.
 - Visual review for generated textures, placeholder sound mappings, red storm sky/fog/rain mixins, GeckoLib entity animations, and conduit block-entity rendering.
 
