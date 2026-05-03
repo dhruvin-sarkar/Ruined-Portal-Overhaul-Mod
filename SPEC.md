@@ -158,6 +158,7 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
 
 - `./gradlew.bat build` succeeds with Java 21 when `JAVA_HOME` points at `C:\Users\dhruv\.codex\jdks\temurin-21`.
 - `./gradlew.bat runServer --no-daemon` reaches Fabric/GeckoLib/mod initialization on a dedicated server and stops cleanly at the unaccepted Minecraft EULA gate; this verifies server-side class loading without accepting the EULA on the user's behalf.
+- A bounded `./gradlew.bat runClient --no-daemon` startup smoke reaches client mod initialization, resource reload, sound engine startup, texture atlas creation, recipe/advancement loading, biome modifications, and integrated-server startup without mod-relevant errors before timeout.
 - JSON data files in resources parse successfully.
 - Language keys, sound subtitles, registered sound ids, GeckoLib asset references, advancement custom triggers, and loot enchantment function shape pass static audits.
 - The local Minecraft `1.21.11` jar reports resource pack format `75.0` and data pack format `94.1`; this combined mod jar intentionally has no single root `pack.mcmeta` because one root pack declaration cannot truthfully represent both `assets/` and `data/`.
@@ -165,7 +166,7 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
 
 ## Remaining Work
 
-1. Run a full in-game `runClient` survival smoke test with log review.
+1. Run a full in-game `runClient` survival smoke test with manual player control; the automated startup smoke does not verify combat visuals, red-storm rendering in-zone, or the full encounter chain.
 2. Use `/locate structure minecraft:ruined_portal` across multiple seeds to confirm all three structure variants appear with readable transitions in-game.
 3. Replace generated entity and particle placeholder art with hand-polished art if a future visual pass has time.
 4. Add custom `.ogg` sounds only if a later asset pass wants unique audio; the current release uses vanilla sounds intentionally, including Nether Tide's placeholder disc audio.

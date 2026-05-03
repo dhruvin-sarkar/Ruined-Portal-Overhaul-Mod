@@ -29,6 +29,7 @@ Current static verification:
 - `./gradlew.bat build` succeeds with Java 21.
 - JSON resources parse successfully.
 - Dedicated-server dry start reaches Fabric, GeckoLib, and mod initialization, then stops at `eula=false` without accepting the Minecraft EULA.
+- Bounded client startup smoke reaches client mod initialization, resource reload, sound engine startup, texture atlas creation, recipe/advancement loading, biome modifications, and integrated-server startup without mod-relevant errors before timeout.
 
 Recommended first gameplay smoke:
 
