@@ -66,6 +66,7 @@ src/main/java/com/ruinedportaloverhaul/world/ModWorldGen.java
 src/main/resources/fabric.mod.json
 src/main/resources/ruined_portal_overhaul.mixins.json
 src/main/resources/ruined_portal_overhaul.client.mixins.json
+README.md
 src/main/resources/assets/ruined_portal_overhaul/lang/en_us.json
 src/main/resources/assets/ruined_portal_overhaul/geckolib/animations/block/*.json
 src/main/resources/assets/ruined_portal_overhaul/geckolib/animations/entity/*.json

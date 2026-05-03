@@ -2,7 +2,7 @@
 
 ## Source Of Truth
 
-`CLAUDE.md` is the canonical project reference. This spec is the concise implementation-facing companion and must stay aligned with it.
+`CLAUDE.md` is the canonical project reference. This spec is the concise implementation-facing companion and must stay aligned with it. `README.md` is the public tester/player summary derived from those two documents.
 
 ## Mod Description
 
