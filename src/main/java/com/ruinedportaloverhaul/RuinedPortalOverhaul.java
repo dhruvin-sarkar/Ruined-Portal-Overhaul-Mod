@@ -3,6 +3,7 @@ package com.ruinedportaloverhaul;
 import com.ruinedportaloverhaul.block.ModBlocks;
 import com.ruinedportaloverhaul.block.NetherConduitEvents;
 import com.ruinedportaloverhaul.block.entity.ModBlockEntities;
+import com.ruinedportaloverhaul.command.RpoDebugCommands;
 import com.ruinedportaloverhaul.component.ModDataComponents;
 import com.ruinedportaloverhaul.config.ModConfigManager;
 import com.ruinedportaloverhaul.entity.ModEntities;
@@ -50,5 +51,6 @@ public class RuinedPortalOverhaul implements ModInitializer {
         ModPackets.register();
         NetherDragonRituals.initialize();
         GoldRaidManager.initialize();
+        RpoDebugCommands.initialize();
     }
 }

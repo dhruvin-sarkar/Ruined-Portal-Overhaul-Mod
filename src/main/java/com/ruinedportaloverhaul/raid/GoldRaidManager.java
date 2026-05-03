@@ -28,8 +28,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.ChatFormatting;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket;
 import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket;
@@ -41,6 +43,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.BossEvent;
 import net.minecraft.world.Difficulty;
@@ -60,11 +63,13 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.NetherPortalBlock;
 import net.minecraft.world.level.block.entity.RandomizableContainerBlockEntity;
+import net.minecraft.world.level.block.entity.SpawnerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.structure.StructurePiece;
 import net.minecraft.world.level.levelgen.structure.StructureStart;
 import net.minecraft.world.level.storage.loot.LootTable;
+import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.phys.AABB;
 
 @SuppressWarnings("deprecation")
@@ -177,6 +182,119 @@ public final class GoldRaidManager {
         ServerEntityEvents.ENTITY_LOAD.register(GoldRaidManager::suppressCompletedPortalMobLoad);
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> clearRuntimeState());
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> detachDisconnectedPlayer(handler.getPlayer()));
+    }
+
+    public static AdminResetResult adminResetPortal(ServerLevel level, BlockPos portalOrigin) {
+        PortalRaidState portalRaidState = PortalRaidState.get(level.getServer());
+        BlockPos origin = portalOrigin.immutable();
+        removeRuntimeRaid(level, origin, true);
+        discardPersistedWaveMobs(level, portalRaidState, origin);
+        COMPLETION_SEQUENCES.remove(raidKey(level, origin));
+        portalRaidState.resetPortalForAdmin(origin);
+        return new AdminResetResult(restoreDebugSpawnerBlocks(level, portalRaidState.portalSpawners(origin), origin));
+    }
+
+    public static int adminSpawnWave(ServerLevel level, BlockPos portalOrigin, int waveNumber) {
+        PortalRaidState portalRaidState = PortalRaidState.get(level.getServer());
+        BlockPos origin = portalOrigin.immutable();
+        if (portalRaidState.isCompleted(origin)) {
+            return -1;
+        }
+
+        removeRuntimeRaid(level, origin, true);
+        discardPersistedWaveMobs(level, portalRaidState, origin);
+        COMPLETION_SEQUENCES.remove(raidKey(level, origin));
+        portalRaidState.clearActiveRaid(origin);
+        portalRaidState.beginRaid(origin);
+        portalRaidState.markApproachActivated(origin);
+
+        int waveIndex = clamp(waveNumber - 1, 0, WAVE_LABEL_KEYS.length - 1);
+        ServerBossEvent bossBar = new ServerBossEvent(
+            waveLabelComponent(waveIndex),
+            BossEvent.BossBarColor.YELLOW,
+            BossEvent.BossBarOverlay.PROGRESS
+        );
+        bossBar.setDarkenScreen(true);
+        bossBar.setCreateWorldFog(false);
+
+        RaidState state = new RaidState(level, origin, bossBar, portalRaidState, waveIndex);
+        ACTIVE_RAIDS.put(raidKey(level, origin), state);
+        playRaidStartEffects(level, origin);
+        broadcastRaidStartTitle(level, origin);
+        disablePreRaidSpawners(level, portalRaidState, origin);
+        spawnWave(state);
+        syncBossBarPlayers(state);
+        state.delayTicks = ModConfigManager.interWaveDelayTicks();
+        state.persistWaveState();
+        return state.waveSize;
+    }
+
+    public static boolean adminCompletePortal(ServerLevel level, BlockPos portalOrigin) {
+        PortalRaidState portalRaidState = PortalRaidState.get(level.getServer());
+        BlockPos origin = portalOrigin.immutable();
+        if (portalRaidState.isCompleted(origin)) {
+            return false;
+        }
+
+        removeRuntimeRaid(level, origin, true);
+        discardPersistedWaveMobs(level, portalRaidState, origin);
+        COMPLETION_SEQUENCES.remove(raidKey(level, origin));
+        portalRaidState.clearActiveRaid(origin);
+
+        Set<UUID> participantIds = completionAudienceIds(level, origin);
+        List<BlockPos> completionSpawners = knownOrScannedPreRaidSpawners(level, portalRaidState, origin);
+        if (!completionSpawners.isEmpty()) {
+            portalRaidState.setPortalSpawners(origin, completionSpawners);
+        }
+        disableSpawnerBlocks(level, completionSpawners);
+        playCompletionFanfare(level, origin);
+        broadcastRaidCompletionTitle(level, origin);
+        ignitePortal(level, origin);
+        spawnAmbientPortalFrameParticles(level, origin);
+        spawnBossChest(level, origin);
+        long exiledSpawnGameTime = spawnExiledTrader(level, origin);
+        portalRaidState.markCompleted(origin);
+        if (exiledSpawnGameTime >= 0L) {
+            portalRaidState.rememberExiledPiglinSpawn(origin, exiledSpawnGameTime);
+        }
+        grantCompletionCredit(level, origin, participantIds);
+        NetherDragonRituals.onPortalCompleted(level, origin);
+        return true;
+    }
+
+    private static void removeRuntimeRaid(ServerLevel level, BlockPos origin, boolean discardMobs) {
+        RaidState state = ACTIVE_RAIDS.remove(raidKey(level, origin));
+        if (state == null) {
+            return;
+        }
+        state.bossBar.removeAllPlayers();
+        state.bossBar.setVisible(false);
+        state.trackedPlayers.clear();
+        if (!discardMobs) {
+            return;
+        }
+        for (UUID mobId : state.activeMobs) {
+            Entity entity = level.getEntity(mobId);
+            if (entity instanceof LivingEntity living && living.isAlive()) {
+                living.discard();
+            }
+        }
+        state.activeMobs.clear();
+    }
+
+    private static void discardPersistedWaveMobs(ServerLevel level, PortalRaidState portalRaidState, BlockPos origin) {
+        for (PortalRaidState.ActiveRaidSnapshot snapshot : portalRaidState.activeRaidSnapshots()) {
+            if (!snapshot.portalOrigin().equals(origin)) {
+                continue;
+            }
+            for (UUID mobId : snapshot.waveMobs()) {
+                Entity entity = level.getEntity(mobId);
+                if (entity instanceof LivingEntity living && living.isAlive()) {
+                    living.discard();
+                }
+            }
+            return;
+        }
     }
 
     private static void detachDisconnectedPlayer(ServerPlayer player) {
@@ -747,13 +865,17 @@ public final class GoldRaidManager {
     }
 
     private static void grantCompletionCredit(CompletionSequence sequence) {
+        grantCompletionCredit(sequence.level, sequence.origin, sequence.participantIds);
+    }
+
+    private static void grantCompletionCredit(ServerLevel level, BlockPos origin, Set<UUID> participantIds) {
         Component message = Component.translatable("message.ruined_portal_overhaul.raid.complete");
-        for (UUID playerId : sequence.participantIds) {
-            ServerPlayer player = sequence.level.getServer().getPlayerList().getPlayer(playerId);
-            if (player == null || player.level() != sequence.level) {
+        for (UUID playerId : participantIds) {
+            ServerPlayer player = level.getServer().getPlayerList().getPlayer(playerId);
+            if (player == null || player.level() != level) {
                 continue;
             }
-            if (horizontalDistanceSqr(player.blockPosition(), sequence.origin) > BOSS_BAR_PLAYER_RANGE_SQUARED) {
+            if (horizontalDistanceSqr(player.blockPosition(), origin) > BOSS_BAR_PLAYER_RANGE_SQUARED) {
                 continue;
             }
             ModAdvancementTriggers.trigger(ModAdvancementTriggers.RAID_COMPLETED, player);
@@ -814,6 +936,76 @@ public final class GoldRaidManager {
             return spawnGameTime;
         }
         return -1L;
+    }
+
+    private static int restoreDebugSpawnerBlocks(ServerLevel level, List<BlockPos> spawners, BlockPos origin) {
+        int restored = 0;
+        for (int i = 0; i < spawners.size(); i++) {
+            BlockPos spawner = spawners.get(i);
+            if (!level.isLoaded(spawner)) {
+                continue;
+            }
+            configureDebugSpawner(level, spawner, debugSpawnerType(origin, spawner, i));
+            restored++;
+        }
+        return restored;
+    }
+
+    private static EntityType<?> debugSpawnerType(BlockPos origin, BlockPos spawner, int index) {
+        if (spawner.getY() <= origin.getY() - 42) {
+            return switch (index % 7) {
+                case 0 -> EntityType.GHAST;
+                case 1 -> ModEntities.PIGLIN_BRUTE_PILLAGER;
+                case 2 -> EntityType.BLAZE;
+                case 3 -> EntityType.WITHER_SKELETON;
+                case 4 -> EntityType.MAGMA_CUBE;
+                case 5 -> ModEntities.PIGLIN_ILLUSIONER;
+                default -> ModEntities.PIGLIN_EVOKER;
+            };
+        }
+        if (spawner.getY() <= origin.getY() - 20) {
+            return switch (index % 6) {
+                case 0 -> EntityType.BLAZE;
+                case 1 -> EntityType.WITHER_SKELETON;
+                case 2 -> EntityType.MAGMA_CUBE;
+                case 3 -> ModEntities.PIGLIN_BRUTE_PILLAGER;
+                case 4 -> ModEntities.PIGLIN_ILLUSIONER;
+                default -> ModEntities.PIGLIN_VINDICATOR;
+            };
+        }
+        return switch (index % 6) {
+            case 0 -> EntityType.ZOMBIFIED_PIGLIN;
+            case 1 -> ModEntities.PIGLIN_PILLAGER;
+            case 2 -> EntityType.MAGMA_CUBE;
+            case 3 -> ModEntities.PIGLIN_VINDICATOR;
+            case 4 -> EntityType.BLAZE;
+            default -> EntityType.ZOMBIFIED_PIGLIN;
+        };
+    }
+
+    private static void configureDebugSpawner(ServerLevel level, BlockPos pos, EntityType<?> type) {
+        level.setBlock(pos, Blocks.SPAWNER.defaultBlockState(), 3);
+        if (level.getBlockEntity(pos) instanceof SpawnerBlockEntity spawner) {
+            spawner.setEntityId(type, level.getRandom());
+            CompoundTag tag = spawner.saveWithFullMetadata(level.registryAccess());
+            tag.putShort("SpawnCount", (short) (type == EntityType.GHAST ? 1 : type == EntityType.MAGMA_CUBE ? 8 : 5));
+            tag.putShort("SpawnRange", (short) (type == EntityType.GHAST ? 18 : 13));
+            tag.putShort("MinSpawnDelay", (short) (type == EntityType.GHAST ? 45 : 25));
+            tag.putShort("MaxSpawnDelay", (short) (type == EntityType.GHAST ? 105 : 70));
+            tag.putShort("RequiredPlayerRange", (short) (type == EntityType.GHAST ? 38 : 34));
+            tag.putShort("MaxNearbyEntities", (short) (type == EntityType.GHAST ? 8 : type == EntityType.MAGMA_CUBE ? 36 : 30));
+
+            CompoundTag entity = new CompoundTag();
+            entity.putString("id", BuiltInRegistries.ENTITY_TYPE.getKey(type).toString());
+            if (type == EntityType.MAGMA_CUBE) {
+                entity.putInt("Size", 1);
+            }
+            CompoundTag spawnData = new CompoundTag();
+            spawnData.put("entity", entity);
+            tag.put("SpawnData", spawnData);
+            spawner.loadWithComponents(TagValueInput.create(ProblemReporter.DISCARDING, level.registryAccess(), tag));
+            spawner.setChanged();
+        }
     }
 
     private static void tickPortalZoneAtmosphere(ServerLevel level, PortalRaidState portalRaidState, long gameTime) {
@@ -1708,6 +1900,9 @@ public final class GoldRaidManager {
     }
 
     private record AmbientSpawnEntry(EntityType<? extends LivingEntity> type, int weight) {
+    }
+
+    public record AdminResetResult(int restoredSpawners) {
     }
 
     private record PortalGhastAnchor(BlockPos origin, long expireTick) {

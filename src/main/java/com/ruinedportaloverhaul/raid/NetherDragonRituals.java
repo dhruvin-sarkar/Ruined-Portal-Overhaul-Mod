@@ -101,6 +101,38 @@ public final class NetherDragonRituals {
         }
     }
 
+    public static AdminSummonResult adminBeginSummoning(ServerLevel level, BlockPos portalOrigin) {
+        PortalRaidState portalRaidState = PortalRaidState.get(level.getServer());
+        BlockPos origin = portalOrigin.immutable();
+        if (!ModConfigManager.enableNetherDragon()) {
+            return AdminSummonResult.DISABLED;
+        }
+        if (!portalRaidState.isCompleted(origin)) {
+            return AdminSummonResult.NOT_COMPLETED;
+        }
+        if (portalRaidState.isDragonActive(origin) || SUMMONING_SEQUENCES.containsKey(origin.asLong())) {
+            return AdminSummonResult.ALREADY_ACTIVE;
+        }
+        if (!arePortalChunksLoaded(level, origin)) {
+            return AdminSummonResult.CHUNKS_UNLOADED;
+        }
+        beginSummoning(level, origin);
+        return AdminSummonResult.STARTED;
+    }
+
+    public static void adminResetPortal(ServerLevel level, BlockPos portalOrigin) {
+        BlockPos origin = portalOrigin.immutable();
+        SUMMONING_SEQUENCES.remove(origin.asLong());
+        NetherDragonEntity dragon = findLoadedDragon(level.getServer(), origin);
+        if (dragon != null) {
+            ServerBossEvent bossBar = BOSS_BARS.remove(dragon.getUUID());
+            if (bossBar != null) {
+                bossBar.removeAllPlayers();
+            }
+            dragon.discard();
+        }
+    }
+
     public static void onNetherDragonFinaleStart(ServerLevel level, NetherDragonEntity dragon) {
         BlockPos portalOrigin = dragon.portalOrigin();
         shatterPedestals(level, portalOrigin);
@@ -452,5 +484,13 @@ public final class NetherDragonRituals {
         private void markTitleSent() {
             this.titleSent = true;
         }
+    }
+
+    public enum AdminSummonResult {
+        STARTED,
+        DISABLED,
+        NOT_COMPLETED,
+        ALREADY_ACTIVE,
+        CHUNKS_UNLOADED
     }
 }

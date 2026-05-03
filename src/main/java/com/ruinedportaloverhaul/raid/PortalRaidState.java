@@ -133,6 +133,19 @@ public final class PortalRaidState extends SavedData {
         return Set.copyOf(this.completedPortals);
     }
 
+    public Set<BlockPos> knownPortalOrigins() {
+        Set<BlockPos> origins = new HashSet<>();
+        origins.addAll(this.completedPortals);
+        origins.addAll(this.activatedPortals);
+        origins.addAll(this.activeRaidLocations);
+        origins.addAll(this.portalSpawners.keySet());
+        origins.addAll(this.portalVariants.keySet());
+        origins.addAll(this.ritualCrystals.keySet());
+        origins.addAll(this.activeDragonPortals);
+        origins.addAll(this.exiledPiglinSpawnTimes.keySet());
+        return Set.copyOf(origins);
+    }
+
     public Set<BlockPos> knownUncompletedPortalOrigins() {
         Set<BlockPos> origins = new HashSet<>();
         origins.addAll(this.activatedPortals);
@@ -148,6 +161,10 @@ public final class PortalRaidState extends SavedData {
 
     public boolean isRaidActive(BlockPos portalOrigin) {
         return this.activeRaidLocations.contains(portalOrigin.immutable());
+    }
+
+    public int currentWaveNumber(BlockPos portalOrigin) {
+        return this.currentWaveNumbers.getOrDefault(portalOrigin.immutable(), 0);
     }
 
     public boolean isApproachActivated(BlockPos portalOrigin) {
@@ -336,6 +353,22 @@ public final class PortalRaidState extends SavedData {
         changed |= this.currentWaveNumbers.remove(origin) != null;
         changed |= this.waveEndTimeTicks.remove(origin) != null;
         changed |= this.waveTrackerUuids.remove(origin) != null;
+        if (changed) {
+            this.setDirty();
+        }
+    }
+
+    public void resetPortalForAdmin(BlockPos portalOrigin) {
+        BlockPos origin = portalOrigin.immutable();
+        boolean changed = this.completedPortals.remove(origin);
+        changed |= this.activatedPortals.remove(origin);
+        changed |= this.activeRaidLocations.remove(origin);
+        changed |= this.currentWaveNumbers.remove(origin) != null;
+        changed |= this.waveEndTimeTicks.remove(origin) != null;
+        changed |= this.waveTrackerUuids.remove(origin) != null;
+        changed |= this.ritualCrystals.remove(origin) != null;
+        changed |= this.activeDragonPortals.remove(origin);
+        changed |= this.exiledPiglinSpawnTimes.remove(origin) != null;
         if (changed) {
             this.setDirty();
         }

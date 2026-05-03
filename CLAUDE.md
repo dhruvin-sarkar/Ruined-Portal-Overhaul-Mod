@@ -53,6 +53,7 @@ src/main/java/com/ruinedportaloverhaul/raid/GoldRaidManager.java
 src/main/java/com/ruinedportaloverhaul/raid/NetherDragonRituals.java
 src/main/java/com/ruinedportaloverhaul/raid/PortalRaidState.java
 src/main/java/com/ruinedportaloverhaul/block/NetherConduitChestPlacement.java
+src/main/java/com/ruinedportaloverhaul/command/RpoDebugCommands.java
 src/main/java/com/ruinedportaloverhaul/structure/PortalDungeonPiece.java
 src/main/java/com/ruinedportaloverhaul/structure/PortalDungeonStructure.java
 src/main/java/com/ruinedportaloverhaul/structure/PortalDungeonVariant.java
@@ -549,6 +550,7 @@ Structure rarity note:
 - Use `loot_table/`, not `loot_tables/`.
 - Do not import `net.minecraft.client.*` outside `com.ruinedportaloverhaul.client`.
 - Register common content from `RuinedPortalOverhaul.onInitialize()`.
+- Register admin/debug commands from the common initializer through Fabric `CommandRegistrationCallback`; command handlers must stay server-side and permission gated.
 - Register common play payload types through `ModPackets` before server code sends them.
 - Register renderers, client packet receivers, HUD atmosphere, and client mixins only from client-side configuration.
 - Do not reintroduce Accessories until a matching `1.21.11` Accessories release has been verified in Lunar Client.
@@ -605,6 +607,7 @@ Structure rarity note:
 | Nether Tide music disc, drops, jukebox particle effect, and jukebox song metadata | COMPLETE |
 | Expanded optional REI information pages for Masterwork progression | COMPLETE |
 | New advancements for conduit, necklace, crystal ritual, and dragon fight | COMPLETE |
+| Operator-only `/rpo` admin command suite for locating, resetting, completing, wave-forcing, and dragon-forcing known portals | COMPLETE |
 | `./gradlew build` with Java 21 | COMPLETE |
 | Bounded `runClient` startup smoke with log review | COMPLETE |
 | Full interactive `runClient` survival smoke test with log review | PENDING |
@@ -614,6 +617,7 @@ Structure rarity note:
 Current build/static verification:
 
 - `./gradlew build` succeeds on Java 21 with `JAVA_HOME=C:\Users\dhruv\.codex\jdks\temurin-21`.
+- `/rpo` admin commands are registered through Fabric command API v2 with level-2 gamemaster permissions. They use saved `PortalRaidState` origins and provide `/rpo locate`, `/rpo status`, `/rpo reset`, `/rpo wave <1-5>`, `/rpo complete`, and `/rpo dragon` to speed up verification.
 - `./gradlew runServer --no-daemon` reaches server-side mod initialization in the development environment, registering sounds, particles, data components, items, blocks, block entities, entity hooks, and structure hooks before Minecraft stops at `eula=false`.
 - A bounded `./gradlew runClient --no-daemon` startup smoke reaches client-side mod initialization, renderer/resource reload, sound engine startup, texture atlas creation, recipe/advancement load, biome modifications, and integrated-server startup without mod-relevant errors before timeout. Realms and profile fetch errors in this smoke are expected development-login noise, not mod failures.
 - JSON resources parse successfully, registered sounds match `sounds.json`, sound subtitles exist in `en_us.json`, advancement custom triggers match registration, and enchantment loot functions explicitly use `add: false`.
@@ -636,8 +640,9 @@ Remaining known limitations and future polish:
 Recommended first in-game test:
 
 1. Start a fresh overworld, run `/locate structure minecraft:ruined_portal`, teleport to the result, and walk from the outer scar into the pit to verify storm activation, horizontal-distance behavior underground, structure blending, pre-raid spawners, and approach feedback.
-2. Trigger and finish the five-wave raid, then confirm the staggered completion sequence: boss bar removal, fanfare/title, portal lighting, boss chest burst, Exiled Piglin spawn, spawner silence, and no post-raid hostile repopulation.
-3. Place four Nether Crystals on the generated pedestals, fight the dragon through phase two, kill it, and confirm the pedestal shatter, delayed reward drop, advancement credit for nearby players, and absence of any End portal blocks.
+2. Use `/rpo status` and `/rpo locate` after the portal is discovered to confirm the saved portal origin matches the visible structure. Use `/rpo wave 4` or `/rpo wave 5` only when isolating late-wave mob behavior.
+3. Trigger and finish the five-wave raid, then confirm the staggered completion sequence: boss bar removal, fanfare/title, portal lighting, boss chest burst, Exiled Piglin spawn, spawner silence, and no post-raid hostile repopulation. `/rpo complete` can isolate the completion scene after the natural path is tested once.
+4. Place four Nether Crystals on the generated pedestals, fight the dragon through phase two, kill it, and confirm the pedestal shatter, delayed reward drop, advancement credit for nearby players, and absence of any End portal blocks. `/rpo dragon` can isolate the dragon sequence after `/rpo complete`.
 
 ## Known Limitations
 
@@ -658,7 +663,7 @@ Recommended first in-game test:
 - Do not restore the old gold-armor or Bad Omen raid trigger.
 - Do not spawn raid guard entities from `PortalDungeonPiece` world generation.
 - Do not mutate `PortalRaidState` from structure chunk generation.
-- Do not re-enable pre-raid spawners after the raid starts or completes.
+- Do not re-enable pre-raid spawners after the raid starts or completes except through the explicit operator-only `/rpo reset` test command.
 - Do not use biome modifications for structure-local proximity gradients.
 - Do not remove the Java 21 toolchain configuration.
 - Do not reintroduce Accessories or necklace slot/tag data files until a compatible `1.21.11` build has been verified in Lunar Client.

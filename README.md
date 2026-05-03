@@ -21,6 +21,7 @@ Ruined Portal Overhaul replaces overworld ruined portal encounters with large co
 - Raid completion lights the portal, disables pre-raid spawners, spawns a boss reward chest, and summons the Exiled Piglin Trader.
 - Rewards include Portal Shards, Nether Conduit progression, Ghast Tear Necklace fireballs, Corrupted Netherite armor, Nether Dragon Scale trophies, and the Nether Tide music disc.
 - Four Nether Crystals placed on generated pedestals summon the Nether Dragon, which is anchored to the portal, suppresses End Crystal healing, and avoids vanilla End portal death output.
+- Operator-only `/rpo` admin commands help testers and server owners locate saved portals, inspect status, reset a portal, force waves, complete a raid scene, or start the dragon sequence.
 
 ## Verification
 
@@ -35,8 +36,9 @@ Recommended first gameplay smoke:
 
 1. Start a fresh overworld and locate `minecraft:ruined_portal`.
 2. Walk from the outer scar into the pit and verify storm activation, underground horizontal-distance behavior, structure blending, and pre-raid spawners.
-3. Complete the five-wave raid and confirm the staggered completion sequence, boss chest, Exiled Piglin, lit portal, and post-raid spawn suppression.
-4. Place four Nether Crystals on the generated pedestals, fight the Nether Dragon through phase two, and confirm rewards, advancements, pedestal cleanup, and no End portal blocks.
+3. Use `/rpo locate` and `/rpo status` once the portal is discovered to confirm saved-state tracking.
+4. Complete the five-wave raid and confirm the staggered completion sequence, boss chest, Exiled Piglin, lit portal, and post-raid spawn suppression. Use `/rpo wave <1-5>` only to isolate late-wave testing after the natural path is checked.
+5. Place four Nether Crystals on the generated pedestals, fight the Nether Dragon through phase two, and confirm rewards, advancements, pedestal cleanup, and no End portal blocks. Use `/rpo complete` and `/rpo dragon` to isolate the completion and dragon scenes in repeat passes.
 
 ## Known Limits
 

@@ -42,7 +42,7 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
 4. Pre-Raid Spawners
    - Structure generation places deterministic surface, chamber, tunnel, and deep-cave spawners.
    - `GoldRaidManager` scans/persists nearby spawner positions and deletes them when the raid starts.
-   - Spawners are not re-enabled after raid start or completion.
+   - Spawners are not re-enabled after raid start or completion except when an operator explicitly uses `/rpo reset` to replay a saved portal for testing.
 5. Piglin Illager Mob Family
    - Registered combat entities: Piglin Pillager, Piglin Vindicator, Piglin Brute Pillager, Piglin Illusioner, Piglin Evoker, Piglin Ravager, and Piglin Vex.
    - The Exiled Piglin is a post-raid Wandering Trader-based reward entity.
@@ -104,6 +104,10 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
    - `nether_ember` is used for portal frame ambience, raid start cues, armor shimmer, Nether Tide jukebox shimmer, Ravager roar particles, and dragon phase/slam embers.
    - `corruption_rune` is used for Portal Shard trails, ritual shatter effects, and Piglin Evoker casting particles.
    - `dragon_blood` is emitted when the Nether Dragon takes damage during or entering phase two.
+17. Admin Commands
+   - `/rpo` is registered through Fabric command API v2 from the common initializer and requires gamemaster permission level 2.
+   - `/rpo locate` and `/rpo status` read nearest saved portal origins from `PortalRaidState`.
+   - `/rpo reset`, `/rpo wave <1-5>`, `/rpo complete`, and `/rpo dragon` provide server-admin and tester shortcuts for replaying raids, isolating late waves, testing the completion scene, and starting the dragon summoning sequence.
 
 ## Advancement Tree
 
@@ -159,6 +163,7 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
 - `./gradlew.bat build` succeeds with Java 21 when `JAVA_HOME` points at `C:\Users\dhruv\.codex\jdks\temurin-21`.
 - `./gradlew.bat runServer --no-daemon` reaches Fabric/GeckoLib/mod initialization on a dedicated server and stops cleanly at the unaccepted Minecraft EULA gate; this verifies server-side class loading without accepting the EULA on the user's behalf.
 - A bounded `./gradlew.bat runClient --no-daemon` startup smoke reaches client mod initialization, resource reload, sound engine startup, texture atlas creation, recipe/advancement loading, biome modifications, and integrated-server startup without mod-relevant errors before timeout.
+- `/rpo` admin commands are implemented for the next interactive test pass so late waves, completion, and dragon behavior can be reproduced without repeatedly clearing the full encounter chain.
 - JSON data files in resources parse successfully.
 - Language keys, sound subtitles, registered sound ids, GeckoLib asset references, advancement custom triggers, and loot enchantment function shape pass static audits.
 - The local Minecraft `1.21.11` jar reports resource pack format `75.0` and data pack format `94.1`; this combined mod jar intentionally has no single root `pack.mcmeta` because one root pack declaration cannot truthfully represent both `assets/` and `data/`.
@@ -181,7 +186,7 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
 - Do not use client-side hooks or imports in raid logic.
 - Do not store direct entity references in persistent raid state.
 - Do not mutate persistent raid state from structure chunk generation.
-- Do not re-enable pre-raid spawners after raid start or raid completion.
+- Do not re-enable pre-raid spawners after raid start or raid completion except through the explicit operator-only `/rpo reset` testing command.
 - Do not use `loot_tables/`; use `loot_table/`.
 - Use current Fabric and Minecraft `1.21.11` APIs when extending the mod.
 - Do not reintroduce Accessories or `data/accessories` slot/tag files until a matching `1.21.11` Accessories build has been verified in Lunar Client.
