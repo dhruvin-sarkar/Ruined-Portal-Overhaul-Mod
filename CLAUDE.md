@@ -1,6 +1,6 @@
 # Ruined Portal Overhaul - Canonical Project Context
 
-Last reconciled: 2026-05-03. Current build status: `./gradlew build` succeeds with Java 21 when `JAVA_HOME` points at `C:\Users\dhruv\.codex\jdks\temurin-21`; resource processing, language keys, sound subtitles, GeckoLib assets, custom particles, Patchouli data files, loot tables, and recipe data all pass the Gradle build pipeline and static JSON/resource checks. A bounded dedicated-server dry start on 2026-05-03 loaded Fabric, GeckoLib, and `ruined_portal_overhaul` initialization on the server side, then stopped cleanly at the unaccepted Minecraft EULA gate. A bounded client startup smoke on 2026-05-03 loaded the client, mod initializer, Indigo renderer, resource manager, sound engine, texture atlases, recipes, advancements, biome modifications, and integrated-server startup without a mod-relevant crash before timeout; only expected development Realms/auth noise appeared in the logs.
+Last reconciled: 2026-05-04. Current build status: `./gradlew build` succeeds with Java 21 when `JAVA_HOME` points at `C:\Users\dhruv\.codex\jdks\temurin-21`; resource processing, language keys, sound subtitles, GeckoLib assets, custom particles, Patchouli data files, loot tables, and recipe data all pass the Gradle build pipeline and static JSON/resource checks. A bounded dedicated-server dry start on 2026-05-03 loaded Fabric, GeckoLib, and `ruined_portal_overhaul` initialization on the server side, then stopped cleanly at the unaccepted Minecraft EULA gate. A bounded client startup smoke on 2026-05-03 loaded the client, mod initializer, Indigo renderer, resource manager, sound engine, texture atlases, recipes, advancements, biome modifications, and integrated-server startup without a mod-relevant crash before timeout; only expected development Realms/auth noise appeared in the logs.
 
 This file is the single source of truth for the project. `SPEC.md` is the concise companion and must stay aligned with this file.
 
@@ -142,7 +142,7 @@ Activation and levels:
 - Level 1: Fire Resistance II, Haste II, Regeneration II, 12-block support/attack radius, 6 conduit damage.
 - Level 2: Fire Resistance II, Haste II, Regeneration II, 16-block support/attack radius, 8 conduit damage, near-zero lava movement penalty.
 - Upgrades consume ancient debris: 1 for level 0 to 1, 2 for level 1 to 2.
-- Effects refresh every 20 ticks with 40-tick duration. Mob attacks scan every 30 ticks and emit `ParticleTypes.ELECTRIC_SPARK`.
+- Effects refresh every 20 ticks with 40-tick duration. Mob attacks scan every 30 ticks, process at most 20 matching targets per cycle, and emit `ParticleTypes.ELECTRIC_SPARK`.
 - Attack targets include Zombie Piglin, Piglin, Piglin Brute, Blaze, Wither Skeleton, Ghast, Hoglin, Magma Cube, and all seven custom combat mobs.
 
 Acquisition:

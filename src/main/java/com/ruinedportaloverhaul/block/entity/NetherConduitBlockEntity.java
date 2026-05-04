@@ -38,6 +38,7 @@ public class NetherConduitBlockEntity extends BlockEntity implements GeoBlockEnt
     private static final String CONDUIT_LEVEL_TAG = "conduit_level";
     private static final int ACTIVATION_SCAN_INTERVAL_TICKS = 20;
     private static final int ATTACK_INTERVAL_TICKS = 30;
+    private static final int MAX_ATTACK_TARGETS_PER_CYCLE = 20;
     private static final int ACTIVATION_REQUIRED_FRAME_BLOCKS = 12;
     private static final int[][] ACTIVATION_FRAME_OFFSETS = {
         {-2, 0, -1}, {-2, 0, 0}, {-2, 0, 1},
@@ -129,6 +130,7 @@ public class NetherConduitBlockEntity extends BlockEntity implements GeoBlockEnt
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public void removeComponentsFromTag(ValueOutput output) {
         super.removeComponentsFromTag(output);
         output.discard(CONDUIT_LEVEL_TAG);
@@ -238,7 +240,11 @@ public class NetherConduitBlockEntity extends BlockEntity implements GeoBlockEnt
         int attackRadius = attackRadius(this.conduitLevel);
         AABB range = new AABB(pos).inflate(attackRadius);
         double radiusSqr = attackRadius * attackRadius;
+        int processedTargets = 0;
         for (Mob mob : level.getEntitiesOfClass(Mob.class, range, mob -> isTargetMob(mob) && mob.distanceToSqr(pos.getCenter()) <= radiusSqr)) {
+            if (processedTargets++ >= MAX_ATTACK_TARGETS_PER_CYCLE) {
+                break;
+            }
             if (mob.hurtServer(level, level.damageSources().source(ModDamageTypes.NETHER_CONDUIT), attackDamage(this.conduitLevel))) {
                 level.sendParticles(
                     ParticleTypes.ELECTRIC_SPARK,

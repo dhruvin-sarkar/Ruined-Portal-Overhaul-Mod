@@ -74,7 +74,7 @@ This changelog is reconstructed from the repository history back to the first co
 - Tightened the activation ring to the documented 12-nether-brick flat horizontal frame.
 - Preserved upgraded conduits when broken.
 - Cleared conduit lava movement boost state when the server stops.
-- Capped and documented conduit attack/effect behavior and status messaging.
+- Capped and documented conduit attack/effect behavior and status messaging, including a hard 20-target ceiling for each 30-tick conduit strike pass.
 
 ### Ghast Tear Necklace
 
