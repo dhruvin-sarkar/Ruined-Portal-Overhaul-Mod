@@ -59,6 +59,7 @@ This changelog is reconstructed from the repository history back to the first co
 
 - Added Portal Shard discovery, Nether Conduit progression, Ghast Tear Necklace fireballs, Corrupted Netherite armor rewards, Shard of the Nether, Corrupted Portal Key, Nether Tide music disc, and Nether Dragon Scale trophy.
 - Switched Portal Shard targeting to saved portal state instead of sampled world positions.
+- Hardened Portal Shard saved-state targeting so already-loaded saved origins are cross-checked against live portal dungeon structure data before the item points a player there.
 - Added player-facing tooltips and localized named loot artifacts.
 - Added loot table improvements across surface, deep, boss, and entity rewards.
 - Added nether star drops to key raid mobs and chests so the Nether Crystal progression loop is attainable.
