@@ -14,9 +14,20 @@ from scipy.io import wavfile
 
 ROOT = Path(__file__).resolve().parents[1]
 MOD_ID = "ruined_portal_overhaul"
-SAMPLE_RATE = 22_050
+SAMPLE_RATE = 44_100
 SOUNDS_JSON = ROOT / "src/main/resources/assets/ruined_portal_overhaul/sounds.json"
 SOUNDS_DIR = ROOT / "src/main/resources/assets/ruined_portal_overhaul/sounds"
+AUDIO_SOURCE_DIR = ROOT / "assets/audio_sources/kenney_rpg_audio"
+
+FOLEY_SOURCE_FILES = {
+    "chop": "chop.ogg",
+    "creak": "creak2.ogg",
+    "draw_knife_1": "drawKnife1.ogg",
+    "coins": "handleCoins.ogg",
+    "knife_slice_2": "knifeSlice2.ogg",
+    "metal_click": "metalClick.ogg",
+    "metal_latch": "metalLatch.ogg",
+}
 
 
 EVENT_TO_FILE = OrderedDict(
@@ -125,12 +136,36 @@ def normalize(audio: np.ndarray, target: float = 0.82) -> np.ndarray:
     return np.clip(audio / peak * target, -1.0, 1.0)
 
 
+def soft_clip(audio: np.ndarray, drive: float = 1.3) -> np.ndarray:
+    return np.tanh(audio * drive) / np.tanh(drive)
+
+
 def overlay(*layers: np.ndarray) -> np.ndarray:
     length = max(layer.size for layer in layers)
     mixed = np.zeros(length)
     for layer in layers:
         mixed[: layer.size] += layer
     return mixed
+
+
+def lowpass(audio: np.ndarray, width: int = 19) -> np.ndarray:
+    return smooth(audio, width) if width > 1 else audio
+
+
+def highpass(audio: np.ndarray, width: int = 41) -> np.ndarray:
+    return audio - lowpass(audio, width)
+
+
+def fit(audio: np.ndarray, duration: float, gain: float = 1.0, offset: float = 0.0) -> np.ndarray:
+    length = int(SAMPLE_RATE * duration)
+    result = np.zeros(length)
+    start = min(length, max(0, int(SAMPLE_RATE * offset)))
+    available = length - start
+    if available <= 0:
+        return result
+    clip = audio[:available]
+    result[start : start + clip.size] = clip * gain
+    return result
 
 
 def chord(duration: float, freqs: tuple[float, ...], gain: float = 1.0) -> np.ndarray:
@@ -156,7 +191,13 @@ def thunder(duration: float, seed: int, low: bool = False) -> np.ndarray:
     impact = noise(duration, seed) * np.exp(-t * (6.0 if low else 8.5))
     body = sine(56.0 if low else 74.0, duration) * np.exp(-t * 2.4)
     crack = smooth(noise(duration, seed + 20), 3) * np.exp(-t * 13.0)
-    return normalize(env(0.62 * impact + 0.45 * body + (0.3 if not low else 0.08) * crack, 0.002, 0.16), 0.9)
+    roll = np.zeros_like(t)
+    for delay, gain, freq in ((0.16, 0.34, 48.0), (0.32, 0.22, 39.0), (0.54, 0.13, 32.0)):
+        delayed_duration = max(0.01, duration - delay)
+        delayed = sine(freq, delayed_duration) * decay(delayed_duration, 2.1)
+        roll += fit(delayed, duration, gain, delay)
+    mixed = 0.62 * impact + 0.45 * body + roll + (0.3 if not low else 0.08) * crack
+    return normalize(soft_clip(env(mixed, 0.002, 0.16), 1.6), 0.9)
 
 
 def portal_thunder() -> np.ndarray:
@@ -264,24 +305,89 @@ def disc() -> np.ndarray:
     return normalize(env(drone + bell + 0.04 * smooth(noise(duration, 77), 31), 0.08, 0.4), 0.68)
 
 
-def make_assets() -> dict[str, np.ndarray]:
+def load_source_ogg(source: Path, temp_dir: Path) -> np.ndarray:
+    if not source.exists():
+        raise SystemExit(f"missing CC0 foley source: {source}")
+    wav_path = temp_dir / f"{source.stem}.wav"
+    subprocess.run(
+        [
+            "ffmpeg",
+            "-y",
+            "-loglevel",
+            "error",
+            "-i",
+            str(source),
+            "-ac",
+            "1",
+            "-ar",
+            str(SAMPLE_RATE),
+            str(wav_path),
+        ],
+        check=True,
+    )
+    _, data = wavfile.read(wav_path)
+    audio = np.asarray(data, dtype=np.float32)
+    if audio.ndim > 1:
+        audio = audio.mean(axis=1)
+    if audio.size == 0:
+        return audio
+    audio /= max(float(np.max(np.abs(audio))), 1.0)
+    return normalize(audio, 0.8)
+
+
+def load_foley_sources(temp_dir: Path) -> dict[str, np.ndarray]:
     return {
-        "weather/red_storm_music": normalize(0.66 * rumble(8.0, 61) + 0.34 * chord(8.0, (55.0, 82.5, 110.0), 1.0), 0.68),
-        "weather/red_storm_rumble": rumble(4.0, 1),
+        name: load_source_ogg(AUDIO_SOURCE_DIR / filename, temp_dir)
+        for name, filename in FOLEY_SOURCE_FILES.items()
+    }
+
+
+def make_assets(foley: dict[str, np.ndarray]) -> dict[str, np.ndarray]:
+    axe_hit = normalize(
+        overlay(
+            hit(0.38, 16),
+            fit(highpass(foley["chop"], 9), 0.38, 0.5),
+            fit(highpass(foley["knife_slice_2"], 11), 0.38, 0.25, 0.05),
+        ),
+        0.86,
+    )
+    crossbow_snap = normalize(
+        overlay(
+            crossbow(),
+            fit(highpass(foley["draw_knife_1"], 7), 0.28, 0.42),
+            fit(highpass(foley["metal_click"], 5), 0.28, 0.32, 0.07),
+        ),
+        0.82,
+    )
+    conduit_activate = normalize(
+        overlay(sweep(0.58, 150.0, 590.0, 10), fit(highpass(foley["metal_latch"], 9), 0.58, 0.26, 0.1)),
+        0.82,
+    )
+    conduit_deactivate = normalize(
+        overlay(sweep(0.56, 560.0, 118.0, 11), fit(lowpass(foley["creak"], 13), 0.56, 0.2)),
+        0.78,
+    )
+    shatter_with_foley = normalize(
+        overlay(shatter(), fit(highpass(foley["metal_latch"], 5), 0.75, 0.35), fit(highpass(foley["coins"], 17), 0.75, 0.18, 0.08)),
+        0.88,
+    )
+    return {
+        "weather/red_storm_music": normalize(0.6 * rumble(12.0, 61) + 0.32 * chord(12.0, (55.0, 82.5, 110.0), 1.0) + 0.08 * spell(12.0), 0.68),
+        "weather/red_storm_rumble": normalize(0.82 * rumble(5.0, 1) + 0.18 * lowpass(noise(5.0, 101), 121), 0.72),
         "weather/red_thunder_crack": thunder(0.8, 2),
         "weather/red_thunder_low": thunder(1.2, 3, low=True),
         "weather/red_thunder_portal": portal_thunder(),
         "ambient/portal_lava": normalize(env(smooth(noise(2.6, 8), 17) * 0.4 + sine(44.0, 2.6) * 0.22, 0.06, 0.12), 0.6),
         "ambient/portal_ghast": normalize(env(chord(2.4, (184.0, 207.0, 248.0), 0.45) + 0.12 * smooth(noise(2.4, 9), 21), 0.08, 0.18), 0.62),
         "block/nether_conduit_ambient": conduit_hum(),
-        "block/nether_conduit_activate": sweep(0.5, 170.0, 520.0, 10),
-        "block/nether_conduit_deactivate": sweep(0.5, 520.0, 130.0, 11),
+        "block/nether_conduit_activate": conduit_activate,
+        "block/nether_conduit_deactivate": conduit_deactivate,
         "entity/piglin_ambient": piglin_voice(0.9, 150.0, 12),
         "entity/piglin_brute_ambient": piglin_voice(1.0, 112.0, 13, 0.28),
         "entity/piglin_hurt": hit(0.34, 14),
         "entity/piglin_death": piglin_voice(1.05, 104.0, 15, 0.34) * np.linspace(1.0, 0.18, int(SAMPLE_RATE * 1.05)),
-        "entity/piglin_crossbow": crossbow(),
-        "entity/piglin_axe_hit": hit(0.36, 16),
+        "entity/piglin_crossbow": crossbow_snap,
+        "entity/piglin_axe_hit": axe_hit,
         "entity/piglin_spell_shot": spell(0.5),
         "entity/piglin_evoker_cast": spell(0.78),
         "entity/piglin_ravager_ambient": ravager_roar() * 0.72,
@@ -296,8 +402,8 @@ def make_assets() -> dict[str, np.ndarray]:
         "entity/nether_dragon_growl": dragon_growl(1.4, 52),
         "entity/nether_dragon_phase2": normalize(0.65 * dragon_growl(1.8, 53) + 0.4 * thunder(1.8, 54, low=True), 0.9),
         "item/ghast_tear_necklace_fireball": sweep(0.55, 290.0, 760.0, 55),
-        "item/portal_shard_locate": normalize(env(0.5 * chord(0.9, (392.0, 554.0, 740.0), 1.0) + 0.28 * chirp(0.9, 760.0, 430.0), 0.01, 0.16), 0.7),
-        "music/disc_nether_tide": disc(),
+        "item/portal_shard_locate": normalize(overlay(env(0.5 * chord(0.9, (392.0, 554.0, 740.0), 1.0) + 0.28 * chirp(0.9, 760.0, 430.0), 0.01, 0.16), fit(highpass(foley["coins"], 23), 0.9, 0.12, 0.18)), 0.7),
+        "music/disc_nether_tide": normalize(overlay(disc(), fit(lowpass(foley["creak"], 33), 16.0, 0.07, 4.0)), 0.68),
         "raid/approach": rumble(2.0, 57) * 0.72,
         "raid/start_sting": raid_sting(),
         "raid/wave_complete": wave_complete(),
@@ -305,7 +411,7 @@ def make_assets() -> dict[str, np.ndarray]:
         "ritual/victory": completion_tone(1.55),
         "ritual/crystal_place": crystal_place(),
         "ritual/dragon_summon": normalize(overlay(0.5 * dragon_growl(2.0, 59), 0.45 * raid_sting()), 0.88),
-        "ritual/pedestal_shatter": shatter(),
+        "ritual/pedestal_shatter": shatter_with_foley,
     }
 
 
@@ -326,7 +432,7 @@ def write_ogg(name: str, audio: np.ndarray, temp_dir: Path) -> None:
             "-c:a",
             "libvorbis",
             "-q:a",
-            "3",
+            "5",
             str(destination),
         ],
         check=True,
@@ -356,22 +462,23 @@ def update_sounds_json() -> None:
 
 def main() -> None:
     if shutil.which("ffmpeg") is None:
-        raise SystemExit("ffmpeg is required to encode .ogg placeholder sounds")
+        raise SystemExit("ffmpeg is required to encode .ogg procedural sounds")
 
     SOUNDS_DIR.mkdir(parents=True, exist_ok=True)
-    assets = make_assets()
-    referenced = set(EVENT_TO_FILE.values())
-    missing_assets = sorted(referenced - set(assets))
-    if missing_assets:
-        raise SystemExit(f"missing generated assets: {missing_assets}")
-
     with tempfile.TemporaryDirectory() as tmp:
         temp_dir = Path(tmp)
+        foley = load_foley_sources(temp_dir)
+        assets = make_assets(foley)
+        referenced = set(EVENT_TO_FILE.values())
+        missing_assets = sorted(referenced - set(assets))
+        if missing_assets:
+            raise SystemExit(f"missing generated assets: {missing_assets}")
+
         for name in sorted(referenced):
             write_ogg(name, assets[name], temp_dir)
 
     update_sounds_json()
-    print(f"Generated {len(referenced)} placeholder .ogg files and updated sounds.json")
+    print(f"Generated {len(referenced)} procedural .ogg files and updated sounds.json")
 
 
 if __name__ == "__main__":

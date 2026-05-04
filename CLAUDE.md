@@ -79,7 +79,9 @@ src/main/resources/assets/ruined_portal_overhaul/models/item/*.json
 src/main/resources/assets/ruined_portal_overhaul/particles/*.json
 src/main/resources/assets/ruined_portal_overhaul/textures/entity/*.png
 src/main/resources/assets/ruined_portal_overhaul/textures/particle/*.png
-scripts/generate_placeholder_audio.py
+assets/audio_sources/kenney_rpg_audio/*.ogg
+scripts/generate_particle_textures.py
+scripts/generate_procedural_audio.py
 scripts/post_process_entity_textures.py
 src/main/resources/assets/ruined_portal_overhaul/patchouli_books/corrupted_chronicle/en_us/**/*.json
 src/main/resources/data/minecraft/worldgen/structure/ruined_portal*.json
@@ -106,7 +108,7 @@ This expansion adds an endgame dependency chain:
 5. Four Nether Crystals on generated pedestals summon the Nether Dragon.
 6. Masterwork rewards now extend the dragon and boss chest loop with Portal Shard discovery, Corrupted Netherite armor, rare Nether Tide music, optional Patchouli guide data, custom particles, and special underground room templates.
 
-No new hand-painted PNG assets were added for the conduit, necklace, crystal, or dragon systems. The mob roster now ships generated placeholder GeckoLib texture variants derived from the base entity sheets, then post-processes all entity sheets for stronger contrast, edge shading, warmer gold/orange accents, and light sharpening without changing UV layout or dimensions.
+No new hand-painted PNG assets were added for the conduit, necklace, crystal, or dragon systems. The mob roster now ships generated GeckoLib texture variants derived from the base entity sheets, then post-processes all entity sheets for stronger contrast, edge shading, warmer gold/orange accents, and light sharpening without changing UV layout or dimensions.
 
 ## Lunar-Compatible Necklace Integration
 
@@ -139,7 +141,7 @@ Activation and levels:
 
 - Active frame requires all 12 regular `minecraft:nether_bricks` blocks in the flat horizontal ring two blocks out from the conduit; random 3D nether-brick rubble no longer powers the block.
 - `NetherConduitBlock.ACTIVE` is mirrored into blockstate whenever the frame scan changes so GeckoLib can swap between idle and active spin loops from synced state instead of stale client memory.
-- The conduit uses vanilla obsidian for the main placeholder model, vanilla netherrack for the emissive inner-core overlay, grey inactive tint, and warmer active tint by upgrade level. `RuinedPortalGeoRenderData.CONDUIT_ACTIVE` and `CONDUIT_LEVEL` bridge block-entity state into the GeckoLib render layer.
+- The conduit uses a vanilla-derived obsidian model for the main shell, vanilla netherrack for the emissive inner-core overlay, grey inactive tint, and warmer active tint by upgrade level. `RuinedPortalGeoRenderData.CONDUIT_ACTIVE` and `CONDUIT_LEVEL` bridge block-entity state into the GeckoLib render layer.
 - Level 0: Fire Resistance I, Haste I, Regeneration I, 8-block support/attack radius, 4 conduit damage.
 - Level 1: Fire Resistance II, Haste II, Regeneration II, 12-block support/attack radius, 6 conduit damage.
 - Level 2: Fire Resistance II, Haste II, Regeneration II, 16-block support/attack radius, 8 conduit damage, near-zero lava movement penalty.
@@ -220,14 +222,14 @@ Recipes live in singular `data/ruined_portal_overhaul/recipe/`.
 - Corrupted Netherite armor uses vanilla netherite item/armor components plus both `ModDataComponents.CORRUPTED_NETHERITE` and `DataComponents.CUSTOM_DATA` key `ruined_portal_overhaul:corrupted`, so set detection is data-driven rather than tied to class identity alone.
 - `CorruptedNetheriteEvents` checks armor every 20 ticks. Two pieces grant Fire Resistance, three pieces add Resistance I, and four pieces add a transient +4 armor toughness modifier plus `nether_ember` shimmer particles.
 - `PortalShardItem` stores a 600-tick cooldown in `ModDataComponents.LAST_PORTAL_SHARD_USE_TICK`, checks `PortalRaidState` first for the nearest known uncompleted portal, verifies already-loaded saved origins against the live portal dungeon structure data without force-loading chunks, falls back to the server-side `StructureTags.RUINED_PORTAL` locate path within 10,000 blocks, shows an action-bar bearing/distance, and emits `corruption_rune` guide particles.
-- `music_disc_nether_tide` uses `NetherTideDiscItem`, the `ruined_portal_overhaul:nether_tide` jukebox song JSON, and `ModSounds.MUSIC_DISC_NETHER_TIDE`, mapped to the generated `music/disc_nether_tide.ogg` placeholder track. Piglin Evokers have a separate 5% runtime drop chance. Jukeboxes playing the disc within 64 blocks of a completed portal emit `nether_ember` particles.
+- `music_disc_nether_tide` uses `NetherTideDiscItem`, the `ruined_portal_overhaul:nether_tide` jukebox song JSON, and `ModSounds.MUSIC_DISC_NETHER_TIDE`, mapped to the generated procedural `music/disc_nether_tide.ogg` track. Piglin Evokers have a separate 5% runtime drop chance. Jukeboxes playing the disc within 64 blocks of a completed portal emit `nether_ember` particles.
 - `Nether Dragon Scale` is intentionally a trophy item in this Lunar-compatible branch, not an Accessories back-slot renderer, until a verified Accessories release exists for 1.21.11.
 
 ## Custom Particles
 
 - `ModParticles` registers `nether_ember`, `corruption_rune`, and `dragon_blood` with `FabricParticleTypes.simple()`.
 - Client factories live in `client/particle/` and are registered from `RuinedPortalOverhaulClient`.
-- Particle sprite JSON lives under `assets/ruined_portal_overhaul/particles/`; `nether_ember.png` and `corruption_rune.png` are generated 8x8 placeholder sprites under `textures/particle/`.
+- Particle sprite JSON lives under `assets/ruined_portal_overhaul/particles/`; `nether_ember.png`, `corruption_rune.png`, and `dragon_blood.png` are generated 8x8 sprites under `textures/particle/` by `scripts/generate_particle_textures.py`.
 - Current uses: portal frame ambience, raid start cues, armor set shimmer, Ravager roar cues, dragon phase/slam accents, and Nether Tide jukebox effects use `nether_ember`; Portal Shard trails, Evoker casting cues, and ritual pedestal shatter use `corruption_rune`; `dragon_blood` emits when the Nether Dragon takes damage during or entering phase two.
 
 ## Patchouli Guide Data
@@ -273,7 +275,7 @@ Vanilla Nether ruined portals are preserved through `data/minecraft/worldgen/str
 
 ## Entity Presentation
 
-GeckoLib now renders all combat mobs, the Exiled Piglin, the Nether Crystal, the Nether Conduit block entity, and the Nether Dragon. Assets use the GeckoLib 5 layout: models live under `assets/ruined_portal_overhaul/geckolib/models/`, animations live under `assets/ruined_portal_overhaul/geckolib/animations/`, and the GeoModel resource IDs use the bare `entity/...` or `block/...` subpath without the directory prefix or file suffix. The Nether Conduit swaps slow/fast inner-core spin loops from synced blockstate, returns `RenderShape.INVISIBLE` so the registered block entity renderer owns the visual in the current Mojang mappings, and adds an active-only emissive inner-core render layer. The Dragon no longer uses the vanilla `EnderDragonRenderer`; its placeholder model lives at `assets/ruined_portal_overhaul/geckolib/models/entity/nether_dragon.geo.json`, and its flight, phase-two, and slam animations live at `assets/ruined_portal_overhaul/geckolib/animations/entity/nether_dragon.animation.json`. Piglin Pillager melee fallback, Piglin Vindicator, Brute Pillager melee fallback, Piglin Vex, and Piglin Ravager successful melee hits now trigger their GeckoLib attack clips, while Piglin Ravager Hard wall-impact roars trigger the matching `action.roar` animation in addition to the custom roar sound and Slowness II pulse. In 1.21.11, vanilla swing duration is read from the held item's `DataComponents.SWING_ANIMATION` value instead of an overridable entity method, so the custom pillager, vindicator, and brute melee loadouts stamp a 10-tick whack swing to match the 0.5-second humanoid attack clip.
+GeckoLib now renders all combat mobs, the Exiled Piglin, the Nether Crystal, the Nether Conduit block entity, and the Nether Dragon. Assets use the GeckoLib 5 layout: models live under `assets/ruined_portal_overhaul/geckolib/models/`, animations live under `assets/ruined_portal_overhaul/geckolib/animations/`, and the GeoModel resource IDs use the bare `entity/...` or `block/...` subpath without the directory prefix or file suffix. The Nether Conduit swaps slow/fast inner-core spin loops from synced blockstate, returns `RenderShape.INVISIBLE` so the registered block entity renderer owns the visual in the current Mojang mappings, and adds an active-only emissive inner-core render layer. The Dragon no longer uses the vanilla `EnderDragonRenderer`; its custom GeoModel lives at `assets/ruined_portal_overhaul/geckolib/models/entity/nether_dragon.geo.json`, and its flight, phase-two, and slam animations live at `assets/ruined_portal_overhaul/geckolib/animations/entity/nether_dragon.animation.json`. Piglin Pillager melee fallback, Piglin Vindicator, Brute Pillager melee fallback, Piglin Vex, and Piglin Ravager successful melee hits now trigger their GeckoLib attack clips, while Piglin Ravager Hard wall-impact roars trigger the matching `action.roar` animation in addition to the custom roar sound and Slowness II pulse. In 1.21.11, vanilla swing duration is read from the held item's `DataComponents.SWING_ANIMATION` value instead of an overridable entity method, so the custom pillager, vindicator, and brute melee loadouts stamp a 10-tick whack swing to match the 0.5-second humanoid attack clip.
 
 Visual variant support is active for:
 
@@ -291,7 +293,7 @@ Implementation notes:
 - Nether Conduit glow state is driven through `RuinedPortalGeoRenderData.CONDUIT_ACTIVE` and `CONDUIT_LEVEL`, captured during block-entity render compilation.
 - Nether Conduit, Nether Crystal, and Nether Dragon tint values are written to `DataTickets.RENDER_COLOR` during GeckoLib render-state compilation instead of consulting the entity again during the later render pass.
 - Piglin Vex uses `move.fly` while moving and `misc.idle.flying` while hovering; the shared `flyIdleController()` is intentionally custom because GeckoLib's stock helper falls back to `misc.idle`.
-- Placeholder `_0/_1/_2` PNGs are generated derivatives of the base texture sheets and are safe for later artist replacement.
+- Variant `_0/_1/_2` PNGs are generated derivatives of the base texture sheets and are safe for later artist replacement.
 - `scripts/post_process_entity_textures.py` is the reproducible readability pass for the current generated entity art. It uses Pillow to apply 1.3x contrast, tile-aware edge/top-light shading, gold/orange saturation lift, and a subtle sharpen pass. The script writes an idempotence marker into each PNG, so repeated normal runs skip already-processed sheets instead of compounding the effect.
 
 ## Spawners And Spawn Pressure
@@ -405,8 +407,8 @@ The red storm is a client-side visual/audio system driven by server proximity pa
 - Storm music starts when storm intensity rises through the custom `weather.red_storm.music` event and is stopped when the player leaves the zone, the portal is completed, or the client world/player unloads. Completed portal packets carry a `completed` flag so the red weather remains while combat music and territory boon effects stop.
 - A separate `weather.red_storm.rumble` tickable client sound loops while storm intensity is active, follows the player, scales volume and pitch from storm intensity/pulse/descent, and settles to a lower volume for completed portals so the claimed scar still feels corrupted without combat music.
 - Custom mob voices use mod-owned sound ids plus explicit volume and pitch overrides, avoiding inherited pillager/illager identity audio while keeping resource-pack replacement simple.
-- `assets/ruined_portal_overhaul/sounds.json` maps every custom sound id to generated mod-owned `.ogg` placeholders under `assets/ruined_portal_overhaul/sounds/`. The generated soundscape covers the red storm rumble, red thunder accents, conduit hum and activation sweeps, raid stings, wave-complete cues, ritual crystal tones, dragon beats, custom mob voices, items, ambience, and Nether Tide music disc. Resource packs can still replace each id cleanly.
-- `scripts/generate_placeholder_audio.py` is the reproducible asset source for the current placeholder soundscape. It uses NumPy/SciPy to write temporary WAV files and ffmpeg to encode Vorbis `.ogg` assets, then rewrites `sounds.json` to fail closed if a registered sound id has no mapping.
+- `assets/ruined_portal_overhaul/sounds.json` maps every custom sound id to generated mod-owned procedural `.ogg` files under `assets/ruined_portal_overhaul/sounds/`. The soundscape covers the red storm rumble, red thunder accents, conduit hum and activation sweeps, raid stings, wave-complete cues, ritual crystal tones, dragon beats, custom mob voices, items, ambience, and Nether Tide music disc. Resource packs can still replace each id cleanly.
+- `scripts/generate_procedural_audio.py` is the reproducible asset source for the soundscape. It uses NumPy/SciPy synthesis, layers selected CC0 Kenney RPG Audio foley from `assets/audio_sources/kenney_rpg_audio/`, encodes Vorbis `.ogg` files through ffmpeg, and rewrites `sounds.json` to fail closed if a registered sound id has no mapping.
 
 Server-side atmosphere remains active too: ash, crimson spores, smoke, lava drips, frame particles, lava ambience, raid start bursts, inter-wave pulses, completion particles, mob spawn sounds, ritual breaks, dragon victory cues, and necklace fireball launches are all routed through server-side effects and mod-owned sound ids.
 
@@ -577,7 +579,7 @@ Structure rarity note:
 | Client red storm packet receiver, overlay, music, thunder, sky, fog, weather mixins | COMPLETE |
 | 7 combat entities plus Exiled Piglin registration | COMPLETE |
 | GeckoLib entity and block renderer registration | COMPLETE |
-| Synced GeckoLib mob texture variants and generated placeholder sheets | COMPLETE |
+| Synced GeckoLib mob texture variants and generated sheets | COMPLETE |
 | Deterministic portal dungeon structure variants with runtime persistence | COMPLETE |
 | Structure generation and vanilla ruined portal replacement hooks | COMPLETE |
 | Structure-set village exclusion for ruined portal dungeons | COMPLETE |
@@ -608,7 +610,7 @@ Structure rarity note:
 | Nether Dragon Scale trophy item | COMPLETE |
 | Optional Patchouli Corrupted Chronicle data plus surface/boss chest injection | COMPLETE |
 | StructureBlockPalette and Masterwork underground room templates | COMPLETE |
-| Custom registered particles and generated placeholder sprites | COMPLETE |
+| Custom registered particles and generated sprites | COMPLETE |
 | Nether Tide music disc, drops, jukebox particle effect, and jukebox song metadata | COMPLETE |
 | English-valued localization skeletons for German, Spanish, French, Japanese, Brazilian Portuguese, Russian, and Simplified Chinese | COMPLETE |
 | Expanded optional REI information pages for Masterwork progression | COMPLETE |
@@ -636,12 +638,12 @@ Implemented but still needs an interactive in-game smoke pass:
 - Full survival path from `/locate structure minecraft:ruined_portal` through approach storm, five-wave raid, completion beats, Exiled Piglin trade, Nether Conduit use, Ghast Tear Necklace fireball, crystal ritual, Nether Dragon phase two, and dragon death finale.
 - Full interactive `runClient` survival smoke testing remains pending; the startup smoke does not verify visual framing, rendered GeckoLib animation timing in combat, client atmosphere mixins in the portal zone, or player-controlled encounter flow.
 - Dedicated server multiplayer checks for two players entering the raid trigger together, disconnecting during boss bars/trades, and participating in the dragon fight from different heights in the portal cave stack.
-- Visual review for post-processed generated textures, generated placeholder `.ogg` soundscape, red storm sky/fog/rain mixins, GeckoLib entity animations, and conduit block-entity rendering.
+- Visual review for post-processed generated textures, procedural `.ogg` soundscape, red storm sky/fog/rain mixins, GeckoLib entity animations, and conduit block-entity rendering.
 
 Remaining known limitations and future polish:
 
-- The entity texture variants are generated release art with a reproducible contrast/shading post-process, not hand-painted final art. Particle sprites are still generated release art.
-- The mod now ships generated placeholder `.ogg` assets for every registered custom sound id. They are intentionally reproducible release placeholders, not final recorded or hand-designed audio.
+- The entity texture variants and particle sprites are generated release art with reproducible post-processing, not hand-painted art.
+- Every registered custom sound id now ships a mod-owned procedural `.ogg` file. Weapon, metal, shatter, and locator transients layer CC0 Kenney RPG Audio foley over the synthesized mod ambience so the files are reproducible and legally auditable.
 - The Nether Dragon Scale remains a trophy item until a verified Accessories-compatible `1.21.11` release exists for this branch; its tooltip now states that the back-slot role is intentionally deferred.
 
 Recommended first in-game test:
@@ -654,7 +656,7 @@ Recommended first in-game test:
 ## Known Limitations
 
 - The entity textures and variant sheets are generated release art with a reproducible contrast/shading post-process, not hand-painted final textures.
-- The mod ships generated placeholder `.ogg` files for every custom sound id. Nether Tide uses a generated placeholder track and remains resource-pack replaceable.
+- The mod ships generated procedural `.ogg` files for every custom sound id. Nether Tide uses a generated procedural track and remains resource-pack replaceable.
 - The storm renderer now uses client mixins for sky, fog, rain, and weather state. These hooks are version-sensitive and should be rechecked whenever updating Minecraft mappings.
 - A full interactive `runClient` survival smoke test still needs to be performed before final submission.
 

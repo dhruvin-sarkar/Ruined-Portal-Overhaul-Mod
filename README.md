@@ -82,7 +82,7 @@ Recommended first gameplay smoke:
 ## Known Limits
 
 - Entity texture variants are generated release art with a reproducible contrast/shading post-process; particle sprites are generated release art, not hand-painted final art.
-- Custom sound events ship generated placeholder `.ogg` files. They are replaceable by resource packs and are not final recorded audio.
+- Custom sound events ship generated procedural `.ogg` files, with selected CC0 Kenney foley layered into the mod-owned synthesis pass. They remain replaceable by resource packs.
 - Nether Dragon Scale is intentionally a trophy item until a compatible Accessories build is verified for Minecraft `1.21.11` and Lunar Client.
 
 ## Issues
