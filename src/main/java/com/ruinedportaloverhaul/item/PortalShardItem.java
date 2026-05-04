@@ -3,6 +3,8 @@ package com.ruinedportaloverhaul.item;
 import com.ruinedportaloverhaul.component.ModDataComponents;
 import com.ruinedportaloverhaul.raid.PortalRaidState;
 import com.ruinedportaloverhaul.sound.ModSounds;
+import com.ruinedportaloverhaul.structure.PortalDungeonPiece;
+import com.ruinedportaloverhaul.world.ModStructures;
 import com.ruinedportaloverhaul.world.ModParticles;
 import java.util.Comparator;
 import java.util.function.Consumer;
@@ -21,7 +23,10 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.TooltipDisplay;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.levelgen.structure.StructurePiece;
+import net.minecraft.world.level.levelgen.structure.StructureStart;
 import net.minecraft.world.phys.Vec3;
 
 public class PortalShardItem extends Item {
@@ -105,7 +110,10 @@ public class PortalShardItem extends Item {
     private static BlockPos findNearestUncompletedPortal(ServerLevel level, BlockPos playerPos) {
         PortalRaidState state = PortalRaidState.get(level.getServer());
         BlockPos knownPortal = state.knownUncompletedPortalOrigins().stream()
-            .min(Comparator.comparingDouble(candidate -> horizontalDistanceSqr(candidate, playerPos)))
+            .filter(candidate -> !isInsideCompletedPortalFootprint(candidate, state))
+            .sorted(Comparator.comparingDouble(candidate -> horizontalDistanceSqr(candidate, playerPos)))
+            .filter(candidate -> isKnownPortalStillPresent(level, candidate))
+            .findFirst()
             .orElse(null);
         if (knownPortal != null) {
             return knownPortal;
@@ -113,6 +121,33 @@ public class PortalShardItem extends Item {
 
         BlockPos found = level.findNearestMapStructure(StructureTags.RUINED_PORTAL, playerPos, SEARCH_RADIUS_CHUNKS, false);
         return found != null && !isInsideCompletedPortalFootprint(found, state) ? found.immutable() : null;
+    }
+
+    private static boolean isKnownPortalStillPresent(ServerLevel level, BlockPos origin) {
+        ChunkPos originChunk = new ChunkPos(origin);
+        if (!level.hasChunk(originChunk.x, originChunk.z)) {
+            return true;
+        }
+
+        for (int chunkX = originChunk.x - 1; chunkX <= originChunk.x + 1; chunkX++) {
+            for (int chunkZ = originChunk.z - 1; chunkZ <= originChunk.z + 1; chunkZ++) {
+                if (!level.hasChunk(chunkX, chunkZ)) {
+                    continue;
+                }
+                for (StructureStart start : level.structureManager().startsForStructure(
+                    new ChunkPos(chunkX, chunkZ),
+                    structure -> structure.type() == ModStructures.PORTAL_DUNGEON_TYPE
+                )) {
+                    for (StructurePiece piece : start.getPieces()) {
+                        if (piece instanceof PortalDungeonPiece dungeonPiece
+                            && horizontalDistanceSqr(dungeonPiece.portalOrigin(), origin) <= 4.0) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     private static boolean isInsideCompletedPortalFootprint(BlockPos pos, PortalRaidState state) {
