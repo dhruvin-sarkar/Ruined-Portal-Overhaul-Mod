@@ -95,7 +95,7 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
    - The Nether Dragon Scale tooltip explicitly states that it is trophy-only in this branch and that back-slot support waits on a compatible Accessories release.
    - Corrupted Netherite Ingots carry `CUSTOM_DATA` marker `ruined_portal_overhaul:dragon_infused` and explain the smithing path in their tooltip.
    - Corrupted Netherite armor is made through smithing with Corrupted Netherite Ingot, matching vanilla netherite armor, and echo shard. Two pieces grant Fire Resistance, three add Resistance, and four add +4 armor toughness plus ember particles.
-   - `music_disc_nether_tide` uses custom jukebox song metadata, vanilla placeholder audio, and emits nether ember particles from jukeboxes near completed portals.
+   - `music_disc_nether_tide` uses custom jukebox song metadata, generated mod-owned placeholder audio, and emits nether ember particles from jukeboxes near completed portals.
 15. Optional Discovery Integrations
    - REI pages explain the Portal Shard, Corrupted Netherite, Nether Tide, Nether Star drops, Conduit, Crystal, and Necklace progression.
    - Patchouli is suggested, not required. Corrupted Chronicle registers through `data/ruined_portal_overhaul/patchouli_books/corrupted_chronicle/book.json`, loads its visible content from `assets/.../patchouli_books/corrupted_chronicle/en_us/` with `use_resource_pack: true`, and locks Dragon entries behind `ruined_portal_overhaul:the_final_offering`. The guide is injected into surface and boss chest drops only when Patchouli is installed and a compatible guide item id exists.
@@ -177,8 +177,8 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
 
 1. Run a full in-game `runClient` survival smoke test with manual player control; the automated startup smoke does not verify combat visuals, red-storm rendering in-zone, or the full encounter chain.
 2. Use `/locate structure minecraft:ruined_portal` across multiple seeds to confirm all three structure variants appear with readable transitions in-game.
-3. Replace generated entity and particle placeholder art with hand-polished art if a future visual pass has time.
-4. Add custom `.ogg` sounds only if a later asset pass wants unique audio; the current release uses vanilla sounds intentionally, including Nether Tide's placeholder disc audio.
+3. Replace post-processed generated entity art and generated particle placeholder art with hand-polished art if a future visual pass has time.
+4. Replace generated placeholder `.ogg` sounds with recorded or hand-designed audio if a later asset pass wants a final soundscape.
 5. Replace the Nether Dragon Scale trophy with a real back-slot renderer only after a truthful Accessories-compatible `1.21.11` build exists and is verified in Lunar Client.
 
 ## Guardrails

@@ -54,6 +54,7 @@ This changelog is reconstructed from the repository history back to the first co
 - Added custom mob sound routing, voice pitch tuning, attack triggers, Vex flying idle, ravager roar animation, melee swing timing matched to GeckoLib clips, and keyframe cues for encounter animations.
 - Added Piglin Pillager crossbow kiting, safer brute priority, limited-life Piglin Vex behavior, and portal-anchored Phase 2 guardians.
 - Added generated entity texture variants for visual variety without external art dependencies.
+- Added a reproducible Pillow post-process for all entity texture sheets, improving contrast, edge shading, gold/orange readability, and small-scale sharpness while preserving UV layout.
 
 ### Rewards, Items, And Progression
 
@@ -355,7 +356,7 @@ These are the main code and resource surfaces represented by the v1.0.0 history:
 - GeckoLib rendering: entity/block `.geo.json` models, entity/block animation JSON, Geo renderers, Geo models, render-state data tickets, mounted item layer, conduit glow layer, and animation keyframe cues.
 - Items and rewards: Portal Shard, Ghast Tear Necklace, Nether Conduit, Nether Crystal, Corrupted Netherite armor and ingot, Nether Tide music disc, Dragon Scale, Shard of the Nether, and Corrupted Portal Key.
 - Conduit systems: `NetherConduitBlock`, `NetherConduitBlockEntity`, `NetherConduitPowerTracker`, `NetherConduitEvents`, lava movement mixin, conduit damage type, activation frame, upgrade state, effects, and structure chest insertion.
-- Optional discovery: REI client plugin, Patchouli guide book data, advancement tree, localized text, custom sound events with generated placeholder `.ogg` assets, custom particles, and generated texture variants.
+- Optional discovery: REI client plugin, Patchouli guide book data, advancement tree, localized text, custom sound events with generated placeholder `.ogg` assets, custom particles, and post-processed generated texture variants.
 - Administration and testing: `/rpo` locate, status, reset, wave, dragon, and complete commands for operators and modpack debugging.
 - Release packaging: README, Modrinth description, contribution docs, issue templates, localization skeletons, build validation notes, dedicated-server dry start, and client startup smoke notes.
 

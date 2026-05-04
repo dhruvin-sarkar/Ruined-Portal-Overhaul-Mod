@@ -79,6 +79,8 @@ src/main/resources/assets/ruined_portal_overhaul/models/item/*.json
 src/main/resources/assets/ruined_portal_overhaul/particles/*.json
 src/main/resources/assets/ruined_portal_overhaul/textures/entity/*.png
 src/main/resources/assets/ruined_portal_overhaul/textures/particle/*.png
+scripts/generate_placeholder_audio.py
+scripts/post_process_entity_textures.py
 src/main/resources/assets/ruined_portal_overhaul/patchouli_books/corrupted_chronicle/en_us/**/*.json
 src/main/resources/data/minecraft/worldgen/structure/ruined_portal*.json
 src/main/resources/data/minecraft/worldgen/structure_set/ruined_portals.json
@@ -104,7 +106,7 @@ This expansion adds an endgame dependency chain:
 5. Four Nether Crystals on generated pedestals summon the Nether Dragon.
 6. Masterwork rewards now extend the dragon and boss chest loop with Portal Shard discovery, Corrupted Netherite armor, rare Nether Tide music, optional Patchouli guide data, custom particles, and special underground room templates.
 
-No new hand-painted PNG assets were added for the conduit, necklace, crystal, or dragon systems. The mob roster now also ships generated placeholder GeckoLib texture variants derived from the base entity sheets for visual variety without introducing bespoke art dependencies.
+No new hand-painted PNG assets were added for the conduit, necklace, crystal, or dragon systems. The mob roster now ships generated placeholder GeckoLib texture variants derived from the base entity sheets, then post-processes all entity sheets for stronger contrast, edge shading, warmer gold/orange accents, and light sharpening without changing UV layout or dimensions.
 
 ## Lunar-Compatible Necklace Integration
 
@@ -290,6 +292,7 @@ Implementation notes:
 - Nether Conduit, Nether Crystal, and Nether Dragon tint values are written to `DataTickets.RENDER_COLOR` during GeckoLib render-state compilation instead of consulting the entity again during the later render pass.
 - Piglin Vex uses `move.fly` while moving and `misc.idle.flying` while hovering; the shared `flyIdleController()` is intentionally custom because GeckoLib's stock helper falls back to `misc.idle`.
 - Placeholder `_0/_1/_2` PNGs are generated derivatives of the base texture sheets and are safe for later artist replacement.
+- `scripts/post_process_entity_textures.py` is the reproducible readability pass for the current generated entity art. It uses Pillow to apply 1.3x contrast, tile-aware edge/top-light shading, gold/orange saturation lift, and a subtle sharpen pass. The script writes an idempotence marker into each PNG, so repeated normal runs skip already-processed sheets instead of compounding the effect.
 
 ## Spawners And Spawn Pressure
 
@@ -633,11 +636,11 @@ Implemented but still needs an interactive in-game smoke pass:
 - Full survival path from `/locate structure minecraft:ruined_portal` through approach storm, five-wave raid, completion beats, Exiled Piglin trade, Nether Conduit use, Ghast Tear Necklace fireball, crystal ritual, Nether Dragon phase two, and dragon death finale.
 - Full interactive `runClient` survival smoke testing remains pending; the startup smoke does not verify visual framing, rendered GeckoLib animation timing in combat, client atmosphere mixins in the portal zone, or player-controlled encounter flow.
 - Dedicated server multiplayer checks for two players entering the raid trigger together, disconnecting during boss bars/trades, and participating in the dragon fight from different heights in the portal cave stack.
-- Visual review for generated textures, generated placeholder `.ogg` soundscape, red storm sky/fog/rain mixins, GeckoLib entity animations, and conduit block-entity rendering.
+- Visual review for post-processed generated textures, generated placeholder `.ogg` soundscape, red storm sky/fog/rain mixins, GeckoLib entity animations, and conduit block-entity rendering.
 
 Remaining known limitations and future polish:
 
-- The entity texture variants and particle sprites are generated release art, not hand-painted final art.
+- The entity texture variants are generated release art with a reproducible contrast/shading post-process, not hand-painted final art. Particle sprites are still generated release art.
 - The mod now ships generated placeholder `.ogg` assets for every registered custom sound id. They are intentionally reproducible release placeholders, not final recorded or hand-designed audio.
 - The Nether Dragon Scale remains a trophy item until a verified Accessories-compatible `1.21.11` release exists for this branch; its tooltip now states that the back-slot role is intentionally deferred.
 
@@ -650,7 +653,7 @@ Recommended first in-game test:
 
 ## Known Limitations
 
-- The entity textures and variant sheets are simple generated release art, not hand-painted final textures.
+- The entity textures and variant sheets are generated release art with a reproducible contrast/shading post-process, not hand-painted final textures.
 - The mod ships generated placeholder `.ogg` files for every custom sound id. Nether Tide uses a generated placeholder track and remains resource-pack replaceable.
 - The storm renderer now uses client mixins for sky, fog, rain, and weather state. These hooks are version-sensitive and should be rechecked whenever updating Minecraft mappings.
 - A full interactive `runClient` survival smoke test still needs to be performed before final submission.
