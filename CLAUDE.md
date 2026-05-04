@@ -218,7 +218,7 @@ Recipes live in singular `data/ruined_portal_overhaul/recipe/`.
 - Corrupted Netherite armor uses vanilla netherite item/armor components plus both `ModDataComponents.CORRUPTED_NETHERITE` and `DataComponents.CUSTOM_DATA` key `ruined_portal_overhaul:corrupted`, so set detection is data-driven rather than tied to class identity alone.
 - `CorruptedNetheriteEvents` checks armor every 20 ticks. Two pieces grant Fire Resistance, three pieces add Resistance I, and four pieces add a transient +4 armor toughness modifier plus `nether_ember` shimmer particles.
 - `PortalShardItem` stores a 600-tick cooldown in `ModDataComponents.LAST_PORTAL_SHARD_USE_TICK`, checks `PortalRaidState` first for the nearest known uncompleted portal, verifies already-loaded saved origins against the live portal dungeon structure data without force-loading chunks, falls back to the server-side `StructureTags.RUINED_PORTAL` locate path within 10,000 blocks, shows an action-bar bearing/distance, and emits `corruption_rune` guide particles.
-- `music_disc_nether_tide` uses `NetherTideDiscItem`, the `ruined_portal_overhaul:nether_tide` jukebox song JSON, and `ModSounds.MUSIC_DISC_NETHER_TIDE`, mapped to vanilla `music_disc.13` as placeholder audio. Piglin Evokers have a separate 5% runtime drop chance. Jukeboxes playing the disc within 64 blocks of a completed portal emit `nether_ember` particles.
+- `music_disc_nether_tide` uses `NetherTideDiscItem`, the `ruined_portal_overhaul:nether_tide` jukebox song JSON, and `ModSounds.MUSIC_DISC_NETHER_TIDE`, mapped to the generated `music/disc_nether_tide.ogg` placeholder track. Piglin Evokers have a separate 5% runtime drop chance. Jukeboxes playing the disc within 64 blocks of a completed portal emit `nether_ember` particles.
 - `Nether Dragon Scale` is intentionally a trophy item in this Lunar-compatible branch, not an Accessories back-slot renderer, until a verified Accessories release exists for 1.21.11.
 
 ## Custom Particles
@@ -402,7 +402,8 @@ The red storm is a client-side visual/audio system driven by server proximity pa
 - Storm music starts when storm intensity rises through the custom `weather.red_storm.music` event and is stopped when the player leaves the zone, the portal is completed, or the client world/player unloads. Completed portal packets carry a `completed` flag so the red weather remains while combat music and territory boon effects stop.
 - A separate `weather.red_storm.rumble` tickable client sound loops while storm intensity is active, follows the player, scales volume and pitch from storm intensity/pulse/descent, and settles to a lower volume for completed portals so the claimed scar still feels corrupted without combat music.
 - Custom mob voices use mod-owned sound ids plus explicit volume and pitch overrides, avoiding inherited pillager/illager identity audio while keeping resource-pack replacement simple.
-- `assets/ruined_portal_overhaul/sounds.json` maps every custom sound id to vanilla fallback sound events with `"type": "event"`, so the mod has audible defaults without bundling `.ogg` files and resource packs can still replace each id cleanly.
+- `assets/ruined_portal_overhaul/sounds.json` maps every custom sound id to generated mod-owned `.ogg` placeholders under `assets/ruined_portal_overhaul/sounds/`. The generated soundscape covers the red storm rumble, red thunder accents, conduit hum and activation sweeps, raid stings, wave-complete cues, ritual crystal tones, dragon beats, custom mob voices, items, ambience, and Nether Tide music disc. Resource packs can still replace each id cleanly.
+- `scripts/generate_placeholder_audio.py` is the reproducible asset source for the current placeholder soundscape. It uses NumPy/SciPy to write temporary WAV files and ffmpeg to encode Vorbis `.ogg` assets, then rewrites `sounds.json` to fail closed if a registered sound id has no mapping.
 
 Server-side atmosphere remains active too: ash, crimson spores, smoke, lava drips, frame particles, lava ambience, raid start bursts, inter-wave pulses, completion particles, mob spawn sounds, ritual breaks, dragon victory cues, and necklace fireball launches are all routed through server-side effects and mod-owned sound ids.
 
@@ -632,12 +633,12 @@ Implemented but still needs an interactive in-game smoke pass:
 - Full survival path from `/locate structure minecraft:ruined_portal` through approach storm, five-wave raid, completion beats, Exiled Piglin trade, Nether Conduit use, Ghast Tear Necklace fireball, crystal ritual, Nether Dragon phase two, and dragon death finale.
 - Full interactive `runClient` survival smoke testing remains pending; the startup smoke does not verify visual framing, rendered GeckoLib animation timing in combat, client atmosphere mixins in the portal zone, or player-controlled encounter flow.
 - Dedicated server multiplayer checks for two players entering the raid trigger together, disconnecting during boss bars/trades, and participating in the dragon fight from different heights in the portal cave stack.
-- Visual review for generated textures, placeholder sound mappings, red storm sky/fog/rain mixins, GeckoLib entity animations, and conduit block-entity rendering.
+- Visual review for generated textures, generated placeholder `.ogg` soundscape, red storm sky/fog/rain mixins, GeckoLib entity animations, and conduit block-entity rendering.
 
 Remaining known limitations and future polish:
 
 - The entity texture variants and particle sprites are generated release art, not hand-painted final art.
-- The mod registers replaceable sound events with vanilla fallback event mappings instead of shipping bespoke `.ogg` assets.
+- The mod now ships generated placeholder `.ogg` assets for every registered custom sound id. They are intentionally reproducible release placeholders, not final recorded or hand-designed audio.
 - The Nether Dragon Scale remains a trophy item until a verified Accessories-compatible `1.21.11` release exists for this branch; its tooltip now states that the back-slot role is intentionally deferred.
 
 Recommended first in-game test:
@@ -650,7 +651,7 @@ Recommended first in-game test:
 ## Known Limitations
 
 - The entity textures and variant sheets are simple generated release art, not hand-painted final textures.
-- The mod registers custom sound events with vanilla fallback mappings rather than shipping bespoke `.ogg` assets. Nether Tide intentionally uses `minecraft:music_disc.13` as placeholder audio for resource-pack replacement.
+- The mod ships generated placeholder `.ogg` files for every custom sound id. Nether Tide uses a generated placeholder track and remains resource-pack replaceable.
 - The storm renderer now uses client mixins for sky, fog, rain, and weather state. These hooks are version-sensitive and should be rechecked whenever updating Minecraft mappings.
 - A full interactive `runClient` survival smoke test still needs to be performed before final submission.
 

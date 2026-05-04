@@ -3,8 +3,8 @@
     "subtitle": "subtitle.ruined_portal_overhaul.weather.red_storm.music",
     "sounds": [
       {
-        "name": "minecraft:music.nether.basalt_deltas",
-        "type": "event"
+        "name": "ruined_portal_overhaul:weather/red_storm_music",
+        "stream": true
       }
     ]
   },
@@ -12,8 +12,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.weather.red_storm.rumble",
     "sounds": [
       {
-        "name": "minecraft:block.portal.ambient",
-        "type": "event"
+        "name": "ruined_portal_overhaul:weather/red_storm_rumble"
       }
     ]
   },
@@ -21,8 +20,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.weather.red_thunder",
     "sounds": [
       {
-        "name": "minecraft:entity.lightning_bolt.thunder",
-        "type": "event"
+        "name": "ruined_portal_overhaul:weather/red_thunder_crack"
       }
     ]
   },
@@ -30,8 +28,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.weather.red_thunder_low",
     "sounds": [
       {
-        "name": "minecraft:entity.wither.spawn",
-        "type": "event"
+        "name": "ruined_portal_overhaul:weather/red_thunder_low"
       }
     ]
   },
@@ -39,8 +36,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.weather.red_thunder_portal",
     "sounds": [
       {
-        "name": "minecraft:block.portal.trigger",
-        "type": "event"
+        "name": "ruined_portal_overhaul:weather/red_thunder_portal"
       }
     ]
   },
@@ -48,8 +44,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.ambient.portal_lava",
     "sounds": [
       {
-        "name": "minecraft:block.lava.ambient",
-        "type": "event"
+        "name": "ruined_portal_overhaul:ambient/portal_lava"
       }
     ]
   },
@@ -57,8 +52,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.ambient.portal_ghast",
     "sounds": [
       {
-        "name": "minecraft:entity.ghast.ambient",
-        "type": "event"
+        "name": "ruined_portal_overhaul:ambient/portal_ghast"
       }
     ]
   },
@@ -66,8 +60,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.block.nether_conduit.ambient",
     "sounds": [
       {
-        "name": "minecraft:block.conduit.ambient",
-        "type": "event"
+        "name": "ruined_portal_overhaul:block/nether_conduit_ambient"
       }
     ]
   },
@@ -75,8 +68,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.block.nether_conduit.activate",
     "sounds": [
       {
-        "name": "minecraft:block.conduit.activate",
-        "type": "event"
+        "name": "ruined_portal_overhaul:block/nether_conduit_activate"
       }
     ]
   },
@@ -84,8 +76,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.block.nether_conduit.deactivate",
     "sounds": [
       {
-        "name": "minecraft:block.conduit.deactivate",
-        "type": "event"
+        "name": "ruined_portal_overhaul:block/nether_conduit_deactivate"
       }
     ]
   },
@@ -93,8 +84,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_pillager.ambient",
     "sounds": [
       {
-        "name": "minecraft:entity.piglin.ambient",
-        "type": "event"
+        "name": "ruined_portal_overhaul:entity/piglin_ambient"
       }
     ]
   },
@@ -102,8 +92,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_pillager.hurt",
     "sounds": [
       {
-        "name": "minecraft:entity.piglin.hurt",
-        "type": "event"
+        "name": "ruined_portal_overhaul:entity/piglin_hurt"
       }
     ]
   },
@@ -111,8 +100,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_pillager.death",
     "sounds": [
       {
-        "name": "minecraft:entity.piglin.death",
-        "type": "event"
+        "name": "ruined_portal_overhaul:entity/piglin_death"
       }
     ]
   },
@@ -120,8 +108,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_pillager.attack",
     "sounds": [
       {
-        "name": "minecraft:item.crossbow.shoot",
-        "type": "event"
+        "name": "ruined_portal_overhaul:entity/piglin_crossbow"
       }
     ]
   },
@@ -129,8 +116,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_vindicator.ambient",
     "sounds": [
       {
-        "name": "minecraft:entity.piglin.ambient",
-        "type": "event"
+        "name": "ruined_portal_overhaul:entity/piglin_ambient"
       }
     ]
   },
@@ -138,8 +124,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_vindicator.hurt",
     "sounds": [
       {
-        "name": "minecraft:entity.piglin.hurt",
-        "type": "event"
+        "name": "ruined_portal_overhaul:entity/piglin_hurt"
       }
     ]
   },
@@ -147,8 +132,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_vindicator.death",
     "sounds": [
       {
-        "name": "minecraft:entity.piglin.death",
-        "type": "event"
+        "name": "ruined_portal_overhaul:entity/piglin_death"
       }
     ]
   },
@@ -156,8 +140,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_vindicator.attack",
     "sounds": [
       {
-        "name": "minecraft:entity.player.attack.crit",
-        "type": "event"
+        "name": "ruined_portal_overhaul:entity/piglin_axe_hit"
       }
     ]
   },
@@ -165,8 +148,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_brute_pillager.ambient",
     "sounds": [
       {
-        "name": "minecraft:entity.piglin_brute.ambient",
-        "type": "event"
+        "name": "ruined_portal_overhaul:entity/piglin_brute_ambient"
       }
     ]
   },
@@ -174,8 +156,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_brute_pillager.hurt",
     "sounds": [
       {
-        "name": "minecraft:entity.piglin_brute.hurt",
-        "type": "event"
+        "name": "ruined_portal_overhaul:entity/piglin_hurt"
       }
     ]
   },
@@ -183,8 +164,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_brute_pillager.death",
     "sounds": [
       {
-        "name": "minecraft:entity.piglin_brute.death",
-        "type": "event"
+        "name": "ruined_portal_overhaul:entity/piglin_death"
       }
     ]
   },
@@ -192,8 +172,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_brute_pillager.attack",
     "sounds": [
       {
-        "name": "minecraft:item.crossbow.shoot",
-        "type": "event"
+        "name": "ruined_portal_overhaul:entity/piglin_crossbow"
       }
     ]
   },
@@ -201,8 +180,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_illusioner.ambient",
     "sounds": [
       {
-        "name": "minecraft:entity.piglin.ambient",
-        "type": "event"
+        "name": "ruined_portal_overhaul:entity/piglin_ambient"
       }
     ]
   },
@@ -210,8 +188,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_illusioner.hurt",
     "sounds": [
       {
-        "name": "minecraft:entity.piglin.hurt",
-        "type": "event"
+        "name": "ruined_portal_overhaul:entity/piglin_hurt"
       }
     ]
   },
@@ -219,8 +196,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_illusioner.death",
     "sounds": [
       {
-        "name": "minecraft:entity.piglin.death",
-        "type": "event"
+        "name": "ruined_portal_overhaul:entity/piglin_death"
       }
     ]
   },
@@ -228,8 +204,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_illusioner.attack",
     "sounds": [
       {
-        "name": "minecraft:entity.blaze.shoot",
-        "type": "event"
+        "name": "ruined_portal_overhaul:entity/piglin_spell_shot"
       }
     ]
   },
@@ -237,8 +212,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_evoker.ambient",
     "sounds": [
       {
-        "name": "minecraft:entity.piglin.ambient",
-        "type": "event"
+        "name": "ruined_portal_overhaul:entity/piglin_ambient"
       }
     ]
   },
@@ -246,8 +220,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_evoker.hurt",
     "sounds": [
       {
-        "name": "minecraft:entity.piglin.hurt",
-        "type": "event"
+        "name": "ruined_portal_overhaul:entity/piglin_hurt"
       }
     ]
   },
@@ -255,8 +228,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_evoker.death",
     "sounds": [
       {
-        "name": "minecraft:entity.piglin.death",
-        "type": "event"
+        "name": "ruined_portal_overhaul:entity/piglin_death"
       }
     ]
   },
@@ -264,8 +236,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_evoker.cast_spell",
     "sounds": [
       {
-        "name": "minecraft:entity.evoker.cast_spell",
-        "type": "event"
+        "name": "ruined_portal_overhaul:entity/piglin_evoker_cast"
       }
     ]
   },
@@ -273,8 +244,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_ravager.ambient",
     "sounds": [
       {
-        "name": "minecraft:entity.ravager.ambient",
-        "type": "event"
+        "name": "ruined_portal_overhaul:entity/piglin_ravager_ambient"
       }
     ]
   },
@@ -282,8 +252,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_ravager.hurt",
     "sounds": [
       {
-        "name": "minecraft:entity.ravager.hurt",
-        "type": "event"
+        "name": "ruined_portal_overhaul:entity/piglin_ravager_hurt"
       }
     ]
   },
@@ -291,8 +260,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_ravager.death",
     "sounds": [
       {
-        "name": "minecraft:entity.ravager.death",
-        "type": "event"
+        "name": "ruined_portal_overhaul:entity/piglin_ravager_death"
       }
     ]
   },
@@ -300,8 +268,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_ravager.roar",
     "sounds": [
       {
-        "name": "minecraft:entity.ravager.roar",
-        "type": "event"
+        "name": "ruined_portal_overhaul:entity/piglin_ravager_roar"
       }
     ]
   },
@@ -309,8 +276,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_vex.ambient",
     "sounds": [
       {
-        "name": "minecraft:entity.piglin.ambient",
-        "type": "event"
+        "name": "ruined_portal_overhaul:entity/piglin_vex_ambient"
       }
     ]
   },
@@ -318,8 +284,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_vex.hurt",
     "sounds": [
       {
-        "name": "minecraft:entity.piglin.hurt",
-        "type": "event"
+        "name": "ruined_portal_overhaul:entity/piglin_vex_hurt"
       }
     ]
   },
@@ -327,8 +292,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.entity.piglin_vex.death",
     "sounds": [
       {
-        "name": "minecraft:entity.piglin.death",
-        "type": "event"
+        "name": "ruined_portal_overhaul:entity/piglin_vex_death"
       }
     ]
   },
@@ -336,8 +300,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.entity.exiled_piglin.ambient",
     "sounds": [
       {
-        "name": "minecraft:entity.piglin.ambient",
-        "type": "event"
+        "name": "ruined_portal_overhaul:entity/exiled_piglin_ambient"
       }
     ]
   },
@@ -345,8 +308,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.entity.exiled_piglin.hurt",
     "sounds": [
       {
-        "name": "minecraft:entity.piglin.hurt",
-        "type": "event"
+        "name": "ruined_portal_overhaul:entity/piglin_hurt"
       }
     ]
   },
@@ -354,8 +316,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.entity.exiled_piglin.death",
     "sounds": [
       {
-        "name": "minecraft:entity.piglin.death",
-        "type": "event"
+        "name": "ruined_portal_overhaul:entity/piglin_death"
       }
     ]
   },
@@ -363,8 +324,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.entity.nether_dragon.ambient",
     "sounds": [
       {
-        "name": "minecraft:entity.ender_dragon.ambient",
-        "type": "event"
+        "name": "ruined_portal_overhaul:entity/nether_dragon_ambient"
       }
     ]
   },
@@ -372,8 +332,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.entity.nether_dragon.growl",
     "sounds": [
       {
-        "name": "minecraft:entity.ender_dragon.growl",
-        "type": "event"
+        "name": "ruined_portal_overhaul:entity/nether_dragon_growl"
       }
     ]
   },
@@ -381,8 +340,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.entity.nether_dragon.phase2",
     "sounds": [
       {
-        "name": "minecraft:entity.wither.spawn",
-        "type": "event"
+        "name": "ruined_portal_overhaul:entity/nether_dragon_phase2"
       }
     ]
   },
@@ -390,8 +348,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.item.ghast_tear_necklace.fireball",
     "sounds": [
       {
-        "name": "minecraft:entity.ghast.shoot",
-        "type": "event"
+        "name": "ruined_portal_overhaul:item/ghast_tear_necklace_fireball"
       }
     ]
   },
@@ -399,8 +356,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.item.portal_shard.locate",
     "sounds": [
       {
-        "name": "minecraft:entity.enderman.teleport",
-        "type": "event"
+        "name": "ruined_portal_overhaul:item/portal_shard_locate"
       }
     ]
   },
@@ -408,8 +364,8 @@
     "subtitle": "subtitle.ruined_portal_overhaul.music.disc.nether_tide",
     "sounds": [
       {
-        "name": "minecraft:music_disc.13",
-        "type": "event"
+        "name": "ruined_portal_overhaul:music/disc_nether_tide",
+        "stream": true
       }
     ]
   },
@@ -417,8 +373,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.raid.approach",
     "sounds": [
       {
-        "name": "minecraft:block.portal.ambient",
-        "type": "event"
+        "name": "ruined_portal_overhaul:raid/approach"
       }
     ]
   },
@@ -426,8 +381,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.raid.start",
     "sounds": [
       {
-        "name": "minecraft:entity.wither.spawn",
-        "type": "event",
+        "name": "ruined_portal_overhaul:raid/start_sting",
         "volume": 0.7
       }
     ]
@@ -436,8 +390,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.raid.wave_complete",
     "sounds": [
       {
-        "name": "minecraft:entity.player.levelup",
-        "type": "event"
+        "name": "ruined_portal_overhaul:raid/wave_complete"
       }
     ]
   },
@@ -445,8 +398,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.raid.complete",
     "sounds": [
       {
-        "name": "minecraft:ui.toast.challenge_complete",
-        "type": "event"
+        "name": "ruined_portal_overhaul:raid/complete"
       }
     ]
   },
@@ -454,8 +406,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.ritual.victory",
     "sounds": [
       {
-        "name": "minecraft:ui.toast.challenge_complete",
-        "type": "event"
+        "name": "ruined_portal_overhaul:ritual/victory"
       }
     ]
   },
@@ -463,8 +414,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.ritual.crystal_place",
     "sounds": [
       {
-        "name": "minecraft:block.portal.travel",
-        "type": "event",
+        "name": "ruined_portal_overhaul:ritual/crystal_place",
         "volume": 0.75
       }
     ]
@@ -473,8 +423,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.ritual.dragon_summon",
     "sounds": [
       {
-        "name": "minecraft:entity.ender_dragon.growl",
-        "type": "event"
+        "name": "ruined_portal_overhaul:ritual/dragon_summon"
       }
     ]
   },
@@ -482,8 +431,7 @@
     "subtitle": "subtitle.ruined_portal_overhaul.ritual.pedestal_shatter",
     "sounds": [
       {
-        "name": "minecraft:entity.generic.explode",
-        "type": "event"
+        "name": "ruined_portal_overhaul:ritual/pedestal_shatter"
       }
     ]
   }

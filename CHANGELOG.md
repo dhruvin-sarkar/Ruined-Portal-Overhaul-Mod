@@ -103,6 +103,7 @@ This changelog is reconstructed from the repository history back to the first co
 - Localized advancement display text, raid and conduit status messages, named artifacts, item names, sound subtitles, and release-facing player text.
 - Added mod-owned sound events for raid, conduit, ritual, dragon, storm, music, and reward moments.
 - Made custom sound fallbacks play correctly and routed encounter sounds through the mod sound event registry.
+- Added generated placeholder `.ogg` assets for every registered custom sound id, plus a reproducible synthesis script for the current soundscape.
 - Added optional REI progression pages and corrected REI recipe hints.
 - Added optional Patchouli guide data and fixed Patchouli guide loading.
 - Removed internal draft wording from release text before closeout.
@@ -354,7 +355,7 @@ These are the main code and resource surfaces represented by the v1.0.0 history:
 - GeckoLib rendering: entity/block `.geo.json` models, entity/block animation JSON, Geo renderers, Geo models, render-state data tickets, mounted item layer, conduit glow layer, and animation keyframe cues.
 - Items and rewards: Portal Shard, Ghast Tear Necklace, Nether Conduit, Nether Crystal, Corrupted Netherite armor and ingot, Nether Tide music disc, Dragon Scale, Shard of the Nether, and Corrupted Portal Key.
 - Conduit systems: `NetherConduitBlock`, `NetherConduitBlockEntity`, `NetherConduitPowerTracker`, `NetherConduitEvents`, lava movement mixin, conduit damage type, activation frame, upgrade state, effects, and structure chest insertion.
-- Optional discovery: REI client plugin, Patchouli guide book data, advancement tree, localized text, custom sound events, custom particles, and generated texture variants.
+- Optional discovery: REI client plugin, Patchouli guide book data, advancement tree, localized text, custom sound events with generated placeholder `.ogg` assets, custom particles, and generated texture variants.
 - Administration and testing: `/rpo` locate, status, reset, wave, dragon, and complete commands for operators and modpack debugging.
 - Release packaging: README, Modrinth description, contribution docs, issue templates, localization skeletons, build validation notes, dedicated-server dry start, and client startup smoke notes.
 
