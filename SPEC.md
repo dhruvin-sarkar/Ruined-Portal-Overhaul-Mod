@@ -18,15 +18,15 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
    - Custom structure replaces vanilla overworld ruined portal pieces with a corrupted surface scar and underground dungeon space.
    - `PortalDungeonPiece` builds roughly radius 136 and depth 45 through `PortalStructureHelper`.
    - Three deterministic structure variants are implemented: `Crimson Throne`, `Sunken Sanctum`, and `Basalt Citadel`.
-   - The middle scar has readable cardinal sectors: soul terrain north, netherrack south, blackstone east, and crimson corruption west.
+   - The middle scar has readable cardinal sectors: soul terrain north, netherrack south, blackstone east, and crimson corruption west, with its outer half blended through scorched native biome surfaces instead of a hard material edge.
    - `Sunken Sanctum` lowers the ritual core into a bowl with heavier soul-sand corruption and a collapsed north-rim blackstone arch.
    - `Basalt Citadel` uses a blackstone inner zone, a widened ritual platform, basalt corner columns, and a pit lava moat.
    - The generated portal frame is a valid 4-by-5 or 6-by-7 outer frame.
    - Inner ritual terrain and pit placement are protected; surface height variation is applied only outside the stable core.
-   - Surface terrain uses low-frequency deterministic noise clamped to about `-3` to `+3` blocks, so the scar reads as a mostly flat Nether plain with mild organic unevenness.
+   - Surface terrain uses low-frequency deterministic noise clamped to about `-3` to `+3` blocks, plus `beard_thin` structure terrain adaptation and helper-side native-surface blending.
    - Basalt columns remain separate vertical drama placed on top of the calm terrain.
 2. Pit And Underground
-   - The pit uses the original-style ragged mouth and shaft behavior, with mixed blackstone/basalt/netherrack/soul-soil rim rubble and 12 lower lava seeps.
+   - The pit uses the original-style ragged mouth and shaft behavior, with a softened scorched-native rim, staggered basalt/blackstone ledges, mixed blackstone/basalt/netherrack/soul-soil rubble, and 12 lower lava seeps.
    - The cave system branches from the pit and primary chamber.
    - Cave tunnels are worm-carved: gradual direction blending, radius variation from independent smooth noise, vertical drift, side pockets, and finite path lengths.
    - The cave graph is denser than the first worm pass, with more nodes, more side branches, stronger cross-linking, and many cave-node treasure caches.
@@ -95,7 +95,7 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
    - The Nether Dragon Scale tooltip explicitly states that it is trophy-only in this branch and that back-slot support waits on a compatible Accessories release.
    - Corrupted Netherite Ingots carry `CUSTOM_DATA` marker `ruined_portal_overhaul:dragon_infused` and explain the smithing path in their tooltip.
    - Corrupted Netherite armor is made through smithing with Corrupted Netherite Ingot, matching vanilla netherite armor, and echo shard. Two pieces grant Fire Resistance, three add Resistance, and four add +4 armor toughness plus ember particles.
-   - `music_disc_nether_tide` uses custom jukebox song metadata, generated mod-owned procedural audio, and emits nether ember particles from jukeboxes near completed portals.
+   - `music_disc_nether_tide` uses custom jukebox song metadata, online-sourced CC0 audio, and emits nether ember particles from jukeboxes near completed portals.
 15. Optional Discovery Integrations
    - REI pages explain the Portal Shard, Corrupted Netherite, Nether Tide, Nether Star drops, Conduit, Crystal, and Necklace progression.
    - Patchouli is suggested, not required. Corrupted Chronicle registers through `data/ruined_portal_overhaul/patchouli_books/corrupted_chronicle/book.json`, loads its visible content from `assets/.../patchouli_books/corrupted_chronicle/en_us/` with `use_resource_pack: true`, and locks Dragon entries behind `ruined_portal_overhaul:the_final_offering`. The guide is injected into surface and boss chest drops only when Patchouli is installed and a compatible guide item id exists.
@@ -178,7 +178,7 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
 1. Run a full in-game `runClient` survival smoke test with manual player control; the automated startup smoke does not verify combat visuals, red-storm rendering in-zone, or the full encounter chain.
 2. Use `/locate structure minecraft:ruined_portal` across multiple seeds to confirm all three structure variants appear with readable transitions in-game.
 3. Replace post-processed generated entity art and generated particle art with hand-polished art if a future visual pass has time.
-4. Keep the procedural audio source chain reproducible; external samples should remain CC0 or be accompanied by complete attribution and redistribution notes.
+4. Keep the online audio preparation chain reproducible; every external sample must stay redistributable for a mod jar and be recorded in `assets/audio_sources/ONLINE_AUDIO_ATTRIBUTION.md`.
 5. Replace the Nether Dragon Scale trophy with a real back-slot renderer only after a truthful Accessories-compatible `1.21.11` build exists and is verified in Lunar Client.
 
 ## Guardrails

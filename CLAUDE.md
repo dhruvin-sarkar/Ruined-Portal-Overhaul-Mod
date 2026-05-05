@@ -79,9 +79,11 @@ src/main/resources/assets/ruined_portal_overhaul/models/item/*.json
 src/main/resources/assets/ruined_portal_overhaul/particles/*.json
 src/main/resources/assets/ruined_portal_overhaul/textures/entity/*.png
 src/main/resources/assets/ruined_portal_overhaul/textures/particle/*.png
-assets/audio_sources/kenney_rpg_audio/*.ogg
+assets/audio_sources/kenney_online/**/*.ogg
+assets/audio_sources/opengameart_cc0/*
+assets/audio_sources/ONLINE_AUDIO_ATTRIBUTION.md
 scripts/generate_particle_textures.py
-scripts/generate_procedural_audio.py
+scripts/prepare_online_audio.py
 scripts/post_process_entity_textures.py
 src/main/resources/assets/ruined_portal_overhaul/patchouli_books/corrupted_chronicle/en_us/**/*.json
 src/main/resources/data/minecraft/worldgen/structure/ruined_portal*.json
@@ -222,7 +224,7 @@ Recipes live in singular `data/ruined_portal_overhaul/recipe/`.
 - Corrupted Netherite armor uses vanilla netherite item/armor components plus both `ModDataComponents.CORRUPTED_NETHERITE` and `DataComponents.CUSTOM_DATA` key `ruined_portal_overhaul:corrupted`, so set detection is data-driven rather than tied to class identity alone.
 - `CorruptedNetheriteEvents` checks armor every 20 ticks. Two pieces grant Fire Resistance, three pieces add Resistance I, and four pieces add a transient +4 armor toughness modifier plus `nether_ember` shimmer particles.
 - `PortalShardItem` stores a 600-tick cooldown in `ModDataComponents.LAST_PORTAL_SHARD_USE_TICK`, checks `PortalRaidState` first for the nearest known uncompleted portal, verifies already-loaded saved origins against the live portal dungeon structure data without force-loading chunks, falls back to the server-side `StructureTags.RUINED_PORTAL` locate path within 10,000 blocks, shows an action-bar bearing/distance, and emits `corruption_rune` guide particles.
-- `music_disc_nether_tide` uses `NetherTideDiscItem`, the `ruined_portal_overhaul:nether_tide` jukebox song JSON, and `ModSounds.MUSIC_DISC_NETHER_TIDE`, mapped to the generated procedural `music/disc_nether_tide.ogg` track. Piglin Evokers have a separate 5% runtime drop chance. Jukeboxes playing the disc within 64 blocks of a completed portal emit `nether_ember` particles.
+- `music_disc_nether_tide` uses `NetherTideDiscItem`, the `ruined_portal_overhaul:nether_tide` jukebox song JSON, and `ModSounds.MUSIC_DISC_NETHER_TIDE`, mapped to the online-sourced `music/disc_nether_tide.ogg` track. Piglin Evokers have a separate 5% runtime drop chance. Jukeboxes playing the disc within 64 blocks of a completed portal emit `nether_ember` particles.
 - `Nether Dragon Scale` is intentionally a trophy item in this Lunar-compatible branch, not an Accessories back-slot renderer, until a verified Accessories release exists for 1.21.11.
 
 ## Custom Particles
@@ -255,9 +257,9 @@ Variant selection is deterministic from the structure chunk through `PortalDunge
 The generated piece uses a radius-136 surface footprint and a depth-45 underground rupture:
 
 - Inner zone, radius `0-15`: stable ritual core with netherrack ground, blackstone brick platform, valid 4x5 or 6x7 portal frame, chains, and Exiled Piglin anchor. The ritual platform and frame stay at a consistent readable height.
-- Middle zone, radius `15-52`: netherrack-dominant Nether scar with readable cardinal material sectors: soul sand/soil to the north, netherrack to the south, blackstone to the east, and crimson nylium patches to the west. The ground uses deterministic low-frequency height variation outside the ritual core, clamped to roughly `-3` to `+3` blocks, so the surface reads as a mostly flat Nether plain with organic undulation rather than jagged stacked terrain.
-- Outer zone, radius `52-136`: lower-density netherrack corruption scatter with rare crying obsidian flecks using the same calm surface sculpting, so outer patches inherit gentle rises and depressions.
-- Underground pit: protected original-style ragged mouth, organic shaft, 12 lower lava seeps, mixed basalt/blackstone/netherrack/soul-soil rim rubble, and Nether material conversion around carved space.
+- Middle zone, radius `15-52`: Nether scar with readable cardinal material sectors: soul sand/soil to the north, netherrack to the south, blackstone to the east, and crimson nylium patches to the west. The outer half now blends probabilistically back through native biome surfaces and scorched native variants, so grass, dirt, stone, sand, mud, and gravel biomes do not hit an abrupt all-netherrack edge. The ground uses deterministic low-frequency height variation outside the ritual core, clamped to roughly `-3` to `+3` blocks.
+- Outer zone, radius `52-136`: lower-density clustered corruption scatter with netherrack, blackstone, soul soil, magma, rare crying obsidian, and scorched native top blocks. Structure JSON also declares `terrain_adaptation: beard_thin`, while the helper remains the main blending authority for the custom scar.
+- Underground pit: protected original-style ragged mouth, organic shaft, softened native/scorched rim blend, four staggered basalt/blackstone ledges, 12 lower lava seeps, mixed basalt/blackstone/netherrack/soul-soil rim rubble, and Nether material conversion around carved space.
 - Primary chamber: large blackstone/basalt/netherrack cavern with lava lake, vents, glowstone clusters, stalactites, and basalt/blackstone spikes.
 - Cave network: denser graph-based cave nodes connected by worm-carved organic tunnels. Each tunnel advances by a gradually blended noisy direction, varies radius from roughly 2-6 blocks with an independent smooth noise signal, drifts vertically, and creates side pockets. Deep nodes are larger and taller, including ghast-ready caverns with high ceilings, more blackstone/basalt material, lava runs, ceiling drips, glowstone pockets, and frequent underground cache pads.
 - Masterwork room templates: after cave graph connection, `PortalStructureHelper` places a guaranteed 7x7x5 Wither Shrine at the deepest node with soul terrain, a skull totem, deep loot, and four Wither Skeleton spawners. Selected branch nodes add Gold Vault, Blaze Chamber, or hidden Ancient Vault rooms with designed floors, false walls, embedded ore/debris, deep chest positions, and room-specific spawners.
@@ -407,8 +409,8 @@ The red storm is a client-side visual/audio system driven by server proximity pa
 - Storm music starts when storm intensity rises through the custom `weather.red_storm.music` event and is stopped when the player leaves the zone, the portal is completed, or the client world/player unloads. Completed portal packets carry a `completed` flag so the red weather remains while combat music and territory boon effects stop.
 - A separate `weather.red_storm.rumble` tickable client sound loops while storm intensity is active, follows the player, scales volume and pitch from storm intensity/pulse/descent, and settles to a lower volume for completed portals so the claimed scar still feels corrupted without combat music.
 - Custom mob voices use mod-owned sound ids plus explicit volume and pitch overrides, avoiding inherited pillager/illager identity audio while keeping resource-pack replacement simple.
-- `assets/ruined_portal_overhaul/sounds.json` maps every custom sound id to generated mod-owned procedural `.ogg` files under `assets/ruined_portal_overhaul/sounds/`. The soundscape covers the red storm rumble, red thunder accents, conduit hum and activation sweeps, raid stings, wave-complete cues, ritual crystal tones, dragon beats, custom mob voices, items, ambience, and Nether Tide music disc. Resource packs can still replace each id cleanly.
-- `scripts/generate_procedural_audio.py` is the reproducible asset source for the soundscape. It uses NumPy/SciPy synthesis, layers selected CC0 Kenney RPG Audio foley from `assets/audio_sources/kenney_rpg_audio/`, encodes Vorbis `.ogg` files through ffmpeg, and rewrites `sounds.json` to fail closed if a registered sound id has no mapping.
+- `assets/ruined_portal_overhaul/sounds.json` maps every custom sound id to online-sourced edited `.ogg` files under `assets/ruined_portal_overhaul/sounds/`. The current shipped soundscape is built from redistributable CC0 Kenney and OpenGameArt source clips, then trimmed, gain-staged, faded, normalized, and encoded to Vorbis. No procedural or synthesized sound generation is used for the final shipped sound files.
+- `scripts/prepare_online_audio.py` is the reproducible preparation script for the soundscape. `assets/audio_sources/ONLINE_AUDIO_ATTRIBUTION.md` lists each source URL, author, license, and output mapping, including Kenney RPG/Impact/Interface/Music Jingles/Sci-fi packs plus OpenGameArt ambient and roar sources.
 
 Server-side atmosphere remains active too: ash, crimson spores, smoke, lava drips, frame particles, lava ambience, raid start bursts, inter-wave pulses, completion particles, mob spawn sounds, ritual breaks, dragon victory cues, and necklace fireball launches are all routed through server-side effects and mod-owned sound ids.
 
@@ -638,12 +640,12 @@ Implemented but still needs an interactive in-game smoke pass:
 - Full survival path from `/locate structure minecraft:ruined_portal` through approach storm, five-wave raid, completion beats, Exiled Piglin trade, Nether Conduit use, Ghast Tear Necklace fireball, crystal ritual, Nether Dragon phase two, and dragon death finale.
 - Full interactive `runClient` survival smoke testing remains pending; the startup smoke does not verify visual framing, rendered GeckoLib animation timing in combat, client atmosphere mixins in the portal zone, or player-controlled encounter flow.
 - Dedicated server multiplayer checks for two players entering the raid trigger together, disconnecting during boss bars/trades, and participating in the dragon fight from different heights in the portal cave stack.
-- Visual review for post-processed generated textures, procedural `.ogg` soundscape, red storm sky/fog/rain mixins, GeckoLib entity animations, and conduit block-entity rendering.
+- Visual review for post-processed generated textures, online-sourced `.ogg` soundscape, red storm sky/fog/rain mixins, GeckoLib entity animations, and conduit block-entity rendering.
 
 Remaining known limitations and future polish:
 
 - The entity texture variants and particle sprites are generated release art with reproducible post-processing, not hand-painted art.
-- Every registered custom sound id now ships a mod-owned procedural `.ogg` file. Weapon, metal, shatter, and locator transients layer CC0 Kenney RPG Audio foley over the synthesized mod ambience so the files are reproducible and legally auditable.
+- Every registered custom sound id now ships an online-sourced `.ogg` file with source attribution. The final files are edited from CC0 Kenney and OpenGameArt sources, not generated synthesis.
 - The Nether Dragon Scale remains a trophy item until a verified Accessories-compatible `1.21.11` release exists for this branch; its tooltip now states that the back-slot role is intentionally deferred.
 
 Recommended first in-game test:
@@ -656,7 +658,7 @@ Recommended first in-game test:
 ## Known Limitations
 
 - The entity textures and variant sheets are generated release art with a reproducible contrast/shading post-process, not hand-painted final textures.
-- The mod ships generated procedural `.ogg` files for every custom sound id. Nether Tide uses a generated procedural track and remains resource-pack replaceable.
+- The mod ships online-sourced `.ogg` files for every custom sound id. Nether Tide uses a CC0 OpenGameArt-derived track and remains resource-pack replaceable.
 - The storm renderer now uses client mixins for sky, fog, rain, and weather state. These hooks are version-sensitive and should be rechecked whenever updating Minecraft mappings.
 - A full interactive `runClient` survival smoke test still needs to be performed before final submission.
 

@@ -2,6 +2,17 @@
 
 This changelog is reconstructed from the repository history back to the first commit on 2026-04-05. It focuses on shipped behavior and verified project state rather than raw commit prefixes.
 
+## Unreleased - 2026-05-05
+
+- Replaced the generated/procedural soundscape with edited online CC0 audio from Kenney and OpenGameArt, with source URLs and output mapping documented in `assets/audio_sources/ONLINE_AUDIO_ATTRIBUTION.md`.
+- Added a reproducible online-audio preparation script and removed the procedural audio generator.
+- Improved portal scar cohesion by blending the middle and outer rings through scorched native biome surfaces, adding `beard_thin` terrain adaptation, and keeping the custom helper as the main terrain authority.
+- Improved the pit mouth with softened rim blending and staggered basalt/blackstone ledges.
+- Reduced raid and ambient mob pressure while keeping five-wave escalation intact.
+- Increased generated surface reward caches and strengthened the surface loot table with more useful raid supplies.
+- Slightly raised the red storm default intensity without changing the completed-portal low-level state.
+- Added a Ruined Portal Overhaul creative tab and vanilla-tab entries for every custom item and block.
+
 ## v1.0.0 - 2026-05-03
 
 ### Release Readiness
@@ -104,7 +115,7 @@ This changelog is reconstructed from the repository history back to the first co
 - Localized advancement display text, raid and conduit status messages, named artifacts, item names, sound subtitles, and release-facing player text.
 - Added mod-owned sound events for raid, conduit, ritual, dragon, storm, music, and reward moments.
 - Made custom sound fallbacks play correctly and routed encounter sounds through the mod sound event registry.
-- Added generated procedural `.ogg` assets for every registered custom sound id, plus a reproducible synthesis script and CC0 Kenney foley source subset for the current soundscape.
+- Added online-sourced `.ogg` assets for every registered custom sound id, plus a reproducible preparation script and CC0 source attribution for the current soundscape.
 - Added optional REI progression pages and corrected REI recipe hints.
 - Added optional Patchouli guide data and fixed Patchouli guide loading.
 - Removed internal draft wording from release text before closeout.
@@ -356,7 +367,7 @@ These are the main code and resource surfaces represented by the v1.0.0 history:
 - GeckoLib rendering: entity/block `.geo.json` models, entity/block animation JSON, Geo renderers, Geo models, render-state data tickets, mounted item layer, conduit glow layer, and animation keyframe cues.
 - Items and rewards: Portal Shard, Ghast Tear Necklace, Nether Conduit, Nether Crystal, Corrupted Netherite armor and ingot, Nether Tide music disc, Dragon Scale, Shard of the Nether, and Corrupted Portal Key.
 - Conduit systems: `NetherConduitBlock`, `NetherConduitBlockEntity`, `NetherConduitPowerTracker`, `NetherConduitEvents`, lava movement mixin, conduit damage type, activation frame, upgrade state, effects, and structure chest insertion.
-- Optional discovery: REI client plugin, Patchouli guide book data, advancement tree, localized text, custom sound events with generated procedural `.ogg` assets, custom particles, and post-processed generated texture variants.
+- Optional discovery: REI client plugin, Patchouli guide book data, advancement tree, localized text, custom sound events with online-sourced `.ogg` assets, custom particles, and post-processed generated texture variants.
 - Administration and testing: `/rpo` locate, status, reset, wave, dragon, and complete commands for operators and modpack debugging.
 - Release packaging: README, Modrinth description, contribution docs, issue templates, localization skeletons, build validation notes, dedicated-server dry start, and client startup smoke notes.
 

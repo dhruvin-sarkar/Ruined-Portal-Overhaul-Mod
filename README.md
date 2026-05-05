@@ -15,14 +15,16 @@ Ruined Portal Overhaul replaces overworld ruined portal encounters with large co
 ## Features
 
 - Vanilla overworld ruined portals are replaced with procedural portal dungeons.
+- Portal scars now blend through scorched native biome blocks instead of ending at a hard netherrack edge.
 - Portal zones use horizontal distance checks, so surface, pit, and cave gameplay all stay linked to the same scar.
 - Red storm visuals, fog, rain, thunder, particles, and looping rumble activate near portal territory.
-- The Gold Tribute Raid runs five escalating waves with custom GeckoLib Piglin Illager mobs.
+- The Gold Tribute Raid runs five escalating but deliberately smaller waves with custom GeckoLib Piglin Illager mobs.
 - Raid completion lights the portal, disables pre-raid spawners, spawns a boss reward chest, and summons the Exiled Piglin Trader.
 - Rewards include Portal Shards, Nether Conduit progression, Ghast Tear Necklace fireballs, Corrupted Netherite armor, Nether Dragon Scale trophies, and the Nether Tide music disc.
 - Four Nether Crystals placed on generated pedestals summon the Nether Dragon, which is anchored to the portal, suppresses End Crystal healing, and avoids vanilla End portal death output.
 - Operator-only `/rpo` admin commands help testers and server owners locate saved portals, inspect status, reset a portal, force waves, complete a raid scene, or start the dragon sequence.
 - Localization-ready resource files are present for seven major locales as English stubs pending community translation.
+- A dedicated creative tab and matching vanilla-tab entries expose all custom items and blocks in creative inventory.
 
 ## Screenshots To Capture
 
@@ -82,7 +84,7 @@ Recommended first gameplay smoke:
 ## Known Limits
 
 - Entity texture variants are generated release art with a reproducible contrast/shading post-process; particle sprites are generated release art, not hand-painted final art.
-- Custom sound events ship generated procedural `.ogg` files, with selected CC0 Kenney foley layered into the mod-owned synthesis pass. They remain replaceable by resource packs.
+- Custom sound events ship online-sourced `.ogg` files edited from redistributable CC0 Kenney and OpenGameArt packs. Full source mapping lives in `assets/audio_sources/ONLINE_AUDIO_ATTRIBUTION.md`, and the sounds remain replaceable by resource packs.
 - Nether Dragon Scale is intentionally a trophy item until a compatible Accessories build is verified for Minecraft `1.21.11` and Lunar Client.
 
 ## Issues
