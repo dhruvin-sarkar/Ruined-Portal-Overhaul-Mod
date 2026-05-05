@@ -208,7 +208,7 @@
   "text.autoconfig.ruined_portal_overhaul.option.enablePostRaidSuppression": "Enable Post-Raid Suppression",
   "text.autoconfig.ruined_portal_overhaul.option.netherStarDropRate": "Nether Star Drop Rate",
   "text.autoconfig.ruined_portal_overhaul.option.enableNetherDragon": "Enable Nether Dragon",
-  "text.autoconfig.ruined_portal_overhaul.option.structureRarity.@Tooltip": "Average spacing from 16 to 64 chunks. Higher values make new portal dungeons rarer.",
+  "text.autoconfig.ruined_portal_overhaul.option.structureRarity.@Tooltip": "Average spacing from 32 to 96 chunks. Higher values make new portal dungeons rarer.",
   "text.autoconfig.ruined_portal_overhaul.option.enableAmbientNetherSpawns.@Tooltip": "Toggles structure-local ambient nether mob pressure before the raid completes.",
   "text.autoconfig.ruined_portal_overhaul.option.enableOuterZoneScatter.@Tooltip": "Toggles extra outer corruption scatter around generated portal scars.",
   "text.autoconfig.ruined_portal_overhaul.option.raidTriggerRadius.@Tooltip": "Horizontal trigger radius in blocks. Loaded values are clamped to 12-48.",

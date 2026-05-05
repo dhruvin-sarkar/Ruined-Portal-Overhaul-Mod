@@ -23,6 +23,7 @@ import net.minecraft.world.level.storage.loot.LootTable;
 public class PortalDungeonPiece extends StructurePiece {
     private static final int SURFACE_RADIUS = PortalStructureHelper.OUTER_RADIUS;
     private static final int DEPTH = PortalStructureHelper.PIT_DEPTH;
+    private static final int SURFACE_VERTICAL_MARGIN = 64;
 
     private static final ResourceKey<LootTable> SURFACE_LOOT = ResourceKey.create(
         Registries.LOOT_TABLE,
@@ -51,7 +52,7 @@ public class PortalDungeonPiece extends StructurePiece {
                 Math.max(3, center.getY() - DEPTH - 8),
                 center.getZ() - SURFACE_RADIUS,
                 center.getX() + SURFACE_RADIUS,
-                center.getY() + 14,
+                center.getY() + SURFACE_VERTICAL_MARGIN,
                 center.getZ() + SURFACE_RADIUS
             )
         );
@@ -125,7 +126,7 @@ public class PortalDungeonPiece extends StructurePiece {
         chests.add(origin.offset(-52, 0, -22));
 
         for (BlockPos target : chests) {
-            if (!PortalStructureHelper.isColumnInside(chunkBox, target)) {
+            if (!PortalStructureHelper.isColumnInside(this.boundingBox, chunkBox, target)) {
                 continue;
             }
             BlockPos top = PortalStructureHelper.terrainTop(level, target);

@@ -15,7 +15,7 @@ import net.minecraft.world.level.levelgen.structure.StructureType;
 
 public class PortalDungeonStructure extends Structure {
     public static final MapCodec<PortalDungeonStructure> CODEC = simpleCodec(PortalDungeonStructure::new);
-    private static final int MIN_CONFIGURABLE_SPACING = 16;
+    private static final int MIN_CONFIGURABLE_SPACING = 32;
 
     public PortalDungeonStructure(StructureSettings settings) {
         super(settings);

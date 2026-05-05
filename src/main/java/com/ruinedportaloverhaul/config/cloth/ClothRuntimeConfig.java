@@ -10,7 +10,7 @@ import me.shedaniel.autoconfig.annotation.ConfigEntry;
 public final class ClothRuntimeConfig implements ConfigData, ModConfigAccess {
     // Fix: the config screen originally exposed every value in one flat list, so options are now grouped by gameplay system for pack-author tuning.
     @ConfigEntry.Category("world_generation")
-    @ConfigEntry.BoundedDiscrete(min = 16, max = 64)
+    @ConfigEntry.BoundedDiscrete(min = 32, max = 96)
     @ConfigEntry.Gui.Tooltip
     public int structureRarity = 32;
 
@@ -75,7 +75,7 @@ public final class ClothRuntimeConfig implements ConfigData, ModConfigAccess {
     @Override
     public void validatePostLoad() {
         // Fix: hand-edited config files could keep invalid values inside AutoConfig even though gameplay getters clamped them, so loaded values are normalized once before systems read them.
-        this.structureRarity = clamp(this.structureRarity, 16, 64);
+        this.structureRarity = clamp(this.structureRarity, 32, 96);
         this.raidTriggerRadius = clamp(this.raidTriggerRadius, 12.0, 48.0, 24.0);
         this.waveCountMultiplier = clamp(this.waveCountMultiplier, 0.5, 2.0, 1.0);
         this.interWaveDelayTicks = clamp(this.interWaveDelayTicks, 100, 600);
@@ -89,7 +89,7 @@ public final class ClothRuntimeConfig implements ConfigData, ModConfigAccess {
 
     @Override
     public int structureRarity() {
-        return clamp(this.structureRarity, 16, 64);
+        return clamp(this.structureRarity, 32, 96);
     }
 
     @Override

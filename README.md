@@ -16,6 +16,7 @@ Ruined Portal Overhaul replaces overworld ruined portal encounters with large co
 
 - Vanilla overworld ruined portals are replaced with procedural portal dungeons.
 - Portal scars now blend through scorched native biome blocks instead of ending at a hard netherrack edge.
+- The structure set uses wider portal spacing and a max-range village exclusion so the large scar has room to blend naturally.
 - Portal zones use horizontal distance checks, so surface, pit, and cave gameplay all stay linked to the same scar.
 - Red storm visuals, fog, rain, thunder, particles, and looping rumble activate near portal territory.
 - The Gold Tribute Raid runs five escalating but deliberately smaller waves with custom GeckoLib Piglin Illager mobs.

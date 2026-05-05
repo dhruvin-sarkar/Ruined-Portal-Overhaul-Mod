@@ -23,7 +23,7 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
    - `Basalt Citadel` uses a blackstone inner zone, a widened ritual platform, basalt corner columns, and a pit lava moat.
    - The generated portal frame is a valid 4-by-5 or 6-by-7 outer frame.
    - Inner ritual terrain and pit placement are protected; surface height variation is applied only outside the stable core.
-   - Surface terrain uses low-frequency deterministic noise clamped to about `-3` to `+3` blocks, plus `beard_thin` structure terrain adaptation and helper-side native-surface blending.
+   - Surface terrain uses low-frequency deterministic noise clamped to about `-3` to `+3` blocks. Structure JSON deliberately uses `terrain_adaptation: none` so the custom helper, not vanilla's coarse beardifier, controls the full radius-136 scar blend.
    - Basalt columns remain separate vertical drama placed on top of the calm terrain.
 2. Pit And Underground
    - The pit uses the original-style ragged mouth and shaft behavior, with a softened scorched-native rim, staggered basalt/blackstone ledges, mixed blackstone/basalt/netherrack/soul-soil rubble, and 12 lower lava seeps.

@@ -681,7 +681,7 @@ public final class PortalStructureHelper {
         for (int i = 0; i < surfaceTypes.length; i++) {
             double angle = ((Math.PI * 2.0) / surfaceTypes.length) * i + 0.18;
             int radius = 21 + (i % 3) * 7;
-            BlockPos surface = terrainTopIfColumnInside(level, chunkBox, origin.offset(
+            BlockPos surface = terrainTopIfColumnInside(level, pieceBox, chunkBox, origin.offset(
                 (int) Math.round(Math.cos(angle) * radius),
                 0,
                 (int) Math.round(Math.sin(angle) * radius)
@@ -793,8 +793,8 @@ public final class PortalStructureHelper {
         return terrainTop(level, pos.getX(), pos.getZ());
     }
 
-    public static BlockPos terrainTopIfColumnInside(WorldGenLevel level, BoundingBox chunkBox, BlockPos pos) {
-        return isColumnInside(chunkBox, pos) ? terrainTop(level, pos) : null;
+    public static BlockPos terrainTopIfColumnInside(WorldGenLevel level, BoundingBox pieceBox, BoundingBox chunkBox, BlockPos pos) {
+        return isColumnInside(pieceBox, chunkBox, pos) ? terrainTop(level, pos) : null;
     }
 
     public static boolean isColumnInside(BoundingBox box, BlockPos pos) {
@@ -802,6 +802,10 @@ public final class PortalStructureHelper {
             && pos.getX() <= box.maxX()
             && pos.getZ() >= box.minZ()
             && pos.getZ() <= box.maxZ();
+    }
+
+    public static boolean isColumnInside(BoundingBox pieceBox, BoundingBox chunkBox, BlockPos pos) {
+        return isColumnInside(pieceBox, pos) && isColumnInside(chunkBox, pos);
     }
 
     public static List<BlockPos> ritualPedestalPositions(BlockPos origin) {
@@ -1312,7 +1316,7 @@ public final class PortalStructureHelper {
         BoundingBox chunkBox,
         BlockPos origin
     ) {
-        BlockPos rim = terrainTopIfColumnInside(level, chunkBox, origin.offset(0, 0, -20));
+        BlockPos rim = terrainTopIfColumnInside(level, pieceBox, chunkBox, origin.offset(0, 0, -20));
         if (rim == null) {
             return;
         }
@@ -1353,7 +1357,7 @@ public final class PortalStructureHelper {
         int radius,
         RandomSource random
     ) {
-        BlockPos topCenter = terrainTopIfColumnInside(level, chunkBox, center);
+        BlockPos topCenter = terrainTopIfColumnInside(level, pieceBox, chunkBox, center);
         if (topCenter == null) {
             return;
         }
@@ -1361,7 +1365,7 @@ public final class PortalStructureHelper {
         for (int dx = -radius - 1; dx <= radius + 1; dx++) {
             for (int dz = -radius - 1; dz <= radius + 1; dz++) {
                 double distance = Math.sqrt(dx * dx + dz * dz) + random.nextDouble() * 0.35;
-                BlockPos columnTop = terrainTopIfColumnInside(level, chunkBox, topCenter.offset(dx, 0, dz));
+                BlockPos columnTop = terrainTopIfColumnInside(level, pieceBox, chunkBox, topCenter.offset(dx, 0, dz));
                 if (columnTop == null) {
                     continue;
                 }
@@ -1404,7 +1408,7 @@ public final class PortalStructureHelper {
             if (dx * dx + dz * dz > 20) {
                 continue;
             }
-            BlockPos top = terrainTopIfColumnInside(level, chunkBox, center.offset(dx, 0, dz));
+            BlockPos top = terrainTopIfColumnInside(level, pieceBox, chunkBox, center.offset(dx, 0, dz));
             if (top == null || level.getBlockState(top).is(Blocks.LAVA)) {
                 continue;
             }
@@ -1430,7 +1434,7 @@ public final class PortalStructureHelper {
                     continue;
                 }
                 BlockPos column = center.offset(dx, 0, dz);
-                if (!isColumnInside(chunkBox, column)) {
+                if (!isColumnInside(pieceBox, chunkBox, column)) {
                     continue;
                 }
                 int columnDx = column.getX() - origin.getX();
@@ -1529,7 +1533,7 @@ public final class PortalStructureHelper {
                     continue;
                 }
                 BlockPos column = origin.offset(dx, 0, dz);
-                if (!isColumnInside(chunkBox, column)) {
+                if (!isColumnInside(pieceBox, chunkBox, column)) {
                     continue;
                 }
                 BlockPos top = terrainTop(level, column);
@@ -2265,6 +2269,10 @@ public final class PortalStructureHelper {
         BoundingBox chunkBox,
         BlockPos top
     ) {
+        if (!pieceBox.isInside(top) || !chunkBox.isInside(top)) {
+            return false;
+        }
+
         boolean foundWater = level.getFluidState(top).is(FluidTags.WATER);
         for (int i = 1; i <= 8; i++) {
             BlockPos waterPos = top.above(i);

@@ -6,7 +6,8 @@ This changelog is reconstructed from the repository history back to the first co
 
 - Replaced the generated/procedural soundscape with edited online CC0 audio from Kenney and OpenGameArt, with source URLs and output mapping documented in `assets/audio_sources/ONLINE_AUDIO_ATTRIBUTION.md`.
 - Added a reproducible online-audio preparation script and removed the procedural audio generator.
-- Improved portal scar cohesion by blending the middle and outer rings through scorched native biome surfaces, adding `beard_thin` terrain adaptation, and keeping the custom helper as the main terrain authority.
+- Improved portal scar cohesion by blending the middle and outer rings through scorched native biome surfaces, disabling vanilla beardifier terrain adaptation for the huge custom piece, and keeping the custom helper as the terrain authority.
+- Increased portal dungeon structure spacing, separation, and village exclusion so large radius-136 scars do not overlap nearby portals or villages.
 - Improved the pit mouth with softened rim blending and staggered basalt/blackstone ledges.
 - Reduced raid and ambient mob pressure while keeping five-wave escalation intact.
 - Increased generated surface reward caches and strengthened the surface loot table with more useful raid supplies.
