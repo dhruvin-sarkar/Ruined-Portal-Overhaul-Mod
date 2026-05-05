@@ -32,6 +32,15 @@ bin/
 
 run/
 
+# downloaded audio work caches
+
+assets/audio_sources/_downloads/
+assets/audio_sources/kenney_impact_sounds/
+assets/audio_sources/kenney_interface_sounds/
+assets/audio_sources/kenney_music_jingles/
+assets/audio_sources/kenney_rpg_audio_full/
+assets/audio_sources/kenney_sci_fi_sounds/
+
 # java
 
 hs_err_*.log
