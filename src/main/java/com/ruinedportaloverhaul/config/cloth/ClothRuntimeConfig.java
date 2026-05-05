@@ -42,7 +42,7 @@ public final class ClothRuntimeConfig implements ConfigData, ModConfigAccess {
     public boolean enableRedStorm = true;
     @ConfigEntry.Category("atmosphere")
     @ConfigEntry.Gui.Tooltip
-    public double stormIntensity = 0.6;
+    public double stormIntensity = 0.68;
 
     @ConfigEntry.Category("atmosphere")
     @ConfigEntry.BoundedDiscrete(min = 40, max = 200)
@@ -59,7 +59,7 @@ public final class ClothRuntimeConfig implements ConfigData, ModConfigAccess {
     @ConfigEntry.Category("difficulty")
     @ConfigEntry.BoundedDiscrete(min = 50, max = 400)
     @ConfigEntry.Gui.Tooltip
-    public int ambientMobCap = 180;
+    public int ambientMobCap = 110;
 
     @ConfigEntry.Category("difficulty")
     @ConfigEntry.Gui.Tooltip
@@ -79,7 +79,7 @@ public final class ClothRuntimeConfig implements ConfigData, ModConfigAccess {
         this.raidTriggerRadius = clamp(this.raidTriggerRadius, 12.0, 48.0, 24.0);
         this.waveCountMultiplier = clamp(this.waveCountMultiplier, 0.5, 2.0, 1.0);
         this.interWaveDelayTicks = clamp(this.interWaveDelayTicks, 100, 600);
-        this.stormIntensity = clamp(this.stormIntensity, 0.2, 1.0, 0.6);
+        this.stormIntensity = clamp(this.stormIntensity, 0.2, 1.0, 0.68);
         this.thunderFrequency = clamp(this.thunderFrequency, 40, 200);
         this.mobHealthMultiplier = clamp(this.mobHealthMultiplier, 0.5, 3.0, 1.0);
         this.mobDamageMultiplier = clamp(this.mobDamageMultiplier, 0.5, 3.0, 1.0);
@@ -129,7 +129,7 @@ public final class ClothRuntimeConfig implements ConfigData, ModConfigAccess {
 
     @Override
     public double stormIntensity() {
-        return clamp(this.stormIntensity, 0.2, 1.0, 0.6);
+        return clamp(this.stormIntensity, 0.2, 1.0, 0.68);
     }
 
     @Override

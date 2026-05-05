@@ -150,7 +150,7 @@ public final class ModConfigManager {
 
         @Override
         public double stormIntensity() {
-            return 0.6;
+            return 0.68;
         }
 
         @Override
@@ -170,7 +170,7 @@ public final class ModConfigManager {
 
         @Override
         public int ambientMobCap() {
-            return 180;
+            return 110;
         }
 
         @Override

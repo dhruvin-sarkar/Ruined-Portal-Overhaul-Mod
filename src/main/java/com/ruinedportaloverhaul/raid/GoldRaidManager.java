@@ -86,8 +86,8 @@ public final class GoldRaidManager {
     private static final int AMBIENT_SPAWN_INTERVAL_TICKS = 10;
     private static final int COMPLETED_SPAWNER_RETRY_INTERVAL_TICKS = 100;
     private static final int BOSS_BAR_SYNC_INTERVAL_TICKS = 20;
-    private static final int AMBIENT_BURST_MIN = 8;
-    private static final int AMBIENT_BURST_RANDOM = 5;
+    private static final int AMBIENT_BURST_MIN = 4;
+    private static final int AMBIENT_BURST_RANDOM = 3;
     private static final int ANCHORED_GHAST_CAP = 16;
     private static final int GHAST_SPAWN_INTERVAL_TICKS = 25;
     private static final int GHAST_ANCHOR_RADIUS = PortalStructureHelper.OUTER_RADIUS + 32;
@@ -1801,35 +1801,35 @@ public final class GoldRaidManager {
     private static SpawnEntry[] baseWaveEntries(int waveIndex) {
         return switch (waveIndex) {
             case 0 -> new SpawnEntry[] {
-                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 12),
-                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 8)
+                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 8),
+                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 6)
             };
             case 1 -> new SpawnEntry[] {
-                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 14),
-                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 8),
-                new SpawnEntry(ModEntities.PIGLIN_BRUTE_PILLAGER, 5)
+                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 10),
+                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 6),
+                new SpawnEntry(ModEntities.PIGLIN_BRUTE_PILLAGER, 4)
             };
             case 2 -> new SpawnEntry[] {
-                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 12),
-                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 9),
-                new SpawnEntry(ModEntities.PIGLIN_BRUTE_PILLAGER, 8),
-                new SpawnEntry(ModEntities.PIGLIN_ILLUSIONER, 5)
+                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 9),
+                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 7),
+                new SpawnEntry(ModEntities.PIGLIN_BRUTE_PILLAGER, 6),
+                new SpawnEntry(ModEntities.PIGLIN_ILLUSIONER, 3)
             };
             case 3 -> new SpawnEntry[] {
-                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 6),
-                new SpawnEntry(ModEntities.PIGLIN_BRUTE_PILLAGER, 8),
-                new SpawnEntry(ModEntities.PIGLIN_ILLUSIONER, 6),
-                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 8),
+                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 4),
+                new SpawnEntry(ModEntities.PIGLIN_BRUTE_PILLAGER, 6),
+                new SpawnEntry(ModEntities.PIGLIN_ILLUSIONER, 4),
+                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 6),
                 new SpawnEntry(ModEntities.PIGLIN_RAVAGER, 1),
                 new SpawnEntry(ModEntities.PIGLIN_EVOKER, 1)
             };
             case 4 -> new SpawnEntry[] {
-                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 10),
-                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 9),
-                new SpawnEntry(ModEntities.PIGLIN_BRUTE_PILLAGER, 8),
-                new SpawnEntry(ModEntities.PIGLIN_ILLUSIONER, 5),
-                new SpawnEntry(ModEntities.PIGLIN_RAVAGER, 2),
-                new SpawnEntry(ModEntities.PIGLIN_EVOKER, 3)
+                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 7),
+                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 7),
+                new SpawnEntry(ModEntities.PIGLIN_BRUTE_PILLAGER, 6),
+                new SpawnEntry(ModEntities.PIGLIN_ILLUSIONER, 4),
+                new SpawnEntry(ModEntities.PIGLIN_RAVAGER, 1),
+                new SpawnEntry(ModEntities.PIGLIN_EVOKER, 2)
             };
             default -> new SpawnEntry[0];
         };

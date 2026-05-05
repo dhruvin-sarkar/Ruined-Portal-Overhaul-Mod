@@ -119,6 +119,10 @@ public class PortalDungeonPiece extends StructurePiece {
         chests.add(origin.offset(-24, 0, -14));
         chests.add(origin.offset(36, 0, -7));
         chests.add(origin.offset(-38, 0, 18));
+        chests.add(origin.offset(14, 0, 30));
+        chests.add(origin.offset(-16, 0, -32));
+        chests.add(origin.offset(48, 0, 24));
+        chests.add(origin.offset(-52, 0, -22));
 
         for (BlockPos target : chests) {
             if (!PortalStructureHelper.isColumnInside(chunkBox, target)) {
@@ -126,10 +130,19 @@ public class PortalDungeonPiece extends StructurePiece {
             }
             BlockPos top = PortalStructureHelper.terrainTop(level, target);
             BlockPos chestPos = top.above();
-            this.setBlockIfInside(level, chunkBox, top, Blocks.NETHERRACK.defaultBlockState());
+            this.prepareSurfaceCache(level, chunkBox, top);
             this.setBlockIfInside(level, chunkBox, chestPos, Blocks.AIR.defaultBlockState());
             this.createChest(level, chunkBox, random, chestPos, SURFACE_LOOT, null);
         }
+    }
+
+    private void prepareSurfaceCache(WorldGenLevel level, BoundingBox chunkBox, BlockPos top) {
+        this.setBlockIfInside(level, chunkBox, top, Blocks.NETHERRACK.defaultBlockState());
+        this.setBlockIfInside(level, chunkBox, top.below(), Blocks.BLACKSTONE.defaultBlockState());
+        this.setBlockIfInside(level, chunkBox, top.north(), Blocks.COARSE_DIRT.defaultBlockState());
+        this.setBlockIfInside(level, chunkBox, top.south(), Blocks.GRAVEL.defaultBlockState());
+        this.setBlockIfInside(level, chunkBox, top.east(), Blocks.BASALT.defaultBlockState());
+        this.setBlockIfInside(level, chunkBox, top.west(), Blocks.SOUL_SOIL.defaultBlockState());
     }
 
     private void placeDeepChests(WorldGenLevel level, BoundingBox chunkBox, RandomSource random, BlockPos origin, List<BlockPos> chests) {
