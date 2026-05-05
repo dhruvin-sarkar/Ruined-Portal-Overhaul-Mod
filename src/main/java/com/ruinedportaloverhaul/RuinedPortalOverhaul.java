@@ -10,6 +10,7 @@ import com.ruinedportaloverhaul.entity.ModEntities;
 import com.ruinedportaloverhaul.item.CorruptedNetheriteEvents;
 import com.ruinedportaloverhaul.item.GhastTearNecklaceEvents;
 import com.ruinedportaloverhaul.advancement.ModAdvancementTriggers;
+import com.ruinedportaloverhaul.item.ModCreativeTabs;
 import com.ruinedportaloverhaul.item.ModItems;
 import com.ruinedportaloverhaul.item.NetherTideJukeboxEvents;
 import com.ruinedportaloverhaul.loot.ModLootEvents;
@@ -41,6 +42,7 @@ public class RuinedPortalOverhaul implements ModInitializer {
         CorruptedNetheriteEvents.initialize();
         NetherTideJukeboxEvents.initialize();
         ModBlocks.initialize();
+        ModCreativeTabs.initialize();
         ModBlockEntities.initialize();
         NetherConduitEvents.initialize();
         ModEntities.initialize();
