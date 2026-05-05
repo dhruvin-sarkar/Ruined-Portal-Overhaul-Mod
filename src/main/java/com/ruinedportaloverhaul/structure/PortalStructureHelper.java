@@ -26,6 +26,7 @@ public final class PortalStructureHelper {
     public static final int MIDDLE_RADIUS = 52;
     public static final int OUTER_RADIUS = 136;
     public static final int PIT_DEPTH = 45;
+    private static final double MIDDLE_BLEND_START_RADIUS = INNER_RADIUS + 12.0;
 
     private PortalStructureHelper() {
     }
@@ -108,8 +109,9 @@ public final class PortalStructureHelper {
                 BlockPos top = variant == PortalDungeonVariant.SUNKEN_SANCTUM
                     ? sunkenMiddleZoneTop(level, pieceBox, chunkBox, origin, x, z, distance, terrainSeed)
                     : sculptedTerrainTop(level, pieceBox, chunkBox, origin, x, z, distance, terrainSeed);
-                BlockState surface = pickMiddleZoneSurface(variant, origin, x, z, distance, terrainSeed);
-                setColumn(level, pieceBox, chunkBox, top, surface, distance < MIDDLE_RADIUS * 0.65 ? 3 : 2);
+                BlockState naturalSurface = level.getBlockState(terrainTop(level, x, z));
+                BlockState surface = pickMiddleZoneSurface(variant, origin, x, z, distance, terrainSeed, naturalSurface);
+                setColumn(level, pieceBox, chunkBox, top, surface, middleZoneSurfaceDepth(surface, distance));
                 convertLocalWaterToLava(level, pieceBox, chunkBox, top);
                 if (random.nextFloat() < 0.08f) {
                     set(level, pieceBox, chunkBox, top.above(), Blocks.AIR.defaultBlockState());
@@ -921,9 +923,16 @@ public final class PortalStructureHelper {
         int x,
         int z,
         double distance,
-        long seed
+        long seed,
+        BlockState naturalSurface
     ) {
         // Fix: the middle scar had collapsed back to one mostly netherrack material, erasing the intended north/south/east/west navigation language. The selector now restores cardinal material sectors while keeping netherrack as the common fallback and giving Sunken Sanctum its extra soul-sand weight.
+        double edgeBlend = smoothStep(clamp01((distance - MIDDLE_BLEND_START_RADIUS) / (MIDDLE_RADIUS - MIDDLE_BLEND_START_RADIUS)));
+        double nativeRoll = coordinateNoise(seed ^ 0x7312C844A51E9F2BL, Math.floorDiv(x, 4), Math.floorDiv(z, 4));
+        if (nativeRoll < edgeBlend * 0.68) {
+            return pickScorchedNativeSurface(naturalSurface, x, z, seed, edgeBlend);
+        }
+
         int dx = x - origin.getX();
         int dz = z - origin.getZ();
         double materialRoll = coordinateNoise(seed ^ 0x0B6E29C14AF93D57L, Math.floorDiv(x, 3), Math.floorDiv(z, 3));
@@ -953,6 +962,57 @@ public final class PortalStructureHelper {
             return Blocks.CRIMSON_NYLIUM.defaultBlockState();
         }
         return Blocks.NETHERRACK.defaultBlockState();
+    }
+
+    private static int middleZoneSurfaceDepth(BlockState surface, double distance) {
+        if (!isNetherScarSurface(surface)) {
+            return 1;
+        }
+        return distance < MIDDLE_RADIUS * 0.65 ? 3 : 2;
+    }
+
+    private static BlockState pickScorchedNativeSurface(BlockState naturalSurface, int x, int z, long seed, double edgeBlend) {
+        double roll = coordinateNoise(seed ^ 0x17C02C9538AF602DL, x, z);
+        if (naturalSurface.is(Blocks.SAND) || naturalSurface.is(Blocks.RED_SAND)) {
+            return roll < edgeBlend * 0.22 ? Blocks.GRAVEL.defaultBlockState() : naturalSurface;
+        }
+        if (naturalSurface.is(Blocks.GRAVEL) || naturalSurface.is(Blocks.CLAY) || naturalSurface.is(Blocks.MUD)) {
+            return roll < 0.18 ? Blocks.SOUL_SOIL.defaultBlockState() : naturalSurface;
+        }
+        if (naturalSurface.is(Blocks.STONE) || naturalSurface.is(Blocks.ANDESITE) || naturalSurface.is(Blocks.DIORITE) || naturalSurface.is(Blocks.GRANITE)) {
+            return roll < 0.24 ? Blocks.BLACKSTONE.defaultBlockState() : naturalSurface;
+        }
+        if (naturalSurface.is(Blocks.SNOW_BLOCK)) {
+            return roll < 0.36 ? Blocks.GRAVEL.defaultBlockState() : naturalSurface;
+        }
+        if (naturalSurface.is(Blocks.GRASS_BLOCK) || naturalSurface.is(Blocks.DIRT) || naturalSurface.is(Blocks.PODZOL) || naturalSurface.is(Blocks.MYCELIUM)) {
+            if (roll < 0.18) {
+                return Blocks.SOUL_SOIL.defaultBlockState();
+            }
+            return roll < 0.72 ? Blocks.COARSE_DIRT.defaultBlockState() : naturalSurface;
+        }
+        return roll < 0.28 ? Blocks.COARSE_DIRT.defaultBlockState() : naturalSurface;
+    }
+
+    private static BlockState pickOuterBlendSurface(
+        BlockPos origin,
+        BlockPos column,
+        BlockState naturalSurface,
+        RandomSource random,
+        double gradient
+    ) {
+        double artifactRoll = coordinateNoise(origin.asLong() ^ 0x697AD8C1021ECF31L, column.getX(), column.getZ());
+        if (artifactRoll < 0.026 + gradient * 0.035) {
+            return random.nextFloat() < 0.5f ? Blocks.CRYING_OBSIDIAN.defaultBlockState() : Blocks.MAGMA_BLOCK.defaultBlockState();
+        }
+        double netherRoll = coordinateNoise(origin.asLong() ^ 0x6BC9730FA48C229DL, Math.floorDiv(column.getX(), 2), Math.floorDiv(column.getZ(), 2));
+        if (netherRoll < 0.14 + gradient * 0.42) {
+            if (gradient > 0.72 && random.nextFloat() < 0.22f) {
+                return Blocks.BLACKSTONE.defaultBlockState();
+            }
+            return random.nextFloat() < 0.16f ? Blocks.SOUL_SOIL.defaultBlockState() : Blocks.NETHERRACK.defaultBlockState();
+        }
+        return pickScorchedNativeSurface(naturalSurface, column.getX(), column.getZ(), origin.asLong(), 1.0 - gradient);
     }
 
     private static void placeRitualPlatform(
@@ -1389,10 +1449,9 @@ public final class PortalStructureHelper {
                 if (convertLocalWaterToLava(level, pieceBox, chunkBox, top)) {
                     continue;
                 }
-                BlockState surface = random.nextFloat() < 0.055f
-                    ? Blocks.CRYING_OBSIDIAN.defaultBlockState()
-                    : Blocks.NETHERRACK.defaultBlockState();
-                setColumn(level, pieceBox, chunkBox, top, surface, 2);
+                BlockState naturalSurface = level.getBlockState(terrainTop(level, column.getX(), column.getZ()));
+                BlockState surface = pickOuterBlendSurface(origin, column, naturalSurface, random, gradient);
+                setColumn(level, pieceBox, chunkBox, top, surface, isNetherScarSurface(surface) ? 2 : 1);
             }
         }
     }
@@ -1424,6 +1483,7 @@ public final class PortalStructureHelper {
             }
         }
         erodePitMouth(level, pieceBox, chunkBox, origin);
+        placePitLedges(level, pieceBox, chunkBox, origin, bottomY);
     }
 
     private static void erodePitMouth(
@@ -1450,6 +1510,65 @@ public final class PortalStructureHelper {
                     if (rubble > 0.86 && distance <= raggedRadius + 1.6) {
                         carveNetherAir(level, pieceBox, chunkBox, pos.below());
                     }
+                }
+            }
+        }
+        softenPitRimBlend(level, pieceBox, chunkBox, origin);
+    }
+
+    private static void softenPitRimBlend(
+        WorldGenLevel level,
+        BoundingBox pieceBox,
+        BoundingBox chunkBox,
+        BlockPos origin
+    ) {
+        for (int dx = -21; dx <= 21; dx++) {
+            for (int dz = -21; dz <= 21; dz++) {
+                double distance = Math.sqrt(dx * dx + dz * dz);
+                if (distance < 13.5 || distance > 20.5) {
+                    continue;
+                }
+                BlockPos column = origin.offset(dx, 0, dz);
+                if (!isColumnInside(chunkBox, column)) {
+                    continue;
+                }
+                BlockPos top = terrainTop(level, column);
+                BlockState naturalSurface = level.getBlockState(top);
+                double blend = 1.0 - clamp01((distance - 13.5) / 7.0);
+                double roll = coordinateNoise(origin.asLong() ^ 0x2383DB4FC627D5A9L, column.getX(), column.getZ());
+                if (roll < blend * 0.58) {
+                    setColumn(level, pieceBox, chunkBox, top, pickScorchedNativeSurface(naturalSurface, column.getX(), column.getZ(), origin.asLong(), blend), 1);
+                }
+            }
+        }
+    }
+
+    private static void placePitLedges(
+        WorldGenLevel level,
+        BoundingBox pieceBox,
+        BoundingBox chunkBox,
+        BlockPos origin,
+        int bottomY
+    ) {
+        int[] drops = {8, 17, 27, 36};
+        for (int i = 0; i < drops.length; i++) {
+            int ledgeY = origin.getY() - drops[i];
+            if (ledgeY <= bottomY + 3) {
+                continue;
+            }
+            double facing = (Math.PI * 0.5 * i) + coordinateNoise(origin.asLong() ^ i * 91815541L, origin.getX(), origin.getZ()) * 0.8;
+            for (int step = -5; step <= 5; step++) {
+                double angle = facing + step * 0.18;
+                double radius = 7.3 + (step & 1) * 0.8;
+                BlockPos ledge = new BlockPos(
+                    origin.getX() + (int) Math.round(Math.cos(angle) * radius),
+                    ledgeY,
+                    origin.getZ() + (int) Math.round(Math.sin(angle) * radius)
+                );
+                set(level, pieceBox, chunkBox, ledge, step % 3 == 0 ? Blocks.POLISHED_BLACKSTONE_BRICKS.defaultBlockState() : pickPitRimBlock(ledge));
+                set(level, pieceBox, chunkBox, ledge.above(), Blocks.AIR.defaultBlockState());
+                if (step % 2 == 0) {
+                    set(level, pieceBox, chunkBox, ledge.below(), Blocks.BLACKSTONE.defaultBlockState());
                 }
             }
         }
@@ -2108,6 +2227,21 @@ public final class PortalStructureHelper {
         for (int i = 1; i < depth; i++) {
             set(level, pieceBox, chunkBox, top.below(i), subsurface);
         }
+    }
+
+    private static boolean isNetherScarSurface(BlockState surface) {
+        return surface.is(Blocks.NETHERRACK)
+            || surface.is(Blocks.BLACKSTONE)
+            || surface.is(Blocks.POLISHED_BLACKSTONE)
+            || surface.is(Blocks.POLISHED_BLACKSTONE_BRICKS)
+            || surface.is(Blocks.CRACKED_POLISHED_BLACKSTONE_BRICKS)
+            || surface.is(Blocks.BASALT)
+            || surface.is(Blocks.SMOOTH_BASALT)
+            || surface.is(Blocks.SOUL_SAND)
+            || surface.is(Blocks.SOUL_SOIL)
+            || surface.is(Blocks.CRIMSON_NYLIUM)
+            || surface.is(Blocks.MAGMA_BLOCK)
+            || surface.is(Blocks.CRYING_OBSIDIAN);
     }
 
     private static BlockState underSurfaceBlock(BlockState surface) {

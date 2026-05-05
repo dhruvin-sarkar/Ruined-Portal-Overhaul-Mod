@@ -2,5 +2,6 @@
   "type": "ruined_portal_overhaul:portal_dungeon",
   "biomes": "#ruined_portal_overhaul:portal_dungeon_overworld",
   "step": "surface_structures",
+  "terrain_adaptation": "beard_thin",
   "spawn_overrides": {}
 }
