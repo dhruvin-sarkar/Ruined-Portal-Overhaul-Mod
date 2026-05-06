@@ -2,15 +2,18 @@
 
 This changelog is reconstructed from the repository history back to the first commit on 2026-04-05. It focuses on shipped behavior and verified project state rather than raw commit prefixes.
 
-## Unreleased - 2026-05-05
+## Unreleased - 2026-05-06
 
 - Replaced the generated/procedural soundscape with edited online CC0 audio from Kenney and OpenGameArt, with source URLs and output mapping documented in `assets/audio_sources/ONLINE_AUDIO_ATTRIBUTION.md`.
 - Added a reproducible online-audio preparation script and removed the procedural audio generator.
 - Improved portal scar cohesion by blending the middle and outer rings through scorched native biome surfaces, disabling vanilla beardifier terrain adaptation for the huge custom piece, and keeping the custom helper as the terrain authority.
+- Added per-column terrain profiling for native surface, water depth, ocean floor, slope, liquid state, and native block family so the scar handles plains, forests, deserts, swamps, shorelines, deep water, and cliffs more coherently.
+- Replaced blunt water-to-lava terrain edits with cooled basalt/magma shoreline handling, deeper-water support caps, contained lava, and slope/cliff retaining support.
 - Increased portal dungeon structure spacing, separation, and village exclusion so large radius-136 scars do not overlap nearby portals or villages.
-- Improved the pit mouth with softened rim blending and staggered basalt/blackstone ledges.
-- Reduced raid and ambient mob pressure while keeping five-wave escalation intact.
-- Increased generated surface reward caches and strengthened the surface loot table with more useful raid supplies.
+- Improved the pit mouth with per-column terrain following, softened rim blending, staggered basalt/blackstone ledges, support ribs, cleaner water sealing, and lower lava seeps.
+- Reduced raid wave counts by roughly 60 percent while keeping mob stats and ambient portal-zone pressure unchanged, and increased Evoker presence in waves 3-5.
+- Increased generated surface reward cache candidates and strengthened surface, deep, and boss loot rolls with more useful supplies and late rewards.
+- Promoted Corrupted Portal Key, Shard of the Nether, Corrupted Ravager Hide, Embered Grimoire, and Voidash Powder into real registered mod items with models, tooltips, loot ids, and localization keys.
 - Slightly raised the red storm default intensity without changing the completed-portal low-level state.
 - Added a Ruined Portal Overhaul creative tab and vanilla-tab entries for every custom item and block.
 

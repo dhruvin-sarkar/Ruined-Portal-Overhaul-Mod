@@ -15,13 +15,13 @@ Ruined Portal Overhaul replaces overworld ruined portal encounters with large co
 ## Features
 
 - Vanilla overworld ruined portals are replaced with procedural portal dungeons.
-- Portal scars now blend through scorched native biome blocks instead of ending at a hard netherrack edge.
+- Portal scars blend through native biome blocks with slope support and context-aware liquid handling, so shorelines, cliffs, and shallow water read as cooled volcanic edges instead of hard netherrack stamps.
 - The structure set uses wider portal spacing and a max-range village exclusion so the large scar has room to blend naturally.
 - Portal zones use horizontal distance checks, so surface, pit, and cave gameplay all stay linked to the same scar.
 - Red storm visuals, fog, rain, thunder, particles, and looping rumble activate near portal territory.
-- The Gold Tribute Raid runs five escalating but deliberately smaller waves with custom GeckoLib Piglin Illager mobs.
+- The Gold Tribute Raid runs five escalating but deliberately smaller waves, now about 60% lighter than the older high-pressure table while keeping stronger Evoker presence in late waves.
 - Raid completion lights the portal, disables pre-raid spawners, spawns a boss reward chest, and summons the Exiled Piglin Trader.
-- Rewards include Portal Shards, Nether Conduit progression, Ghast Tear Necklace fireballs, Corrupted Netherite armor, Nether Dragon Scale trophies, and the Nether Tide music disc.
+- Rewards include richer surface/deep/boss chests, Portal Shards, real lore artifacts, Nether Conduit progression, Ghast Tear Necklace fireballs, Corrupted Netherite armor, Nether Dragon Scale trophies, and the Nether Tide music disc.
 - Four Nether Crystals placed on generated pedestals summon the Nether Dragon, which is anchored to the portal, suppresses End Crystal healing, and avoids vanilla End portal death output.
 - Operator-only `/rpo` admin commands help testers and server owners locate saved portals, inspect status, reset a portal, force waves, complete a raid scene, or start the dragon sequence.
 - Localization-ready resource files are present for seven major locales as English stubs pending community translation.
@@ -77,7 +77,7 @@ Current static verification:
 Recommended first gameplay smoke:
 
 1. Start a fresh overworld and locate `minecraft:ruined_portal`.
-2. Walk from the outer scar into the pit and verify storm activation, underground horizontal-distance behavior, structure blending, and pre-raid spawners.
+2. Walk from the outer scar into the pit and verify storm activation, underground horizontal-distance behavior, structure blending, shallow/deep water handling, slope/cliff support, and pre-raid spawners.
 3. Use `/rpo locate` and `/rpo status` once the portal is discovered to confirm saved-state tracking.
 4. Complete the five-wave raid and confirm the staggered completion sequence, boss chest, Exiled Piglin, lit portal, and post-raid spawn suppression. Use `/rpo wave <1-5>` only to isolate late-wave testing after the natural path is checked.
 5. Place four Nether Crystals on the generated pedestals, fight the Nether Dragon through phase two, and confirm rewards, advancements, pedestal cleanup, and no End portal blocks. Use `/rpo complete` and `/rpo dragon` to isolate the completion and dragon scenes in repeat passes.

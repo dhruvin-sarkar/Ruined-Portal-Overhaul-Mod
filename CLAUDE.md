@@ -1,6 +1,6 @@
 # Ruined Portal Overhaul - Canonical Project Context
 
-Last reconciled: 2026-05-04. Current build status: `./gradlew build` succeeds with Java 21 when `JAVA_HOME` points at `C:\Users\dhruv\.codex\jdks\temurin-21`; resource processing, language keys, sound subtitles, GeckoLib assets, custom particles, Patchouli data files, loot tables, and recipe data all pass the Gradle build pipeline and static JSON/resource checks. A bounded dedicated-server dry start on 2026-05-03 loaded Fabric, GeckoLib, and `ruined_portal_overhaul` initialization on the server side, then stopped cleanly at the unaccepted Minecraft EULA gate. A bounded client startup smoke on 2026-05-03 loaded the client, mod initializer, Indigo renderer, resource manager, sound engine, texture atlases, recipes, advancements, biome modifications, and integrated-server startup without a mod-relevant crash before timeout; only expected development Realms/auth noise appeared in the logs.
+Last reconciled: 2026-05-06. Current build status: `./gradlew.bat build` succeeds with Java 21 when `JAVA_HOME` points at `C:\Users\dhruv\.codex\jdks\temurin-21`; resource processing, language keys, item models, sound subtitles, GeckoLib assets, custom particles, Patchouli data files, loot tables, recipe data, and creative-tab item references all pass the Gradle build pipeline and static JSON/resource checks. A bounded dedicated-server dry start on 2026-05-03 loaded Fabric, GeckoLib, and `ruined_portal_overhaul` initialization on the server side, then stopped cleanly at the unaccepted Minecraft EULA gate. A bounded client startup smoke on 2026-05-03 loaded the client, mod initializer, Indigo renderer, resource manager, sound engine, texture atlases, recipes, advancements, biome modifications, and integrated-server startup without a mod-relevant crash before timeout; only expected development Realms/auth noise appeared in the logs.
 
 This file is the single source of truth for the project. `SPEC.md` is the concise companion and must stay aligned with this file.
 
@@ -219,13 +219,15 @@ Recipes live in singular `data/ruined_portal_overhaul/recipe/`.
 
 ## Masterwork Rewards And Discovery
 
-- `ModItems` registers `corrupted_netherite_ingot`, four Corrupted Netherite armor pieces, `portal_shard`, `nether_dragon_scale`, and `music_disc_nether_tide`.
+- `ModItems` registers `corrupted_netherite_ingot`, four Corrupted Netherite armor pieces, `portal_shard`, `nether_dragon_scale`, `music_disc_nether_tide`, and the five lore artifacts `corrupted_portal_key`, `shard_of_the_nether`, `corrupted_ravager_hide`, `embered_grimoire`, and `voidash_powder`.
+- `LoreArtifactItem` gives each lore artifact a real item id, generated item model, rarity, fire resistance, and three-line localized tooltip in every locale stub. They are no longer disguised vanilla items with loot-time names.
 - `CorruptedNetheriteIngotItem` carries `DataComponents.CUSTOM_DATA` key `ruined_portal_overhaul:dragon_infused` and tooltips the smithing path.
 - Corrupted Netherite armor uses vanilla netherite item/armor components plus both `ModDataComponents.CORRUPTED_NETHERITE` and `DataComponents.CUSTOM_DATA` key `ruined_portal_overhaul:corrupted`, so set detection is data-driven rather than tied to class identity alone.
 - `CorruptedNetheriteEvents` checks armor every 20 ticks. Two pieces grant Fire Resistance, three pieces add Resistance I, and four pieces add a transient +4 armor toughness modifier plus `nether_ember` shimmer particles.
 - `PortalShardItem` stores a 600-tick cooldown in `ModDataComponents.LAST_PORTAL_SHARD_USE_TICK`, checks `PortalRaidState` first for the nearest known uncompleted portal, verifies already-loaded saved origins against the live portal dungeon structure data without force-loading chunks, falls back to the server-side `StructureTags.RUINED_PORTAL` locate path within 10,000 blocks, shows an action-bar bearing/distance, and emits `corruption_rune` guide particles.
 - `music_disc_nether_tide` uses `NetherTideDiscItem`, the `ruined_portal_overhaul:nether_tide` jukebox song JSON, and `ModSounds.MUSIC_DISC_NETHER_TIDE`, mapped to the online-sourced `music/disc_nether_tide.ogg` track. Piglin Evokers have a separate 5% runtime drop chance. Jukeboxes playing the disc within 64 blocks of a completed portal emit `nether_ember` particles.
 - `Nether Dragon Scale` is intentionally a trophy item in this Lunar-compatible branch, not an Accessories back-slot renderer, until a verified Accessories release exists for 1.21.11.
+- `ModCreativeTabs` exposes every custom block/item in the Ruined Portal Overhaul creative tab. Ingredients also receive the Nether Crystal, Corrupted Netherite Ingot, Dragon Scale, Shard of the Nether, Corrupted Ravager Hide, Embered Grimoire, and Voidash Powder; tools/utilities receive the Portal Shard, Ghast Tear Necklace, Nether Tide disc, and Corrupted Portal Key; combat receives the necklace and Corrupted Netherite armor set.
 
 ## Custom Particles
 
@@ -257,9 +259,9 @@ Variant selection is deterministic from the structure chunk through `PortalDunge
 The generated piece uses a radius-136 surface footprint and a depth-45 underground rupture:
 
 - Inner zone, radius `0-15`: stable ritual core with netherrack ground, blackstone brick platform, valid 4x5 or 6x7 portal frame, chains, and Exiled Piglin anchor. The ritual platform and frame stay at a consistent readable height.
-- Middle zone, radius `15-52`: Nether scar with readable cardinal material sectors: soul sand/soil to the north, netherrack to the south, blackstone to the east, and crimson nylium patches to the west. The outer half now blends probabilistically back through native biome surfaces and scorched native variants, so grass, dirt, stone, sand, mud, and gravel biomes do not hit an abrupt all-netherrack edge. The ground uses deterministic low-frequency height variation outside the ritual core, clamped to roughly `-3` to `+3` blocks.
-- Outer zone, radius `52-136`: lower-density clustered corruption scatter with netherrack, blackstone, soul soil, magma, rare crying obsidian, and scorched native top blocks. Structure JSON intentionally declares `terrain_adaptation: none`; vanilla `beard_thin` is too coarse for one huge custom piece and can fight the hand-built falloff, so `PortalStructureHelper` is the single terrain-blending authority for the scar.
-- Underground pit: protected original-style ragged mouth, organic shaft, softened native/scorched rim blend, four staggered basalt/blackstone ledges, 12 lower lava seeps, mixed basalt/blackstone/netherrack/soul-soil rim rubble, and Nether material conversion around carved space.
+- Middle zone, radius `15-52`: Nether scar with readable cardinal material sectors: soul sand/soil to the north, netherrack to the south, blackstone to the east, and crimson nylium patches to the west. Every column now starts from a shared terrain profile containing natural surface, ocean floor, water depth, slope, native block family, and liquid state. The outer half blends probabilistically back through native biome surfaces and scorched native variants, so grass, dirt, stone, sand, mud, and gravel biomes do not hit an abrupt all-netherrack edge. The ground uses deterministic low-frequency height variation outside the ritual core, clamped to roughly `-3` to `+3` blocks.
+- Outer zone, radius `52-136`: lower-density clustered corruption scatter with native-biome blocks dominating the falloff edge, mixed scorched blocks through the middle, and netherrack/blackstone/soul soil/magma only where the corruption is stronger. Structure JSON intentionally declares `terrain_adaptation: none`; vanilla `beard_thin` is too coarse for one huge custom piece and can fight the hand-built falloff, so `PortalStructureHelper` is the single terrain-blending authority for the scar.
+- Underground pit: protected ragged mouth that follows per-column terrain height instead of one origin Y, organic shaft, softened native/scorched rim blend, four staggered basalt/blackstone ledges, eight basalt/blackstone support ribs, 12 lower lava seeps, mixed basalt/blackstone/netherrack/soul-soil rim rubble, and Nether material conversion around carved space.
 - Primary chamber: large blackstone/basalt/netherrack cavern with lava lake, vents, glowstone clusters, stalactites, and basalt/blackstone spikes.
 - Cave network: denser graph-based cave nodes connected by worm-carved organic tunnels. Each tunnel advances by a gradually blended noisy direction, varies radius from roughly 2-6 blocks with an independent smooth noise signal, drifts vertically, and creates side pockets. Deep nodes are larger and taller, including ghast-ready caverns with high ceilings, more blackstone/basalt material, lava runs, ceiling drips, glowstone pockets, and frequent underground cache pads.
 - Masterwork room templates: after cave graph connection, `PortalStructureHelper` places a guaranteed 7x7x5 Wither Shrine at the deepest node with soul terrain, a skull totem, deep loot, and four Wither Skeleton spawners. Selected branch nodes add Gold Vault, Blaze Chamber, or hidden Ancient Vault rooms with designed floors, false walls, embedded ore/debris, deep chest positions, and room-specific spawners.
@@ -267,7 +269,7 @@ The generated piece uses a radius-136 surface footprint and a depth-45 undergrou
 - Ritual pedestals: four `minecraft:netherite_block` pedestals are placed at ground level exactly 6 blocks north, south, east, and west of the portal center. These are generated by the structure and are the only canonical Nether Dragon ritual pedestals.
 - Nether Conduit guarantee: after structure chest placement, `NetherConduitChestPlacement` deterministically picks one generated deep chest and inserts exactly one Nether Conduit directly into that chest inventory/NBT. This is not loot-table driven and never waits for the post-raid boss chest.
 
-Pit, chamber, and tunnel carvers replace adjacent overworld stone, deepslate, dirt, and common overworld ore/geology blocks with Nether materials so natural cave intersections read as corrupted Nether geology. Structure-local water encountered in transformed terrain is converted into lava with a bounded 8-block vertical clear. All writes are bounded by both the structure piece box and current chunk box.
+Pit, chamber, and tunnel carvers replace adjacent overworld stone, deepslate, dirt, and common overworld ore/geology blocks with Nether materials so natural cave intersections read as corrupted Nether geology. Structure-local liquid handling is context-aware: shallow water becomes cooled basalt/magma shoreline, deeper water receives cooled volcanic caps/support rims instead of open underwater lava, existing lava stays contained, and scar columns get support skirts/retaining blocks when slopes or cliffs expose edges. All writes are bounded by both the structure piece box and current chunk box.
 
 `StructureBlockPalette` centralizes YUNG-style weighted block variation for nether walls, nether bricks, deep walls, and ritual floors. New cache pads, ritual floors, altar blocks, room shells, and selected cave wall fallbacks use the palette so repeated rooms read as aged material instead of single-block fills.
 
@@ -361,11 +363,13 @@ Current wave table:
 
 | Wave | Boss Bar Label | Composition |
 |---|---|---|
-| 1 | `The Red Storm Breaks` | 12x PiglinPillager, 8x PiglinVindicator |
-| 2 | `They Grow Bolder` | 14x PiglinPillager, 8x PiglinVindicator, 5x PiglinBrutePillager |
-| 3 | `The Brutes Arrive` | 12x PiglinPillager, 9x PiglinVindicator, 8x PiglinBrutePillager, 5x PiglinIllusioner |
-| 4 | `Chaos Unleashed` | 6x PiglinPillager, 8x PiglinBrutePillager, 6x PiglinIllusioner, 8x PiglinVindicator, 1x PiglinRavager with mounted PiglinVindicator, 1x PiglinEvoker |
-| 5 | `The Evoker Awakens` | 10x PiglinPillager, 9x PiglinVindicator, 8x PiglinBrutePillager, 5x PiglinIllusioner, 2x PiglinRavager, 3x PiglinEvoker |
+| 1 | `The Red Storm Breaks` | 3x PiglinPillager, 2x PiglinVindicator |
+| 2 | `They Grow Bolder` | 4x PiglinPillager, 2x PiglinVindicator, 2x PiglinBrutePillager |
+| 3 | `The Brutes Arrive` | 3x PiglinPillager, 2x PiglinVindicator, 2x PiglinBrutePillager, 1x PiglinIllusioner, 1x PiglinEvoker |
+| 4 | `Chaos Unleashed` | 2x PiglinPillager, 2x PiglinBrutePillager, 1x PiglinIllusioner, 1x PiglinVindicator, 1x PiglinRavager with mounted PiglinVindicator, 2x PiglinEvoker |
+| 5 | `The Evoker Awakens` | 2x PiglinPillager, 2x PiglinVindicator, 2x PiglinBrutePillager, 2x PiglinIllusioner, 1x PiglinRavager, 3x PiglinEvoker |
+
+The default raid is intentionally about 60% lighter than the earlier high-pressure table. Mob stats, difficulty scaling, boss-bar pacing, and ambient portal-zone spawn pressure are unchanged; the reduction is wave roster size only, with more Evoker presence in waves 3-5 so escalation still reads clearly.
 
 Completion order:
 
@@ -441,11 +445,11 @@ All seven combat mobs call `PiglinDifficultyScaler.applySpawnScaling(...)` from 
 ## Loot Tables
 Loot table files contain `_comment` fields documenting reward intent.
 
-- `chests/portal_surface`: `9-12` rolls. Surface generation now places ten prep chests around the scar. Loot includes more gold/iron/obsidian, Fire Resistance, Strength II, Regeneration II, healing splash potions, golden apples/carrots, rare enchanted golden apples, emergency totems, enchanted gold gear, Fire Protection IV books, diamonds, and rare netherite scrap. Golden apple weight is increased to 7.
-- `chests/portal_deep`: `12-16` rolls. Underground generation now adds frequent cave caches beyond the two altar chests. Loot includes larger stacks of netherite scraps, ancient debris, upgrade templates, rare netherite ingots, diamonds, enchanted diamond gear, totems, enchanted golden apples, Mending, Efficiency V, Sharpness V, Protection IV, Thorns III, Sharpness III diamond swords, a rare Nether Star weight, other strong books, and survival potions.
-- `chests/portal_boss_reward`: `16-20` rolls plus a two-roll high-weight totem/enchanted-golden-apple bonus pool, a guaranteed Nether Star pool, and a guaranteed `Portal Shard`. Includes 1-2 netherite ingots, larger netherite scrap and ancient debris stacks, multiple upgrade templates, enchanted golden apples, common totems, diamonds, gold blocks, high-tier books, enchanted diamond gear, and a weighted named `Corrupted Portal Key`.
+- `chests/portal_surface`: `12-16` rolls. Surface generation now has 16 deterministic terrain/liquid-aware prep chest candidates around the scar. Loot includes more gold/iron/obsidian, Fire Resistance, Strength II, Regeneration II, healing splash potions, golden apples/carrots, rare enchanted golden apples, emergency totems, enchanted gold gear, Fire Protection IV books, diamonds, and rare netherite scrap. Golden apple weight is increased to 7.
+- `chests/portal_deep`: `14-18` rolls. Underground generation now adds frequent cave caches beyond the two altar chests. Loot includes larger stacks of netherite scraps, ancient debris, upgrade templates, rare netherite ingots, diamonds, enchanted diamond gear, totems, enchanted golden apples, Mending, Efficiency V, Sharpness V, Protection IV, Thorns III, Sharpness III diamond swords, a rare Nether Star weight, other strong books, and survival potions.
+- `chests/portal_boss_reward`: `18-22` rolls plus a two-roll high-weight totem/enchanted-golden-apple bonus pool, a guaranteed Nether Star pool, and a guaranteed `Portal Shard`. Includes 1-2 netherite ingots, larger netherite scrap and ancient debris stacks, multiple upgrade templates, enchanted golden apples, common totems, diamonds, gold blocks, high-tier books, enchanted diamond gear, weighted `Corrupted Portal Key`, and weighted `Shard of the Nether`.
 - Entity loot tables are under `data/ruined_portal_overhaul/loot_table/entities/`. All custom combat mob drops are now richer, with more gold, food, ammunition, gear, potion ingredients, books, totems from high-threat mobs, and rare netherite/debris drops from deeper wave threats.
-- Named reward artifacts now use translated `set_name` plus `set_lore` loot functions with `mode: "replace_all"` instead of raw `minecraft:custom_name` strings, so the boss key, Nether shard, ravager hide, embered grimoire, and voidash powder all localize cleanly and carry multi-line atmospheric lore.
+- Named reward artifacts now use real mod item ids and `LoreArtifactItem` tooltips instead of loot-time renamed vanilla items, so the boss key, Nether shard, ravager hide, embered grimoire, and voidash powder all localize cleanly, appear in creative/search, and carry multi-line atmospheric lore.
 - Enchantment loot functions use namespaced `minecraft:set_enchantments` with explicit `"add": false`, matching vanilla 1.21.11 data shape instead of relying on parser defaults.
 - Nether Star entity drops: `ModLootEvents` adds runtime-configured killed-by-player Nether Star rolls after entity loot generation. Base odds remain Piglin Evoker 5%, Piglin Ravager 3%, and Piglin Illusioner 1%, multiplied by `ModConfigManager.netherStarDropRate()` so ModMenu/Cloth changes can reduce or boost the economy without editing data packs.
 - Nether Conduit entity drops: all seven custom combat mobs have a 2% killed-by-player chance.
@@ -552,6 +556,7 @@ Structure rarity note:
 - Use `Identifier.fromNamespaceAndPath(...)` in this Mojang-mapped codebase.
 - Use Mojang names from local mappings. Do not paste Yarn-only method or field names into this project.
 - Research references checked during the 2026-05-02 pass: GeckoLib 5 RenderStates (`https://wiki.geckolib.com/docs/geckolib5/concepts/rendering/renderstates/`), Fabric networking (`https://docs.fabricmc.net/develop/networking`), Fabric saved data (`https://docs.fabricmc.net/develop/saved-data`), Cloth Config AutoConfig (`https://shedaniel.gitbook.io/cloth-config/auto-config/registering-the-config`), Minecraft loot tables (`https://minecraft.wiki/w/Loot_table`), advancement JSON (`https://minecraft.wiki/w/Advancement/JSON_format`), conduit mechanics (`https://minecraft.wiki/w/Conduit`), Ender Dragon mechanics (`https://minecraft.wiki/w/Ender_Dragon`), pack metadata/version data (`https://minecraft.wiki/w/Pack.mcmeta` plus the local `1.21.11` `version.json`), and Terralith biome/compat context (`https://modrinth.com/mod/terralith` and `https://stardustlabs.miraheze.org/wiki/Terralith`).
+- Research references checked during the 2026-05-06 worldgen polish pass: Fabric feature/worldgen documentation (`https://docs.fabricmc.net/develop/data-generation/features`), Minecraft structure/structure-set terrain adaptation behavior from local vanilla JSON and docs, and Terralith's public terrain/compat positioning (`https://modrinth.com/mod/terralith`). Terralith remains a reference for avoiding hostile terrain seams, not copied code or data.
 - GeckoLib 5 render-pass data that affects texture, glow, or tint should be copied into `GeoRenderState` through data tickets during state compilation; do not add new renderer logic that depends on consulting the live entity during the later render pass.
 - Use `level()` / `ServerLevel` guarded server logic.
 - Use `Attributes.MAX_HEALTH`, `Attributes.MOVEMENT_SPEED`, and `Attributes.ATTACK_DAMAGE`, not old `GENERIC_*` names.
@@ -585,6 +590,7 @@ Structure rarity note:
 | Deterministic portal dungeon structure variants with runtime persistence | COMPLETE |
 | Structure generation and vanilla ruined portal replacement hooks | COMPLETE |
 | Structure-set village exclusion for ruined portal dungeons | COMPLETE |
+| Terrain-profile scar blending, slope support, and context-aware liquid handling | COMPLETE |
 | Calm low-frequency surface height variation around stable ritual core | COMPLETE |
 | Graph-based cave nodes, noisy worm tunnels, side pockets, lava features, and ghast-ready deep caverns | COMPLETE |
 | Runtime structure-local portal-zone ambient spawns and anchored ghasts | COMPLETE |
@@ -608,6 +614,7 @@ Structure rarity note:
 | Netherite pedestal structure generation and persisted ritual tracking | COMPLETE |
 | Nether Dragon entity, summoning sequence, boss bar, death rewards, and pedestal shattering | COMPLETE |
 | Portal Shard boss locator item and cooldown component | COMPLETE |
+| Real lore artifact items, models, tooltips, loot ids, and creative entries | COMPLETE |
 | Corrupted Netherite ingot, armor set, smithing recipes, and set bonuses | COMPLETE |
 | Nether Dragon Scale trophy item | COMPLETE |
 | Optional Patchouli Corrupted Chronicle data plus surface/boss chest injection | COMPLETE |
@@ -624,20 +631,28 @@ Structure rarity note:
 
 ## READY FOR IN-GAME VERIFICATION
 
+Worldgen polish checklist status from `promtpss.md`:
+
+- Terrain/structure cohesion: implemented in code with `terrain_adaptation: none`, shared terrain profiles, wider falloff blending, slope/cliff supports, and context-aware water/lava handling.
+- Pit generation: implemented in code with per-column mouth height, rim rubble, support ribs, ledges, water sealing, and chunk/piece-bounded placement.
+- Raid/rewards: implemented in code with wave rosters reduced to 5/8/9/10/12 tracked mobs before scaling, more Evokers in waves 3-5, unchanged ambient pressure, 12-16 surface rolls, 14-18 deep rolls, 18-22 boss rolls, and 16 terrain-aware surface chest candidates.
+- Creative inventory/lore items: implemented in code with real item registrations, models, localized tooltip keys, loot ids, the complete custom tab, and vanilla-tab placement.
+- Remaining validation is live-only: inspect generated portals in plains, forest, desert, swamp, shoreline/deep water, cliff/mountain, and Terralith-style excluded skyland/cave cases; then run the full survival encounter path.
+
 Current build/static verification:
 
-- `./gradlew build` succeeds on Java 21 with `JAVA_HOME=C:\Users\dhruv\.codex\jdks\temurin-21`.
+- `./gradlew.bat build` succeeds on Java 21 with `JAVA_HOME=C:\Users\dhruv\.codex\jdks\temurin-21` after the 2026-05-06 worldgen, loot, lore item, and creative inventory pass.
 - `/rpo` admin commands are registered through Fabric command API v2 with level-2 gamemaster permissions. They use saved `PortalRaidState` origins and provide `/rpo locate`, `/rpo status`, `/rpo reset`, `/rpo wave <1-5>`, `/rpo complete`, and `/rpo dragon` to speed up verification.
 - Locale stubs exist for `de_de`, `es_es`, `fr_fr`, `ja_jp`, `pt_br`, `ru_ru`, and `zh_cn`. They intentionally mirror `en_us` with a JSON-safe `_comment` marker so translators have complete key coverage without invalid JSON comments.
 - `./gradlew runServer --no-daemon` reaches server-side mod initialization in the development environment, registering sounds, particles, data components, items, blocks, block entities, entity hooks, and structure hooks before Minecraft stops at `eula=false`.
 - A bounded `./gradlew runClient --no-daemon` startup smoke reaches client-side mod initialization, renderer/resource reload, sound engine startup, texture atlas creation, recipe/advancement load, biome modifications, and integrated-server startup without mod-relevant errors before timeout. Realms and profile fetch errors in this smoke are expected development-login noise, not mod failures.
-- JSON resources parse successfully, registered sounds match `sounds.json`, sound subtitles exist in `en_us.json`, advancement custom triggers match registration, and enchantment loot functions explicitly use `add: false`.
+- JSON resources parse successfully, registered sounds match `sounds.json`, sound subtitles exist in `en_us.json`, lore artifact item models/lang keys resolve, advancement custom triggers match registration, and enchantment loot functions explicitly use `add: false`.
 - GeckoLib assets use the 5.x `geckolib/models` and `geckolib/animations` layout, with render-pass tint data moved into render-state tickets.
 - Minecraft `1.21.11` pack versions were verified from the local game jar as resource `75.0` and data `94.1`; no root `pack.mcmeta` is committed for the combined mod jar because it cannot truthfully declare both formats at once.
 
 Implemented but still needs an interactive in-game smoke pass:
 
-- Full survival path from `/locate structure minecraft:ruined_portal` through approach storm, five-wave raid, completion beats, Exiled Piglin trade, Nether Conduit use, Ghast Tear Necklace fireball, crystal ritual, Nether Dragon phase two, and dragon death finale.
+- Full survival path from `/locate structure minecraft:ruined_portal` through approach storm, scar/pit terrain transitions in plains, forest, desert, swamp, shoreline/deep water, cliff/mountain, Terralith-style skyland/cave exclusion cases, five-wave raid, completion beats, Exiled Piglin trade, Nether Conduit use, Ghast Tear Necklace fireball, crystal ritual, Nether Dragon phase two, and dragon death finale.
 - Full interactive `runClient` survival smoke testing remains pending; the startup smoke does not verify visual framing, rendered GeckoLib animation timing in combat, client atmosphere mixins in the portal zone, or player-controlled encounter flow.
 - Dedicated server multiplayer checks for two players entering the raid trigger together, disconnecting during boss bars/trades, and participating in the dragon fight from different heights in the portal cave stack.
 - Visual review for post-processed generated textures, online-sourced `.ogg` soundscape, red storm sky/fog/rain mixins, GeckoLib entity animations, and conduit block-entity rendering.

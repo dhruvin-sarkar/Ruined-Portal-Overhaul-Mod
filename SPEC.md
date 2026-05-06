@@ -1,4 +1,4 @@
-# Ruined Portal Overhaul - Implementation Spec v1.12
+# Ruined Portal Overhaul - Implementation Spec v1.13
 
 ## Source Of Truth
 
@@ -24,9 +24,10 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
    - The generated portal frame is a valid 4-by-5 or 6-by-7 outer frame.
    - Inner ritual terrain and pit placement are protected; surface height variation is applied only outside the stable core.
    - Surface terrain uses low-frequency deterministic noise clamped to about `-3` to `+3` blocks. Structure JSON deliberately uses `terrain_adaptation: none` so the custom helper, not vanilla's coarse beardifier, controls the full radius-136 scar blend.
+   - Each scar column uses a terrain profile with native surface, ocean floor, water depth, slope, native block family, and liquid state. Shallow water becomes cooled basalt/magma shoreline, deeper water gets cooled support caps/rims, and exposed scar edges receive retaining support instead of floating or flooding.
    - Basalt columns remain separate vertical drama placed on top of the calm terrain.
 2. Pit And Underground
-   - The pit uses the original-style ragged mouth and shaft behavior, with a softened scorched-native rim, staggered basalt/blackstone ledges, mixed blackstone/basalt/netherrack/soul-soil rubble, and 12 lower lava seeps.
+   - The pit mouth follows per-column terrain height instead of one origin Y, with a softened scorched-native rim, staggered basalt/blackstone ledges, basalt/blackstone support ribs, mixed blackstone/basalt/netherrack/soul-soil rubble, water sealing, and 12 lower lava seeps.
    - The cave system branches from the pit and primary chamber.
    - Cave tunnels are worm-carved: gradual direction blending, radius variation from independent smooth noise, vertical drift, side pockets, and finite path lengths.
    - The cave graph is denser than the first worm pass, with more nodes, more side branches, stronger cross-linking, and many cave-node treasure caches.
@@ -53,6 +54,7 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
    - Approach triggers horizontally within 136 blocks of an uncompleted generated portal.
    - Raid starts horizontally within the configured trigger radius of an uncompleted, inactive generated portal. The built-in default is 24 blocks and is clamped to 12-48.
    - Horizontal X/Z checks are used for zone membership, so the storm and progression work inside the pit and caves below the frame.
+   - Default wave rosters are about 60% smaller than the older high-pressure raid table: 5, 8, 9, 10, and 12 tracked mobs before config/difficulty scaling. Mob stats and ambient portal-zone pressure are unchanged, and waves 3-5 now include more Evoker presence.
 7. Red Storm And Audio
    - `ModPackets` registers typed 1.21.11 play payloads in one common packet hub.
    - Server sends `PortalAtmospherePayload` every 20 ticks while a player is horizontally inside the portal zone.
@@ -66,10 +68,11 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
    - The boon uses the same horizontal zone logic as the atmosphere, so it works on the surface, in the pit, and throughout the caves.
    - Each player receives one Totem of Undying per portal territory on first entry, guarded by the entity tag `rpo_totem_granted_<portalOriginLong>`.
 9. Loot
-   - `portal_surface`: 9-12 rolls with six surface prep chests, including stronger potion frequency, golden apples/carrots, emergency totems, enchanted gold gear, diamonds, and rare scrap.
-   - `portal_deep`: 12-16 rolls with frequent underground caches, netherite scraps, ancient debris, templates, rare netherite ingots, diamond gear, totems, enchanted apples, Mending, Efficiency V, Sharpness V, Protection IV, Thorns III, and survival potions.
-   - `portal_boss_reward`: 16-20 rolls plus a two-roll high-weight totem/enchanted-golden-apple bonus pool, guaranteed Nether Star, guaranteed Portal Shard, and the weighted `Corrupted Portal Key`.
+   - `portal_surface`: 12-16 rolls with 16 deterministic terrain/liquid-aware surface prep chest candidates, including stronger potion frequency, golden apples/carrots, emergency totems, enchanted gold gear, diamonds, and rare scrap.
+   - `portal_deep`: 14-18 rolls with frequent underground caches, netherite scraps, ancient debris, templates, rare netherite ingots, diamond gear, totems, enchanted apples, Mending, Efficiency V, Sharpness V, Protection IV, Thorns III, and survival potions.
+   - `portal_boss_reward`: 18-22 rolls plus a two-roll high-weight totem/enchanted-golden-apple bonus pool, guaranteed Nether Star, guaranteed Portal Shard, weighted `Corrupted Portal Key`, and weighted `Shard of the Nether`.
    - Custom combat mob drops are richer across the board, with more gold, food, ammunition, equipment, books, totems from high-threat mobs, and rare netherite/debris drops from deeper wave threats.
+   - Corrupted Portal Key, Shard of the Nether, Corrupted Ravager Hide, Embered Grimoire, and Voidash Powder are real registered items with models, rarity, localized tooltips, loot ids, and creative visibility rather than renamed vanilla loot stacks.
    - Enchantment functions use namespaced `minecraft:set_enchantments` with explicit `"add": false`, matching the vanilla 1.21.11 loot-table shape.
    - Runtime loot hooks add config-scaled Nether Star drops, a 5% Piglin Evoker Nether Tide disc roll, and an optional Patchouli Corrupted Chronicle guide book when Patchouli is loaded.
 10. Advancements
@@ -96,6 +99,7 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
    - Corrupted Netherite Ingots carry `CUSTOM_DATA` marker `ruined_portal_overhaul:dragon_infused` and explain the smithing path in their tooltip.
    - Corrupted Netherite armor is made through smithing with Corrupted Netherite Ingot, matching vanilla netherite armor, and echo shard. Two pieces grant Fire Resistance, three add Resistance, and four add +4 armor toughness plus ember particles.
    - `music_disc_nether_tide` uses custom jukebox song metadata, online-sourced CC0 audio, and emits nether ember particles from jukeboxes near completed portals.
+   - The Ruined Portal Overhaul creative tab includes every custom block/item, and key items are also injected into appropriate vanilla creative tabs.
 15. Optional Discovery Integrations
    - REI pages explain the Portal Shard, Corrupted Netherite, Nether Tide, Nether Star drops, Conduit, Crystal, and Necklace progression.
    - Patchouli is suggested, not required. Corrupted Chronicle registers through `data/ruined_portal_overhaul/patchouli_books/corrupted_chronicle/book.json`, loads its visible content from `assets/.../patchouli_books/corrupted_chronicle/en_us/` with `use_resource_pack: true`, and locks Dragon entries behind `ruined_portal_overhaul:the_final_offering`. The guide is injected into surface and boss chest drops only when Patchouli is installed and a compatible guide item id exists.
@@ -171,7 +175,7 @@ Completing the raid lights the ruined frame into a functional Nether portal, dis
 - JSON data files in resources parse successfully.
 - Language keys, sound subtitles, registered sound ids, GeckoLib asset references, advancement custom triggers, and loot enchantment function shape pass static audits.
 - The local Minecraft `1.21.11` jar reports resource pack format `75.0` and data pack format `94.1`; this combined mod jar intentionally has no single root `pack.mcmeta` because one root pack declaration cannot truthfully represent both `assets/` and `data/`.
-- Latest verified build date: 2026-05-03.
+- Latest verified build date: 2026-05-06.
 
 ## Remaining Work
 
