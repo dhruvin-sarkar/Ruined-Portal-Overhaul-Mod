@@ -37,11 +37,16 @@ public final class ModCreativeTabs {
             entries.accept(ModItems.CORRUPTED_NETHERITE_INGOT);
             entries.accept(ModItems.NETHER_DRAGON_SCALE);
             entries.accept(ModItems.NETHER_CRYSTAL);
+            entries.accept(ModItems.SHARD_OF_THE_NETHER);
+            entries.accept(ModItems.CORRUPTED_RAVAGER_HIDE);
+            entries.accept(ModItems.VOIDASH_POWDER);
+            entries.accept(ModItems.EMBERED_GRIMOIRE);
         });
         ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.TOOLS_AND_UTILITIES).register(entries -> {
             entries.accept(ModItems.PORTAL_SHARD);
             entries.accept(ModItems.GHAST_TEAR_NECKLACE);
             entries.accept(ModItems.MUSIC_DISC_NETHER_TIDE);
+            entries.accept(ModItems.CORRUPTED_PORTAL_KEY);
         });
         ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.COMBAT).register(entries -> {
             entries.accept(ModItems.GHAST_TEAR_NECKLACE);
@@ -58,6 +63,11 @@ public final class ModCreativeTabs {
         entries.accept(ModItems.GHAST_TEAR_NECKLACE);
         entries.accept(ModItems.NETHER_CRYSTAL);
         entries.accept(ModItems.PORTAL_SHARD);
+        entries.accept(ModItems.CORRUPTED_PORTAL_KEY);
+        entries.accept(ModItems.SHARD_OF_THE_NETHER);
+        entries.accept(ModItems.CORRUPTED_RAVAGER_HIDE);
+        entries.accept(ModItems.EMBERED_GRIMOIRE);
+        entries.accept(ModItems.VOIDASH_POWDER);
         entries.accept(ModItems.CORRUPTED_NETHERITE_INGOT);
         entries.accept(ModItems.CORRUPTED_NETHERITE_HELMET);
         entries.accept(ModItems.CORRUPTED_NETHERITE_CHESTPLATE);
