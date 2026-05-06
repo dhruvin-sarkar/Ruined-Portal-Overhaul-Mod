@@ -1801,35 +1801,36 @@ public final class GoldRaidManager {
     private static SpawnEntry[] baseWaveEntries(int waveIndex) {
         return switch (waveIndex) {
             case 0 -> new SpawnEntry[] {
-                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 8),
-                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 6)
+                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 3),
+                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 2)
             };
             case 1 -> new SpawnEntry[] {
-                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 10),
-                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 6),
-                new SpawnEntry(ModEntities.PIGLIN_BRUTE_PILLAGER, 4)
+                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 4),
+                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 2),
+                new SpawnEntry(ModEntities.PIGLIN_BRUTE_PILLAGER, 2)
             };
             case 2 -> new SpawnEntry[] {
-                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 9),
-                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 7),
-                new SpawnEntry(ModEntities.PIGLIN_BRUTE_PILLAGER, 6),
-                new SpawnEntry(ModEntities.PIGLIN_ILLUSIONER, 3)
-            };
-            case 3 -> new SpawnEntry[] {
-                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 4),
-                new SpawnEntry(ModEntities.PIGLIN_BRUTE_PILLAGER, 6),
-                new SpawnEntry(ModEntities.PIGLIN_ILLUSIONER, 4),
-                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 6),
-                new SpawnEntry(ModEntities.PIGLIN_RAVAGER, 1),
+                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 3),
+                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 2),
+                new SpawnEntry(ModEntities.PIGLIN_BRUTE_PILLAGER, 2),
+                new SpawnEntry(ModEntities.PIGLIN_ILLUSIONER, 1),
                 new SpawnEntry(ModEntities.PIGLIN_EVOKER, 1)
             };
-            case 4 -> new SpawnEntry[] {
-                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 7),
-                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 7),
-                new SpawnEntry(ModEntities.PIGLIN_BRUTE_PILLAGER, 6),
-                new SpawnEntry(ModEntities.PIGLIN_ILLUSIONER, 4),
+            case 3 -> new SpawnEntry[] {
+                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 2),
+                new SpawnEntry(ModEntities.PIGLIN_BRUTE_PILLAGER, 2),
+                new SpawnEntry(ModEntities.PIGLIN_ILLUSIONER, 1),
+                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 1),
                 new SpawnEntry(ModEntities.PIGLIN_RAVAGER, 1),
                 new SpawnEntry(ModEntities.PIGLIN_EVOKER, 2)
+            };
+            case 4 -> new SpawnEntry[] {
+                new SpawnEntry(ModEntities.PIGLIN_PILLAGER, 2),
+                new SpawnEntry(ModEntities.PIGLIN_VINDICATOR, 2),
+                new SpawnEntry(ModEntities.PIGLIN_BRUTE_PILLAGER, 2),
+                new SpawnEntry(ModEntities.PIGLIN_ILLUSIONER, 2),
+                new SpawnEntry(ModEntities.PIGLIN_RAVAGER, 1),
+                new SpawnEntry(ModEntities.PIGLIN_EVOKER, 3)
             };
             default -> new SpawnEntry[0];
         };
