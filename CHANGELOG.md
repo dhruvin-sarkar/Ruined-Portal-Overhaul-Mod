@@ -1,139 +1,210 @@
 # Changelog
 
-This changelog is reconstructed from the repository history back to the first commit on 2026-04-05. It focuses on shipped behavior and verified project state rather than raw commit prefixes.
+This changelog is written from the live repository history and current project docs. It favors player-visible behavior, compatibility notes, and verification status over raw commit labels. Older one-line entries are kept in the commit ledger at the bottom so pack makers and contributors can still trace when a change entered the project.
 
 ## Unreleased - 2026-05-06
 
-- Replaced the generated/procedural soundscape with edited online CC0 audio from Kenney and OpenGameArt, with source URLs and output mapping documented in `assets/audio_sources/ONLINE_AUDIO_ATTRIBUTION.md`.
-- Added a reproducible online-audio preparation script and removed the procedural audio generator.
-- Improved portal scar cohesion by blending the middle and outer rings through scorched native biome surfaces, disabling vanilla beardifier terrain adaptation for the huge custom piece, and keeping the custom helper as the terrain authority.
-- Added per-column terrain profiling for native surface, water depth, ocean floor, slope, liquid state, and native block family so the scar handles plains, forests, deserts, swamps, shorelines, deep water, and cliffs more coherently.
-- Replaced blunt water-to-lava terrain edits with cooled basalt/magma shoreline handling, deeper-water support caps, contained lava, and slope/cliff retaining support.
-- Increased portal dungeon structure spacing, separation, and village exclusion so large radius-136 scars do not overlap nearby portals or villages.
-- Improved the pit mouth with per-column terrain following, softened rim blending, staggered basalt/blackstone ledges, support ribs, cleaner water sealing, and lower lava seeps.
-- Reduced raid wave counts by roughly 60 percent while keeping mob stats and ambient portal-zone pressure unchanged, and increased Evoker presence in waves 3-5.
-- Increased generated surface reward cache candidates and strengthened surface, deep, and boss loot rolls with more useful supplies and late rewards.
-- Promoted Corrupted Portal Key, Shard of the Nether, Corrupted Ravager Hide, Embered Grimoire, and Voidash Powder into real registered mod items with models, tooltips, loot ids, and localization keys.
-- Slightly raised the red storm default intensity without changing the completed-portal low-level state.
-- Added a Ruined Portal Overhaul creative tab and vanilla-tab entries for every custom item and block.
+This update is a world-generation and presentation polish pass for the portal encounter. The main goal was to make the giant scar feel like it belongs in the terrain it lands in, make the pit less awkward on slopes and water edges, reduce raid fatigue, and make all lore rewards behave like real mod content.
+
+### Terrain And Structure Blending
+
+- Reworked the portal scar so the transition from native biome terrain into Nether corruption is wider and smoother. The outer ring now keeps far more of the original biome surface, the middle ring mixes native/scorched blocks, and the inner scar carries the strong Nether palette.
+- Added a per-column terrain profile used by the structure helper. Each column records the natural surface, ocean floor, water depth, slope, nearby liquid state, and native block family before scar placement decides what to do.
+- Kept structure JSON `terrain_adaptation: none`. Vanilla beard/bury adaptation is too broad for this custom radius-136 piece and can fight the sculpted scar, so `PortalStructureHelper` remains the terrain authority.
+- Replaced blunt water-to-lava conversion with context-aware liquid handling. Shallow water becomes cooled basalt and magma shoreline; deeper water gets volcanic support caps and rims; existing lava remains contained instead of spreading into messy exposed pools.
+- Added slope and cliff support skirts so corrupted edges are less likely to float, shear vertically, or expose ugly straight shafts when the structure cuts into uneven ground.
+- Preserved the existing Terralith skyland and cave exclusions while making normal difficult terrain adapt better. The intended behavior is to handle plains, forests, deserts, swamps, shorelines, cliffs, and mountains rather than rejecting them.
+
+### Pit And Surface Rewards
+
+- Reworked the pit mouth to follow per-column terrain height instead of carving from one fixed origin Y. This keeps the opening more readable on slopes, shorelines, and cliff edges.
+- Added cleaner rim rubble, basalt/blackstone support ribs, staggered ledges, lower lava seeps, and better water sealing around the pit mouth.
+- Increased deterministic surface chest candidates to 16 and made those placements terrain/liquid aware through the same surface cache helper used by scar support work.
+- Increased loot rolls modestly without making netherite trivial:
+  - `portal_surface` now rolls `12-16`.
+  - `portal_deep` now rolls `14-18`.
+  - `portal_boss_reward` now rolls `18-22`.
+- Surface loot is now a stronger raid-prep spread: potions, healing, food, arrows, emergency totems, gold gear, diamonds, and rare scrap show up often enough to make stopping at the portal feel worthwhile.
+
+### Raid Balance
+
+- Reduced the default raid roster by roughly 60 percent while keeping mob health, damage, difficulty scaling, and ambient portal-zone spawn pressure unchanged.
+- New default tracked wave sizes before config/difficulty scaling are `5 / 8 / 9 / 10 / 12`.
+- Increased Evoker presence in waves 3-5 so the encounter still escalates clearly despite the lower total mob count.
+- Kept the boss bar, inter-wave pacing, spawn ring logic, and completion sequence intact.
+
+### Lore Items And Creative Inventory
+
+- Promoted lore artifacts from renamed vanilla loot stacks into real registered mod items:
+  - Corrupted Portal Key
+  - Shard of the Nether
+  - Corrupted Ravager Hide
+  - Embered Grimoire
+  - Voidash Powder
+- Added generated item models, rarity, fire resistance, localized display names, and three-line tooltips for each artifact.
+- Updated loot tables to drop the real item IDs instead of vanilla items with `set_name`/`set_lore` functions.
+- Added all new artifact keys to every locale stub so translators inherit the full key set.
+- Completed creative inventory visibility:
+  - The Ruined Portal Overhaul tab now contains every custom block and item.
+  - Ingredients include crystals, ingots, scale, powders, hide, grimoire, and shard.
+  - Tools and utilities include the Portal Shard, Ghast Tear Necklace, Nether Tide disc, and Corrupted Portal Key.
+  - Combat includes the necklace and full Corrupted Netherite armor set.
+
+### Atmosphere, Audio, And Docs
+
+- Slightly increased red storm visual intensity without changing the completed-portal low-level state.
+- Replaced generated/procedural audio as the final shipped soundscape with edited online CC0 sources from Kenney and OpenGameArt.
+- Documented online audio sources and output mapping in `assets/audio_sources/ONLINE_AUDIO_ATTRIBUTION.md`.
+- Kept the online-audio preparation script so the current soundscape can be rebuilt from the source files.
+- Updated `CLAUDE.md`, `SPEC.md`, `README.md`, and this changelog to reflect the worldgen, raid, loot, lore item, and creative inventory pass.
+- Corrected an old changelog typo in the 2026-04-22 history section.
+
+### Validation
+
+- `RESOURCE_POLISH_OK` resource audit passes for JSON parsing, lore item models, language keys, and loot references.
+- `./gradlew.bat build` succeeds with Java 21.
+- `git diff --check` reports no whitespace errors.
+- Remaining verification is live gameplay review: inspect generated portals in plains, forests, deserts, swamps, shorelines/deep water, cliffs/mountains, and Terralith-style skyland/cave exclusion cases.
 
 ## v1.0.0 - 2026-05-03
 
+This was the first full release candidate for the complete encounter chain: a corrupted overworld portal dungeon, five-wave Piglin Illager raid, post-raid trader, Nether Conduit progression, Ghast Tear Necklace, Nether Crystal ritual, and portal-anchored Nether Dragon boss.
+
 ### Release Readiness
 
-- Completed the release presentation layer with README, Modrinth description, contribution guide, issue templates, and this reconstructed changelog.
-- Added English-valued localization skeletons for `de_de`, `es_es`, `fr_fr`, `ja_jp`, `pt_br`, `ru_ru`, and `zh_cn` so every shipped key has a translator-ready locale file.
-- Added operator-only `/rpo` admin commands for portal location, status inspection, reset, direct wave spawning, instant completion, and Nether Dragon testing.
-- Recorded dedicated-server dry start verification up to the expected unaccepted-EULA stop.
-- Recorded client startup smoke verification through mod initialization, resource loading, recipe and advancement loading, biome modifications, and integrated-server startup.
-- Reconciled `CLAUDE.md`, `SPEC.md`, `README.md`, and release-facing docs with the current live codebase.
-- Verified the Java 21 Gradle build, static resource shape, language keys, sound subtitles, loot data, advancement triggers, GeckoLib assets, particles, Patchouli data, recipes, mixin references, and release artifact sanity.
+- Completed the release presentation layer: README, Modrinth description, contribution guide, issue templates, and reconstructed changelog.
+- Added English-valued localization skeletons for `de_de`, `es_es`, `fr_fr`, `ja_jp`, `pt_br`, `ru_ru`, and `zh_cn`. These files are intentionally English stubs so players do not see raw keys and translators have a full starting point.
+- Added operator-only `/rpo` admin commands for testing and server support:
+  - `/rpo locate`
+  - `/rpo status`
+  - `/rpo reset`
+  - `/rpo wave <1-5>`
+  - `/rpo complete`
+  - `/rpo dragon`
+- Recorded a dedicated-server dry start through Fabric, GeckoLib, and mod initialization. The server stopped at the expected unaccepted-EULA gate, which verifies class loading without accepting the EULA on the user's behalf.
+- Recorded a bounded client startup smoke through client initializer, renderer/resource loading, sound engine startup, texture atlas creation, recipe and advancement loading, biome modifications, and integrated-server startup.
+- Reconciled `CLAUDE.md`, `SPEC.md`, `README.md`, and release-facing text with the live source tree.
+- Verified Java 21 build health and static resource shape, including language keys, sound subtitles, loot data, advancement triggers, GeckoLib assets, particles, Patchouli data, recipes, mixin references, and release artifact sanity.
 
 ### Portal Dungeons And World Generation
 
-- Replaced overworld ruined portal encounters with large corrupted portal dungeon structures.
-- Added a radius-136 corrupted surface scar, deterministic structure variants, protected ritual core, underground pits, worm-carved tunnels, special rooms, lava features, spawners, and loot caches.
-- Added deterministic portal dungeon variants and persisted discovered variants in `PortalRaidState`.
-- Added terrain-aware portal dungeon shaping, restored middle scar material sectors, added crying obsidian to outer scatter, and preserved vanilla Nether ruined portal placement.
-- Hardened structure generation against chunk-boundary crashes and save-time scans.
-- Ensured generated deep chests receive exactly one Nether Conduit while protecting normal generated loot.
-- Added village spacing and data-side exclusion so portal dungeons do not generate on top of villages.
-- Added Terralith skylands and cave biome exclusions and broadened cave coverage near release.
-- Added structure rarity and outer scatter configuration support.
+- Replaced overworld ruined portal encounters with large procedural portal dungeons while preserving vanilla Nether ruined portals.
+- Added a radius-136 corrupted scar with a protected ritual core, ruined frame, Exiled Piglin anchor, surface caches, ambient details, and lower dungeon access.
+- Added three deterministic structure variants:
+  - Crimson Throne as the baseline scar form.
+  - Sunken Sanctum with a lowered ritual bowl and heavier soul terrain.
+  - Basalt Citadel with a wider blackstone platform and basalt vertical drama.
+- Persisted discovered variants in `PortalRaidState` so runtime systems can query a portal's shape without mutating persistent state during chunk generation.
+- Built a deep underground dungeon network with a large primary chamber, worm-carved organic tunnels, side pockets, ghast-ready deep caverns, lava runs, glowstone pockets, cache pads, and special rooms.
+- Added Masterwork room templates, including the Wither Shrine, Gold Vault, Blaze Chamber, and hidden Ancient Vault.
+- Hardened structure generation against chunk-boundary crashes by keeping block and block-entity access bounded by the structure piece and current chunk box.
+- Ensured generated deep chests receive exactly one Nether Conduit through direct structure chest insertion while preserving normal loot table output.
+- Added data-side village exclusion and broader Terralith skyland/cave biome exclusions.
+- Added structure rarity and outer scatter config support for pack tuning.
 
 ### Red Storm Atmosphere
 
-- Added the red storm encounter atmosphere around portal zones with sky tinting, fog tinting, weather overlays, thunder, particles, ambience, and underground-compatible horizontal-distance checks.
-- Limited storm weather overrides to the client world and stopped storm ambience on world unload.
-- Added completed-portal low-level storm ambience so cleared portal scars remain visually distinct.
-- Tuned storm pulse cadence to a slower organic cycle.
+- Added red storm atmosphere tied to portal territory instead of normal biome weather.
+- Implemented client sky, fog, rain, weather, thunder, overlay, and ambience hooks through the client initializer and client mixins.
+- Used horizontal X/Z portal distance for zone membership so surface players, pit players, and cave players all stay attached to the same encounter.
+- Added completed-portal low-level ambience so cleared scars remain eerie without acting like an active raid.
+- Tuned storm pulse cadence to feel slower and less flickery.
 - Added intensity-scaled storm rumble and cleaned up payload states with explicit dimension guards.
-- Reduced recurring atmosphere range cost and throttled refresh work in portal loops.
+- Reduced recurring atmosphere range cost by throttling refresh work and using cheaper distance checks in hot paths.
 
 ### Gold Tribute Raid
 
-- Added the five-wave Gold Tribute Raid with proximity activation, no Bad Omen requirement, custom wave pacing, boss bar tracking, inter-wave delays, and completion rewards.
-- Added wave escalation, later balancing passes, and roughly 25 percent lower wave 4 and 5 counts after playability review.
-- Added raid restart recovery, restored saved wave delays after restart, and resumed pre-wave raids at the first real wave.
-- Staggered raid completion into readable reward beats: portal lighting, spawner disable, boss chest, Exiled Piglin Trader, and final feedback.
-- Expanded wave spawn retries outward when ring positions are blocked.
+- Added the five-wave Gold Tribute Raid with proximity activation, no Bad Omen requirement, custom wave pacing, boss bar tracking, inter-wave warnings, spawn ring placement, and completion rewards.
+- Added restart recovery so saved active raids can rehydrate with wave number, active mob UUIDs, and remaining inter-wave delay.
+- Staggered completion into readable beats: boss bar removal, spawner disable, fanfare, portal lighting, boss chest burst, Exiled Piglin spawn, and final state persistence.
+- Expanded wave spawn retries outward when ring positions are blocked so a bad floor spot does not silently erase wave counts.
 - Used squared distance checks in ambient spawn loops and guarded ambient spawning behind player proximity and configuration.
-- Detached disconnecting players from active boss bars and rebuilt boss bar viewer tracking around the portal radius.
-- Kept raid completion synced with the boss bar radius and post-raid suppression state.
+- Removed disconnecting players from all active raid boss bars and rebuilt boss bar viewer tracking around the portal radius.
+- Kept raid completion synced with nearby player credit and post-raid spawn suppression.
 
 ### Custom Mobs And GeckoLib
 
-- Added the Piglin Illager combat family, including Pillager, Vindicator, Brute Pillager, Evoker, Illusioner, Vex, and Ravager variants.
-- Added GeckoLib 5.4.5 and moved custom mob rendering onto GeckoLib model and animation assets.
-- Added synced texture variants for custom mobs.
-- Added custom mob sound routing, voice pitch tuning, attack triggers, Vex flying idle, ravager roar animation, melee swing timing matched to GeckoLib clips, and keyframe cues for encounter animations.
-- Added Piglin Pillager crossbow kiting, safer brute priority, limited-life Piglin Vex behavior, and portal-anchored Phase 2 guardians.
-- Added generated entity texture variants for visual variety without external art dependencies.
-- Added a reproducible Pillow post-process for all entity texture sheets, improving contrast, edge shading, gold/orange readability, and small-scale sharpness while preserving UV layout.
+- Added the Piglin Illager combat family: Piglin Pillager, Piglin Vindicator, Piglin Brute Pillager, Piglin Illusioner, Piglin Evoker, Piglin Ravager, and Piglin Vex.
+- Added the Exiled Piglin as a post-raid Wandering Trader-derived reward entity.
+- Moved custom mob rendering to GeckoLib 5.4.5 model and animation assets.
+- Added synced texture variants for combat mobs so repeated waves have more visual variety.
+- Added mob sound routing, voice pitch tuning, attack triggers, Vex flying idle, Ravager roar animation, melee swing timing matched to GeckoLib clips, and keyframe cues for important animation moments.
+- Added Piglin Pillager crossbow kiting, safer Brute Pillager goal priority, limited-life Piglin Vex behavior, and portal-anchored Phase 2 guardians.
+- Added generated entity texture variants and a reproducible Pillow post-process that improves contrast, edge shading, gold/orange readability, and small-scale sharpness without changing UV layouts.
 
 ### Rewards, Items, And Progression
 
-- Added Portal Shard discovery, Nether Conduit progression, Ghast Tear Necklace fireballs, Corrupted Netherite armor rewards, Shard of the Nether, Corrupted Portal Key, Nether Tide music disc, and Nether Dragon Scale trophy.
-- Switched Portal Shard targeting to saved portal state instead of sampled world positions.
-- Hardened Portal Shard saved-state targeting so already-loaded saved origins are cross-checked against live portal dungeon structure data before the item points a player there.
-- Added player-facing tooltips and localized named loot artifacts.
-- Added loot table improvements across surface, deep, boss, and entity rewards.
-- Added nether star drops to key raid mobs and chests so the Nether Crystal progression loop is attainable.
-- Limited boss chest netherite ingots and aligned enchantment loot functions with the current vanilla format.
-- Made named loot rewards replace existing names cleanly.
-- Clarified Dragon Scale as an intentional trophy/material item while Accessories compatibility remains blocked for Minecraft 1.21.11.
+- Added the core reward chain:
+  - Portal Shard discovery item.
+  - Nether Conduit structure reward and mob drop path.
+  - Ghast Tear Necklace carried charm and fireball ability.
+  - Nether Crystal ritual item.
+  - Corrupted Netherite Ingot and armor set.
+  - Nether Dragon Scale trophy.
+  - Nether Tide music disc.
+  - Shard of the Nether and Corrupted Portal Key lore rewards.
+- Switched Portal Shard targeting from sampled world positions to saved `PortalRaidState` origins, then cross-checked already-loaded origins against live structure data before pointing players there.
+- Added player-facing item tooltips and localized named artifacts.
+- Improved surface, deep, boss, and entity loot tables, including nether star access for the Nether Crystal progression loop.
+- Limited boss chest netherite ingots so the reward feels strong without skipping too much progression.
+- Aligned enchantment loot functions with the current vanilla format.
+- Clarified Dragon Scale as an intentional trophy/material item while Accessories compatibility remains blocked for Minecraft `1.21.11`.
 
 ### Nether Conduit
 
-- Added the Nether Conduit block, block entity, activation frame detection, support effects, lava movement help, Nether sleep support, nether mob attack system, upgrade levels, chest placement, and mob drop path.
-- Moved the Nether Conduit into a GeckoLib animated block renderer with active/inactive render state, inner glow, and synced blockstate activation.
-- Tightened the activation ring to the documented 12-nether-brick flat horizontal frame.
-- Preserved upgraded conduits when broken.
-- Cleared conduit lava movement boost state when the server stops.
-- Capped and documented conduit attack/effect behavior and status messaging, including a hard 20-target ceiling for each 30-tick conduit strike pass.
+- Added the Nether Conduit block, block entity, and item.
+- Implemented activation from a flat 12-nether-brick horizontal frame rather than vanilla conduit geometry.
+- Added support effects, upgrade levels, lava movement help, Nether sleep support, and nether mob attack behavior.
+- Moved the conduit to a GeckoLib animated block renderer with synced active/inactive state and inner glow.
+- Preserved upgraded conduit level when broken.
+- Cleared runtime lava movement boost state when the server stops.
+- Capped conduit attack scans to prevent unbounded target processing.
 
 ### Ghast Tear Necklace
 
-- Added the Ghast Tear Necklace as a native carried charm after removing the unverified Accessories dependency path.
-- Added Speed and Jump Boost passive effects, persistent fireball cooldown state, server-validated C2S fireball packet handling, and client keybind support.
-- Validated necklace fireball direction against the server look direction while preserving the keypress aim vector through the payload.
-- Rejected fireball packets from dead or spectating players.
-- Released Exiled Piglin trade locks on player disconnect and cleared stale trade locks when entities load after restart.
+- Reworked the necklace as a native carried charm after removing the unverified Accessories dependency path.
+- Added Speed II and Jump Boost II while carried.
+- Added persistent fireball cooldown state through a data component on the carried stack.
+- Added client keybind support and typed C2S packet handling.
+- Validated fireball requests server-side: carried necklace, alive player, not spectator, cooldown elapsed, finite look vector, and reasonable server-look alignment.
+- Rejected invalid fireball packets silently and used the server-authoritative look direction when needed.
+- Released Exiled Piglin trade locks on player disconnect and cleared stale locks after restart.
 
 ### Nether Crystal Ritual And Nether Dragon
 
-- Added Nether Crystal item placement, GeckoLib Nether Crystal entity animation, generated pedestal placement, ritual detection, summoning sequence, and ritual recovery.
-- Let pre-staged crystals start the dragon ritual and stopped disabled pedestals from consuming crystals.
-- Ignored invalid ritual pedestal state writes and kept ritual cue titles aligned to the portal footprint.
+- Added Nether Crystal item placement and a GeckoLib-rendered Nether Crystal entity.
+- Generated four ritual pedestals around each completed portal and tracked filled pedestals in persistent state.
+- Allowed pre-staged crystals to start the ritual after raid completion.
+- Stopped disabled dragon pedestals from consuming crystals when the dragon system is turned off.
+- Added ritual recovery that reconciles saved pedestal state with loaded crystal entities.
 - Added the Nether Dragon as a portal-anchored boss based on vanilla dragon combat semantics while suppressing End fight output.
-- Added dragon summoning, portal-centered fight radius, phase-two enragement, enraged flight boosts, Nether Slam, breath aura, boss bar tracking, death finale, loot drops, XP behavior, and advancement rewards.
-- Suppressed nearby vanilla End Crystals so Overworld crystal healing cannot affect the Nether Dragon.
-- Kept the Nether Dragon anchored to the portal arena instead of drifting toward overworld origin.
-- Prevented double damage from Nether Slam and kept the slam non-griefing.
+- Kept the dragon from drifting toward overworld origin by actively anchoring it to the portal arena.
+- Suppressed nearby vanilla End Crystals so Overworld crystal healing cannot affect the fight.
+- Added phase-two enragement, flight boosts, Nether Slam, breath aura, boss bar tracking, XP behavior, advancement credit, and a staggered death finale.
+- Prevented Nether Slam from double-damaging players and kept it non-griefing.
 - Dropped dragon death loot at the portal ring instead of the corpse location.
-- Kept active dragon locks while chunks are unloaded and gave dragon fight credit across the full arena.
+- Kept active dragon locks while chunks are unloaded and granted fight credit across the full arena.
 
 ### Advancements, Text, Audio, And Discovery
 
-- Added advancement milestones for conduit use, necklace carry/fireball use, crystal ritual progress, raid completion, dragon defeat, and late-game rewards.
-- Localized advancement display text, raid and conduit status messages, named artifacts, item names, sound subtitles, and release-facing player text.
-- Added mod-owned sound events for raid, conduit, ritual, dragon, storm, music, and reward moments.
-- Made custom sound fallbacks play correctly and routed encounter sounds through the mod sound event registry.
-- Added online-sourced `.ogg` assets for every registered custom sound id, plus a reproducible preparation script and CC0 source attribution for the current soundscape.
-- Added optional REI progression pages and corrected REI recipe hints.
-- Added optional Patchouli guide data and fixed Patchouli guide loading.
-- Removed internal draft wording from release text before closeout.
+- Added advancement milestones for portal approach, aether boon, territory totem, pit descent, deep storm, raid start, raid completion, Exiled Piglin trade, conduit use, necklace carry/fireball use, crystal ritual, dragon defeat, and late-game rewards.
+- Localized advancement display text, raid labels, conduit status messages, item names, lore lines, sound subtitles, and player-facing action bar/title text.
+- Added mod-owned sound events for raid, conduit, ritual, dragon, storm, music, item abilities, and reward moments.
+- Fixed sound fallback behavior and routed encounter calls through the mod sound registry.
+- Added optional REI progression pages for important systems and corrected recipe hints.
+- Added optional Patchouli guide data and guarded runtime guide injection behind Patchouli availability.
+- Removed internal draft wording from release-facing text before closeout.
 
 ### Compatibility, Configuration, And Safety
 
-- Added Cloth Config and ModMenu support with grouped options, live gameplay tuning, validation, and clear pack-tuning tooltips.
-- Removed dead configuration options and aligned structure rarity, combat scaling, scatter, nether star drops, and portal biome rules with real runtime behavior.
-- Guarded optional REI displays and kept the project free of unverified Accessories API runtime dependency.
-- Added post-raid natural spawn suppression for completed portal areas, with a config toggle.
+- Added Cloth Config and ModMenu support with grouped categories, live gameplay tuning, validation, and pack-tuning tooltips.
+- Removed dead config options and aligned runtime behavior for structure rarity, combat scaling, scatter, nether star drops, portal biome rules, ambient spawns, and post-raid suppression.
+- Guarded optional REI and Patchouli integration paths so neither becomes a hard dependency.
+- Kept the project free of the unverified Accessories API runtime dependency on this Minecraft `1.21.11` branch.
+- Added post-raid hostile spawn suppression for completed portal territories.
 - Added safe persistent-state codec defaults for older saves and restart safety.
-- Cleared Exiled Piglin trade locks across disconnect/reload paths.
-- Repaired dragon ritual recovery, save-and-exit chunk scanning, and portal scans during save.
-- Kept common code dedicated-server safe by moving client-only rendering into client entrypoints and mixins.
+- Repaired save-and-exit chunk scanning and portal scans during save.
+- Kept common code dedicated-server safe by moving client-only rendering, packets, and mixins into client entrypoints/configuration.
 
 ## Development History
 
