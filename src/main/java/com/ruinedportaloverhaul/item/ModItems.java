@@ -2,6 +2,7 @@ package com.ruinedportaloverhaul.item;
 
 import com.ruinedportaloverhaul.RuinedPortalOverhaul;
 import com.ruinedportaloverhaul.component.ModDataComponents;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -27,6 +28,11 @@ public final class ModItems {
     public static final Identifier PORTAL_SHARD_ID = id("portal_shard");
     public static final Identifier NETHER_DRAGON_SCALE_ID = id("nether_dragon_scale");
     public static final Identifier MUSIC_DISC_NETHER_TIDE_ID = id("music_disc_nether_tide");
+    public static final Identifier CORRUPTED_PORTAL_KEY_ID = id("corrupted_portal_key");
+    public static final Identifier SHARD_OF_THE_NETHER_ID = id("shard_of_the_nether");
+    public static final Identifier CORRUPTED_RAVAGER_HIDE_ID = id("corrupted_ravager_hide");
+    public static final Identifier EMBERED_GRIMOIRE_ID = id("embered_grimoire");
+    public static final Identifier VOIDASH_POWDER_ID = id("voidash_powder");
     public static final ResourceKey<JukeboxSong> NETHER_TIDE_SONG_KEY = ResourceKey.create(Registries.JUKEBOX_SONG, id("nether_tide"));
 
     public static final GhastTearNecklaceItem GHAST_TEAR_NECKLACE = Registry.register(
@@ -95,6 +101,36 @@ public final class ModItems {
             .stacksTo(1)
             .rarity(Rarity.RARE))
     );
+    public static final LoreArtifactItem CORRUPTED_PORTAL_KEY = registerLoreArtifact(
+        CORRUPTED_PORTAL_KEY_ID,
+        "corrupted_portal_key",
+        Rarity.RARE,
+        ChatFormatting.DARK_RED
+    );
+    public static final LoreArtifactItem SHARD_OF_THE_NETHER = registerLoreArtifact(
+        SHARD_OF_THE_NETHER_ID,
+        "shard_of_the_nether",
+        Rarity.EPIC,
+        ChatFormatting.DARK_PURPLE
+    );
+    public static final LoreArtifactItem CORRUPTED_RAVAGER_HIDE = registerLoreArtifact(
+        CORRUPTED_RAVAGER_HIDE_ID,
+        "corrupted_ravager_hide",
+        Rarity.RARE,
+        ChatFormatting.DARK_RED
+    );
+    public static final LoreArtifactItem EMBERED_GRIMOIRE = registerLoreArtifact(
+        EMBERED_GRIMOIRE_ID,
+        "embered_grimoire",
+        Rarity.RARE,
+        ChatFormatting.GOLD
+    );
+    public static final LoreArtifactItem VOIDASH_POWDER = registerLoreArtifact(
+        VOIDASH_POWDER_ID,
+        "voidash_powder",
+        Rarity.RARE,
+        ChatFormatting.DARK_PURPLE
+    );
 
     private ModItems() {
     }
@@ -118,6 +154,17 @@ public final class ModItems {
                 .component(DataComponents.CUSTOM_DATA, corruptedArmorData())
                 .fireResistant()
                 .rarity(Rarity.EPIC))
+        );
+    }
+
+    private static LoreArtifactItem registerLoreArtifact(Identifier id, String itemPath, Rarity rarity, ChatFormatting accent) {
+        return Registry.register(
+            BuiltInRegistries.ITEM,
+            id,
+            new LoreArtifactItem(new Item.Properties()
+                .setId(ResourceKey.create(Registries.ITEM, id))
+                .fireResistant()
+                .rarity(rarity), itemPath, accent)
         );
     }
 

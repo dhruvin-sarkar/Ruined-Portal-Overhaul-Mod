@@ -59,7 +59,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "minecraft:leather",
+          "name": "ruined_portal_overhaul:corrupted_ravager_hide",
           "functions": [
             {
               "function": "minecraft:set_count",
@@ -68,36 +68,6 @@
                 "min": 2.0,
                 "max": 4.0
               }
-            },
-            {
-              "function": "minecraft:set_name",
-              "mode": "replace_all",
-              "name": {
-                "translate": "loot.ruined_portal_overhaul.artifact.corrupted_ravager_hide.name",
-                "italic": false,
-                "color": "dark_red"
-              }
-            },
-            {
-              "function": "minecraft:set_lore",
-              "mode": "replace_all",
-              "lore": [
-                {
-                  "translate": "loot.ruined_portal_overhaul.artifact.corrupted_ravager_hide.line1",
-                  "italic": false,
-                  "color": "gray"
-                },
-                {
-                  "translate": "loot.ruined_portal_overhaul.artifact.corrupted_ravager_hide.line2",
-                  "italic": false,
-                  "color": "dark_red"
-                },
-                {
-                  "translate": "loot.ruined_portal_overhaul.artifact.corrupted_ravager_hide.line3",
-                  "italic": false,
-                  "color": "dark_gray"
-                }
-              ]
             }
           ]
         }

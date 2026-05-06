@@ -162,39 +162,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "minecraft:book",
-          "functions": [
-            {
-              "function": "minecraft:set_name",
-              "mode": "replace_all",
-              "name": {
-                "translate": "loot.ruined_portal_overhaul.artifact.embered_grimoire.name",
-                "italic": false,
-                "color": "gold"
-              }
-            },
-            {
-              "function": "minecraft:set_lore",
-              "mode": "replace_all",
-              "lore": [
-                {
-                  "translate": "loot.ruined_portal_overhaul.artifact.embered_grimoire.line1",
-                  "italic": false,
-                  "color": "gray"
-                },
-                {
-                  "translate": "loot.ruined_portal_overhaul.artifact.embered_grimoire.line2",
-                  "italic": false,
-                  "color": "dark_red"
-                },
-                {
-                  "translate": "loot.ruined_portal_overhaul.artifact.embered_grimoire.line3",
-                  "italic": false,
-                  "color": "dark_gray"
-                }
-              ]
-            }
-          ]
+          "name": "ruined_portal_overhaul:embered_grimoire"
         }
       ]
     },

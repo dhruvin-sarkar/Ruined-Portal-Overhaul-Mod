@@ -5,8 +5,8 @@
     {
       "rolls": {
         "type": "minecraft:uniform",
-        "min": 16.0,
-        "max": 20.0
+        "min": 18.0,
+        "max": 22.0
       },
       "entries": [
         {
@@ -225,40 +225,13 @@
         },
         {
           "type": "minecraft:item",
-          "name": "minecraft:tripwire_hook",
-          "weight": 4,
-          "functions": [
-            {
-              "function": "minecraft:set_name",
-              "mode": "replace_all",
-              "name": {
-                "translate": "loot.ruined_portal_overhaul.artifact.corrupted_portal_key.name",
-                "italic": false,
-                "color": "red"
-              }
-            },
-            {
-              "function": "minecraft:set_lore",
-              "mode": "replace_all",
-              "lore": [
-                {
-                  "translate": "loot.ruined_portal_overhaul.artifact.corrupted_portal_key.line1",
-                  "italic": false,
-                  "color": "gray"
-                },
-                {
-                  "translate": "loot.ruined_portal_overhaul.artifact.corrupted_portal_key.line2",
-                  "italic": false,
-                  "color": "dark_red"
-                },
-                {
-                  "translate": "loot.ruined_portal_overhaul.artifact.corrupted_portal_key.line3",
-                  "italic": false,
-                  "color": "dark_gray"
-                }
-              ]
-            }
-          ]
+          "name": "ruined_portal_overhaul:corrupted_portal_key",
+          "weight": 4
+        },
+        {
+          "type": "minecraft:item",
+          "name": "ruined_portal_overhaul:shard_of_the_nether",
+          "weight": 4
         }
       ]
     },
