@@ -817,6 +817,27 @@ public final class PortalStructureHelper {
         return isColumnInside(pieceBox, pos) && isColumnInside(chunkBox, pos);
     }
 
+    public static BlockPos surfaceCacheTop(
+        WorldGenLevel level,
+        BoundingBox pieceBox,
+        BoundingBox chunkBox,
+        BlockPos target,
+        long seed
+    ) {
+        if (!isColumnInside(pieceBox, chunkBox, target)) {
+            return null;
+        }
+
+        TerrainProfile profile = terrainProfile(level, target.getX(), target.getZ());
+        BlockPos top = profile.floorTop();
+        if (profile.hasWater()) {
+            top = retargetTerrainTop(level, pieceBox, chunkBox, target.getX(), target.getZ(), profile.waterSurfaceY(), cooledSupportBlock(profile, target.getX(), target.getZ(), seed));
+            settleColumnLiquid(level, pieceBox, chunkBox, top, profile, 0.65, seed);
+        }
+        stabilizeScarColumn(level, pieceBox, chunkBox, top, profile, Blocks.BLACKSTONE.defaultBlockState(), 0.55);
+        return top;
+    }
+
     public static List<BlockPos> ritualPedestalPositions(BlockPos origin) {
         return List.of(
             origin.offset(0, 0, -6),
@@ -1489,13 +1510,14 @@ public final class PortalStructureHelper {
         BlockPos origin,
         int bottomY
     ) {
-        int topY = origin.getY();
-        for (int y = topY; y >= bottomY; y--) {
-            double t = (topY - y) / (double) Math.max(1, topY - bottomY);
-            double mouthFlare = t < 0.18 ? (1.0 - t / 0.18) * 2.8 : 0.0;
-            double radius = 7.1 - t * 1.5 + mouthFlare;
-            for (int dx = -14; dx <= 14; dx++) {
-                for (int dz = -14; dz <= 14; dz++) {
+        for (int dx = -14; dx <= 14; dx++) {
+            for (int dz = -14; dz <= 14; dz++) {
+                BlockPos mouthTop = pitMouthTop(level, pieceBox, chunkBox, origin, dx, dz);
+                int topY = Math.max(bottomY + 8, mouthTop.getY());
+                for (int y = topY; y >= bottomY; y--) {
+                    double t = (topY - y) / (double) Math.max(1, topY - bottomY);
+                    double mouthFlare = t < 0.20 ? (1.0 - t / 0.20) * 3.1 : 0.0;
+                    double radius = 7.2 - t * 1.45 + mouthFlare;
                     long layerSeed = origin.asLong() ^ (long) y * 341873128712L;
                     double noise = coordinateNoise(layerSeed, origin.getX() + dx, origin.getZ() + dz) * 2.4 - 1.2;
                     double distance = Math.sqrt(dx * dx + dz * dz) + noise;
@@ -1510,6 +1532,27 @@ public final class PortalStructureHelper {
         }
         erodePitMouth(level, pieceBox, chunkBox, origin);
         placePitLedges(level, pieceBox, chunkBox, origin, bottomY);
+        placePitSupportRibs(level, pieceBox, chunkBox, origin, bottomY);
+    }
+
+    private static BlockPos pitMouthTop(
+        WorldGenLevel level,
+        BoundingBox pieceBox,
+        BoundingBox chunkBox,
+        BlockPos origin,
+        int dx,
+        int dz
+    ) {
+        int x = origin.getX() + dx;
+        int z = origin.getZ() + dz;
+        TerrainProfile profile = terrainProfile(level, x, z);
+        if (!profile.hasWater()) {
+            return profile.floorTop();
+        }
+
+        BlockPos top = retargetTerrainTop(level, pieceBox, chunkBox, x, z, profile.waterSurfaceY(), cooledSupportBlock(profile, x, z, origin.asLong()));
+        settleColumnLiquid(level, pieceBox, chunkBox, top, profile, 0.95, origin.asLong());
+        return top;
     }
 
     private static void erodePitMouth(
@@ -1522,7 +1565,7 @@ public final class PortalStructureHelper {
             for (int dz = -15; dz <= 15; dz++) {
                 double distance = Math.sqrt(dx * dx + dz * dz);
                 double raggedRadius = 8.8 + coordinateNoise(origin.asLong() ^ 0x4F2C1A9D77B13E5BL, origin.getX() + dx, origin.getZ() + dz) * 3.8 - 1.9;
-                BlockPos pos = origin.offset(dx, 0, dz);
+                BlockPos pos = pitMouthTop(level, pieceBox, chunkBox, origin, dx, dz);
                 if (distance <= raggedRadius - 0.9) {
                     carveNetherAir(level, pieceBox, chunkBox, pos);
                     if (coordinateNoise(origin.asLong() ^ 0x0D1B54A32F5B827CL, pos.getX(), pos.getZ()) < 0.45) {
@@ -1563,7 +1606,9 @@ public final class PortalStructureHelper {
                 double blend = 1.0 - clamp01((distance - 13.5) / 7.0);
                 double roll = coordinateNoise(origin.asLong() ^ 0x2383DB4FC627D5A9L, column.getX(), column.getZ());
                 if (roll < blend * 0.58) {
-                    setColumn(level, pieceBox, chunkBox, top, pickScorchedNativeSurface(naturalSurface, column.getX(), column.getZ(), origin.asLong(), blend), 1);
+                    BlockState surface = pickScorchedNativeSurface(naturalSurface, column.getX(), column.getZ(), origin.asLong(), blend);
+                    setColumn(level, pieceBox, chunkBox, top, surface, 1);
+                    stabilizeScarColumn(level, pieceBox, chunkBox, top, terrainProfile(level, column.getX(), column.getZ()), surface, blend);
                 }
             }
         }
@@ -1595,6 +1640,32 @@ public final class PortalStructureHelper {
                 set(level, pieceBox, chunkBox, ledge.above(), Blocks.AIR.defaultBlockState());
                 if (step % 2 == 0) {
                     set(level, pieceBox, chunkBox, ledge.below(), Blocks.BLACKSTONE.defaultBlockState());
+                }
+            }
+        }
+    }
+
+    private static void placePitSupportRibs(
+        WorldGenLevel level,
+        BoundingBox pieceBox,
+        BoundingBox chunkBox,
+        BlockPos origin,
+        int bottomY
+    ) {
+        for (int i = 0; i < 8; i++) {
+            double angle = i * Math.PI / 4.0 + coordinateNoise(origin.asLong() ^ 0x4B4F2D6B358479A1L, i, i * 7) * 0.18;
+            int dx = (int) Math.round(Math.cos(angle) * 8.5);
+            int dz = (int) Math.round(Math.sin(angle) * 8.5);
+            BlockPos top = pitMouthTop(level, pieceBox, chunkBox, origin, dx, dz);
+            int lowY = Math.max(bottomY + 5, top.getY() - 24);
+            for (int y = top.getY() - 1; y >= lowY; y--) {
+                BlockPos rib = new BlockPos(top.getX(), y, top.getZ());
+                BlockState state = (y + i) % 5 == 0
+                    ? Blocks.CRACKED_POLISHED_BLACKSTONE_BRICKS.defaultBlockState()
+                    : ((y + i) % 3 == 0 ? Blocks.BASALT.defaultBlockState() : Blocks.BLACKSTONE.defaultBlockState());
+                set(level, pieceBox, chunkBox, rib, state);
+                if ((y - lowY) % 7 == 0) {
+                    set(level, pieceBox, chunkBox, rib.relative(Direction.Plane.HORIZONTAL.getRandomDirection(RandomSource.create(origin.asLong() ^ y ^ i))), Blocks.IRON_BARS.defaultBlockState());
                 }
             }
         }

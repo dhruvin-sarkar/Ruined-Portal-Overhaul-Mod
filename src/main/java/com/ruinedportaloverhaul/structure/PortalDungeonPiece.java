@@ -124,15 +124,25 @@ public class PortalDungeonPiece extends StructurePiece {
         chests.add(origin.offset(-16, 0, -32));
         chests.add(origin.offset(48, 0, 24));
         chests.add(origin.offset(-52, 0, -22));
+        chests.add(origin.offset(58, 0, -42));
+        chests.add(origin.offset(-61, 0, 39));
+        chests.add(origin.offset(72, 0, 9));
+        chests.add(origin.offset(-70, 0, -12));
+        chests.add(origin.offset(31, 0, 55));
+        chests.add(origin.offset(-34, 0, -58));
 
         for (BlockPos target : chests) {
             if (!PortalStructureHelper.isColumnInside(this.boundingBox, chunkBox, target)) {
                 continue;
             }
-            BlockPos top = PortalStructureHelper.terrainTop(level, target);
+            BlockPos top = PortalStructureHelper.surfaceCacheTop(level, this.boundingBox, chunkBox, target, this.seed());
+            if (top == null) {
+                continue;
+            }
             BlockPos chestPos = top.above();
             this.prepareSurfaceCache(level, chunkBox, top);
             this.setBlockIfInside(level, chunkBox, chestPos, Blocks.AIR.defaultBlockState());
+            this.setBlockIfInside(level, chunkBox, chestPos.above(), Blocks.AIR.defaultBlockState());
             this.createChest(level, chunkBox, random, chestPos, SURFACE_LOOT, null);
         }
     }
