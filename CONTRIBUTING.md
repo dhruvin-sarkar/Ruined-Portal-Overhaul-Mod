@@ -4,13 +4,7 @@ Thanks for taking the time to work on Ruined Portal Overhaul. This project has a
 
 ## Before You Start
 
-Read these first:
-
-- `CLAUDE.md` for the current project state and implementation notes.
-- `SPEC.md` for the shorter system overview.
-- `README.md` for the player-facing feature summary.
-
-`promtpss.md` is useful task context, but it can lag behind the live source tree. Treat `CLAUDE.md`, `SPEC.md`, and the actual code as the source of truth.
+Work from the live source tree, the changelog, and the behavior you can actually verify in-game. Planning notes can drift behind the code, so treat the current implementation as the source of truth before changing systems that are already wired up.
 
 ## Local Setup
 
@@ -106,12 +100,7 @@ Avoid hardcoded English in Java unless it is strictly debug-only and not shown t
 
 ## Documentation
 
-When behavior changes, update the docs in the same pull request:
-
-- `CLAUDE.md` for canonical implementation state.
-- `SPEC.md` for the concise technical overview.
-- `README.md` for player-facing changes.
-- `CHANGELOG.md` for release notes.
+When behavior changes, update the tracked public docs in the same pull request. At minimum, keep `CHANGELOG.md` current. If the change touches bundled sound assets, also update `assets/audio_sources/ONLINE_AUDIO_ATTRIBUTION.md`.
 
 Keep the wording plain. Describe what changed, why it matters, and what was tested.
 

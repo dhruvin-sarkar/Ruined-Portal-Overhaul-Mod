@@ -56,7 +56,7 @@ This update is a world-generation and presentation polish pass for the portal en
 - Replaced generated/procedural audio as the final shipped soundscape with edited online CC0 sources from Kenney and OpenGameArt.
 - Documented online audio sources and output mapping in `assets/audio_sources/ONLINE_AUDIO_ATTRIBUTION.md`.
 - Kept the online-audio preparation script so the current soundscape can be rebuilt from the source files.
-- Updated `CLAUDE.md`, `SPEC.md`, `README.md`, and this changelog to reflect the worldgen, raid, loot, lore item, and creative inventory pass.
+- Updated internal notes and this changelog to reflect the worldgen, raid, loot, lore item, and creative inventory pass.
 - Corrected an old changelog typo in the 2026-04-22 history section.
 
 ### Validation
@@ -72,7 +72,7 @@ This was the first full release candidate for the complete encounter chain: a co
 
 ### Release Readiness
 
-- Completed the release presentation layer: README, Modrinth description, contribution guide, issue templates, and reconstructed changelog.
+- Completed the release presentation layer: Modrinth description, contribution guide, issue templates, and reconstructed changelog.
 - Added English-valued localization skeletons for `de_de`, `es_es`, `fr_fr`, `ja_jp`, `pt_br`, `ru_ru`, and `zh_cn`. These files are intentionally English stubs so players do not see raw keys and translators have a full starting point.
 - Added operator-only `/rpo` admin commands for testing and server support:
   - `/rpo locate`
@@ -83,7 +83,7 @@ This was the first full release candidate for the complete encounter chain: a co
   - `/rpo dragon`
 - Recorded a dedicated-server dry start through Fabric, GeckoLib, and mod initialization. The server stopped at the expected unaccepted-EULA gate, which verifies class loading without accepting the EULA on the user's behalf.
 - Recorded a bounded client startup smoke through client initializer, renderer/resource loading, sound engine startup, texture atlas creation, recipe and advancement loading, biome modifications, and integrated-server startup.
-- Reconciled `CLAUDE.md`, `SPEC.md`, `README.md`, and release-facing text with the live source tree.
+- Reconciled release-facing text with the live source tree.
 - Verified Java 21 build health and static resource shape, including language keys, sound subtitles, loot data, advancement triggers, GeckoLib assets, particles, Patchouli data, recipes, mixin references, and release artifact sanity.
 
 ### Portal Dungeons And World Generation
@@ -210,11 +210,11 @@ This was the first full release candidate for the complete encounter chain: a co
 
 ### 2026-05-03 - Release Packaging And Verification
 
-- Added release docs, contribution guide, Modrinth page text, issue templates, and a release README for testers.
+- Added release docs, contribution guide, Modrinth page text, issue templates, and release notes for testers.
 - Added the `/rpo` admin command suite for live testing and server administration.
 - Added localization skeletons for seven major locales.
 - Recorded dedicated-server dry start verification and client startup smoke verification.
-- Synced `SPEC.md`, `CLAUDE.md`, and README references with final verification notes.
+- Synced internal verification notes with the final release state.
 
 ### 2026-05-02 - Final Deep Audit And Release Polish
 
@@ -419,7 +419,6 @@ This changelog was expanded from these sources:
 - GitHub remote `origin`, currently `https://github.com/dhruvin-sarkar/Ruined-Portal-Overhaul-Mod.git`.
 - Local `main`, which includes the release documentation and changelog commits beyond the last fetched `origin/main` snapshot.
 - Local historical branches for the decompile batches and master content expansion work.
-- `CLAUDE.md`, the canonical project context, last reconciled 2026-05-03.
 - Prior local Codex memory for the April 22, April 28, and May 1-2 audit and release validation passes.
 
 Reference points at the start of this appendix pass:
@@ -428,7 +427,7 @@ Reference points at the start of this appendix pass:
 - GitHub `origin/main` snapshot after fetch: `f794bdf`, the final validation docs refresh from 2026-05-02.
 - Local release tip before this appendix: `051ec27`, the first reconstructed changelog pass from 2026-05-03.
 - Local `v1.0.0` tag before this appendix was committed: annotated tag resolving to `051ec27`; later release-history commits should move the tag forward.
-- Local-only release commits after `origin/main`: final verification docs, README, admin commands, localization skeletons, release presentation docs, and changelog reconstruction.
+- Local-only release commits after `origin/main`: final verification notes, admin commands, localization skeletons, release presentation docs, and changelog reconstruction.
 
 ## Current Technical Surface Reference
 
@@ -444,7 +443,7 @@ These are the main code and resource surfaces represented by the v1.0.0 history:
 - Conduit systems: `NetherConduitBlock`, `NetherConduitBlockEntity`, `NetherConduitPowerTracker`, `NetherConduitEvents`, lava movement mixin, conduit damage type, activation frame, upgrade state, effects, and structure chest insertion.
 - Optional discovery: REI client plugin, Patchouli guide book data, advancement tree, localized text, custom sound events with online-sourced `.ogg` assets, custom particles, and post-processed generated texture variants.
 - Administration and testing: `/rpo` locate, status, reset, wave, dragon, and complete commands for operators and modpack debugging.
-- Release packaging: README, Modrinth description, contribution docs, issue templates, localization skeletons, build validation notes, dedicated-server dry start, and client startup smoke notes.
+- Release packaging: Modrinth description, contribution docs, issue templates, localization skeletons, build validation notes, dedicated-server dry start, and client startup smoke notes.
 
 ## Complete Commit Ledger
 
@@ -457,14 +456,14 @@ This ledger preserves every visible commit from local history, including branch-
 - `c5031a9` - Added English-valued localization skeleton files for seven major non-English locales.
 - `6829dd4` - Added the `/rpo` admin command suite for fast portal, raid, and dragon testing.
 - `88b0d6e` - Recorded client startup smoke verification for the release candidate.
-- `c6a7274` - Linked the release README from project documentation.
-- `1e5daa4` - Added a release README aimed at testers and pack users.
+- `c6a7274` - Linked the release overview from project documentation.
+- `1e5daa4` - Added a release overview aimed at testers and pack users.
 - `6cec645` - Recorded dedicated-server dry start verification through the expected EULA stop.
-- `364e35f` - Synced `SPEC.md` with the final verification notes.
+- `364e35f` - Synced final verification notes with release docs.
 
 ### 2026-05-02
 
-- `a93d5a6` - Synced `CLAUDE.md` with final verification notes.
+- `a93d5a6` - Synced internal project notes with final verification notes.
 - `bb1d8b1` - Clarified that Dragon Scale is an intentional trophy and material item.
 - `369b6b0` - Broadened Terralith cave-biome exclusions.
 - `6467033` - Reworked portal chest potion loot to use vanilla potion loot functions.
@@ -526,7 +525,7 @@ This ledger preserves every visible commit from local history, including branch-
 - `1fbdbb9` - Removed old vanilla renderer paths after the GeckoLib migration.
 - `0f39004` - Protected generated chest loot from conduit insertion side effects.
 - `784d991` - Made custom sound fallbacks actually play.
-- `d184e4e` - Kept `SPEC.md` aligned with the live ritual flow.
+- `d184e4e` - Kept technical notes aligned with the live ritual flow.
 - `4f9221e` - Stopped disabled dragon pedestals from consuming crystals.
 - `77702ba` - Allowed pre-staged crystals to start the dragon ritual.
 - `3ecad98` - Kept the Exiled Piglin chained to its fence post.
@@ -612,7 +611,7 @@ This ledger preserves every visible commit from local history, including branch-
 
 ### 2026-04-22
 
-- `99ea9f7` - Refreshed `CLAUDE.md` with current expansion state.
+- `99ea9f7` - Refreshed internal project notes with current expansion state.
 - `d43e332` - Kept ruined portal dungeons away from villages.
 - `59a0e2f` - Added synced GeckoLib mob variants.
 - `eef482e` - Advertised verified world-generation compatibility.
