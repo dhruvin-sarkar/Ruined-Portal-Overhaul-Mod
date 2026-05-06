@@ -27,6 +27,8 @@ public final class PortalStructureHelper {
     public static final int OUTER_RADIUS = 136;
     public static final int PIT_DEPTH = 45;
     private static final double MIDDLE_BLEND_START_RADIUS = INNER_RADIUS + 12.0;
+    private static final int SHALLOW_WATER_DEPTH = 3;
+    private static final int CLIFF_SLOPE_THRESHOLD = 5;
 
     private PortalStructureHelper() {
     }
@@ -67,8 +69,13 @@ public final class PortalStructureHelper {
                 BlockPos top = variant == PortalDungeonVariant.SUNKEN_SANCTUM
                     ? sunkenInnerZoneTop(level, pieceBox, chunkBox, origin, x, z, terrainSeed)
                     : terrainTop(level, x, z);
+                TerrainProfile profile = terrainProfile(level, x, z);
+                if (profile.hasWater()) {
+                    top = retargetTerrainTop(level, pieceBox, chunkBox, x, z, profile.waterSurfaceY(), cooledSupportBlock(profile, x, z, terrainSeed));
+                }
                 setColumn(level, pieceBox, chunkBox, top, innerSurface, 3);
-                convertLocalWaterToLava(level, pieceBox, chunkBox, top);
+                settleColumnLiquid(level, pieceBox, chunkBox, top, profile, 1.0, terrainSeed);
+                stabilizeScarColumn(level, pieceBox, chunkBox, top, profile, innerSurface, 1.0);
                 set(level, pieceBox, chunkBox, top.above(), Blocks.AIR.defaultBlockState());
             }
         }
@@ -109,10 +116,12 @@ public final class PortalStructureHelper {
                 BlockPos top = variant == PortalDungeonVariant.SUNKEN_SANCTUM
                     ? sunkenMiddleZoneTop(level, pieceBox, chunkBox, origin, x, z, distance, terrainSeed)
                     : sculptedTerrainTop(level, pieceBox, chunkBox, origin, x, z, distance, terrainSeed);
-                BlockState naturalSurface = level.getBlockState(terrainTop(level, x, z));
+                TerrainProfile profile = terrainProfile(level, x, z);
+                BlockState naturalSurface = profile.naturalSurface();
                 BlockState surface = pickMiddleZoneSurface(variant, origin, x, z, distance, terrainSeed, naturalSurface);
                 setColumn(level, pieceBox, chunkBox, top, surface, middleZoneSurfaceDepth(surface, distance));
-                convertLocalWaterToLava(level, pieceBox, chunkBox, top);
+                settleColumnLiquid(level, pieceBox, chunkBox, top, profile, 1.0 - clamp01((distance - INNER_RADIUS) / (MIDDLE_RADIUS - INNER_RADIUS)), terrainSeed);
+                stabilizeScarColumn(level, pieceBox, chunkBox, top, profile, surface, 0.85);
                 if (random.nextFloat() < 0.08f) {
                     set(level, pieceBox, chunkBox, top.above(), Blocks.AIR.defaultBlockState());
                 }
@@ -818,13 +827,7 @@ public final class PortalStructureHelper {
     }
 
     public static BlockPos terrainTop(WorldGenLevel level, int x, int z) {
-        int worldSurface = level.getHeight(Heightmap.Types.WORLD_SURFACE_WG, x, z) - 1;
-        int oceanFloor = level.getHeight(Heightmap.Types.OCEAN_FLOOR_WG, x, z) - 1;
-
-        if (worldSurface - oceanFloor > 1) {
-            return new BlockPos(x, oceanFloor, z);
-        }
-        return new BlockPos(x, worldSurface, z);
+        return terrainProfile(level, x, z).floorTop();
     }
 
     private static BlockPos sculptedTerrainTop(
@@ -837,7 +840,14 @@ public final class PortalStructureHelper {
         double distance,
         long seed
     ) {
-        BlockPos naturalTop = terrainTop(level, x, z);
+        TerrainProfile profile = terrainProfile(level, x, z);
+        BlockPos naturalTop = profile.floorTop();
+        if (profile.hasWater()) {
+            int waterTarget = profile.waterDepth() <= SHALLOW_WATER_DEPTH
+                ? profile.waterSurfaceY() - 1
+                : profile.waterSurfaceY();
+            return retargetTerrainTop(level, pieceBox, chunkBox, x, z, waterTarget, cooledSupportBlock(profile, x, z, seed));
+        }
         if (distance <= INNER_RADIUS + 2.5) {
             return naturalTop;
         }
@@ -912,7 +922,11 @@ public final class PortalStructureHelper {
         double distance,
         long seed
     ) {
-        BlockPos naturalTop = terrainTop(level, x, z);
+        TerrainProfile profile = terrainProfile(level, x, z);
+        BlockPos naturalTop = profile.floorTop();
+        if (profile.hasWater()) {
+            return retargetTerrainTop(level, pieceBox, chunkBox, x, z, profile.waterSurfaceY(), cooledSupportBlock(profile, x, z, seed));
+        }
         double normalized = clamp01((distance - INNER_RADIUS) / (MIDDLE_RADIUS - INNER_RADIUS));
         double bowlStrength = 1.0 - normalized;
         int bowlDepth = (int) Math.round(4.0 * bowlStrength * bowlStrength);
@@ -933,7 +947,7 @@ public final class PortalStructureHelper {
         // Fix: the middle scar had collapsed back to one mostly netherrack material, erasing the intended north/south/east/west navigation language. The selector now restores cardinal material sectors while keeping netherrack as the common fallback and giving Sunken Sanctum its extra soul-sand weight.
         double edgeBlend = smoothStep(clamp01((distance - MIDDLE_BLEND_START_RADIUS) / (MIDDLE_RADIUS - MIDDLE_BLEND_START_RADIUS)));
         double nativeRoll = coordinateNoise(seed ^ 0x7312C844A51E9F2BL, Math.floorDiv(x, 4), Math.floorDiv(z, 4));
-        if (nativeRoll < edgeBlend * 0.68) {
+        if (nativeRoll < edgeBlend * 0.82) {
             return pickScorchedNativeSurface(naturalSurface, x, z, seed, edgeBlend);
         }
 
@@ -1010,7 +1024,7 @@ public final class PortalStructureHelper {
             return random.nextFloat() < 0.5f ? Blocks.CRYING_OBSIDIAN.defaultBlockState() : Blocks.MAGMA_BLOCK.defaultBlockState();
         }
         double netherRoll = coordinateNoise(origin.asLong() ^ 0x6BC9730FA48C229DL, Math.floorDiv(column.getX(), 2), Math.floorDiv(column.getZ(), 2));
-        if (netherRoll < 0.14 + gradient * 0.42) {
+        if (netherRoll < 0.08 + gradient * 0.34) {
             if (gradient > 0.72 && random.nextFloat() < 0.22f) {
                 return Blocks.BLACKSTONE.defaultBlockState();
             }
@@ -1361,7 +1375,9 @@ public final class PortalStructureHelper {
         if (topCenter == null) {
             return;
         }
-        int lavaY = topCenter.getY();
+        TerrainProfile centerProfile = terrainProfile(level, topCenter.getX(), topCenter.getZ());
+        boolean waterBasin = centerProfile.hasWater();
+        int lavaY = waterBasin ? centerProfile.waterSurfaceY() : topCenter.getY();
         for (int dx = -radius - 1; dx <= radius + 1; dx++) {
             for (int dz = -radius - 1; dz <= radius + 1; dz++) {
                 double distance = Math.sqrt(dx * dx + dz * dz) + random.nextDouble() * 0.35;
@@ -1369,10 +1385,16 @@ public final class PortalStructureHelper {
                 if (columnTop == null) {
                     continue;
                 }
+                TerrainProfile profile = terrainProfile(level, columnTop.getX(), columnTop.getZ());
                 BlockPos pos = new BlockPos(columnTop.getX(), lavaY, columnTop.getZ());
                 if (distance <= radius) {
-                    set(level, pieceBox, chunkBox, pos.below(), Blocks.NETHERRACK.defaultBlockState());
-                    set(level, pieceBox, chunkBox, pos, Blocks.LAVA.defaultBlockState());
+                    if (waterBasin || profile.hasWater()) {
+                        set(level, pieceBox, chunkBox, pos.below(), Blocks.BLACKSTONE.defaultBlockState());
+                        set(level, pieceBox, chunkBox, pos, random.nextFloat() < 0.68f ? Blocks.MAGMA_BLOCK.defaultBlockState() : Blocks.SMOOTH_BASALT.defaultBlockState());
+                    } else {
+                        set(level, pieceBox, chunkBox, pos.below(), Blocks.NETHERRACK.defaultBlockState());
+                        set(level, pieceBox, chunkBox, pos, Blocks.LAVA.defaultBlockState());
+                    }
                     set(level, pieceBox, chunkBox, pos.above(), Blocks.AIR.defaultBlockState());
                 } else if (distance <= radius + 1.5) {
                     set(level, pieceBox, chunkBox, pos, pickLavaRimBlock(random));
@@ -1450,12 +1472,12 @@ public final class PortalStructureHelper {
                     distance,
                     origin.asLong() ^ 0x45BF38D6E0A47C91L
                 );
-                if (convertLocalWaterToLava(level, pieceBox, chunkBox, top)) {
-                    continue;
-                }
-                BlockState naturalSurface = level.getBlockState(terrainTop(level, column.getX(), column.getZ()));
+                TerrainProfile profile = terrainProfile(level, column.getX(), column.getZ());
+                BlockState naturalSurface = profile.naturalSurface();
                 BlockState surface = pickOuterBlendSurface(origin, column, naturalSurface, random, gradient);
                 setColumn(level, pieceBox, chunkBox, top, surface, isNetherScarSurface(surface) ? 2 : 1);
+                settleColumnLiquid(level, pieceBox, chunkBox, top, profile, gradient, origin.asLong());
+                stabilizeScarColumn(level, pieceBox, chunkBox, top, profile, surface, gradient);
             }
         }
     }
@@ -2233,6 +2255,117 @@ public final class PortalStructureHelper {
         }
     }
 
+    private static TerrainProfile terrainProfile(WorldGenLevel level, int x, int z) {
+        int worldSurface = level.getHeight(Heightmap.Types.WORLD_SURFACE_WG, x, z) - 1;
+        int oceanFloor = level.getHeight(Heightmap.Types.OCEAN_FLOOR_WG, x, z) - 1;
+        boolean waterAtSurface = level.getFluidState(new BlockPos(x, worldSurface, z)).is(FluidTags.WATER);
+        int waterDepth = Math.max(0, worldSurface - oceanFloor);
+        boolean hasWater = waterAtSurface || waterDepth > 1;
+        BlockPos floorTop = new BlockPos(x, hasWater ? oceanFloor : worldSurface, z);
+        BlockState naturalSurface = level.getBlockState(floorTop);
+        int slope = columnSlope(level, x, z, floorTop.getY());
+        return new TerrainProfile(floorTop, worldSurface, oceanFloor, waterDepth, hasWater, naturalSurface, slope);
+    }
+
+    private static int columnSlope(WorldGenLevel level, int x, int z, int centerY) {
+        int slope = 0;
+        for (Direction direction : Direction.Plane.HORIZONTAL) {
+            int neighborX = x + direction.getStepX();
+            int neighborZ = z + direction.getStepZ();
+            int neighborSurface = level.getHeight(Heightmap.Types.OCEAN_FLOOR_WG, neighborX, neighborZ) - 1;
+            slope = Math.max(slope, Math.abs(centerY - neighborSurface));
+        }
+        return slope;
+    }
+
+    private static BlockState cooledSupportBlock(TerrainProfile profile, int x, int z, long seed) {
+        double roll = coordinateNoise(seed ^ 0x6732B4D8A19C0E37L, x, z);
+        if (profile.waterDepth() > SHALLOW_WATER_DEPTH) {
+            if (roll < 0.52) {
+                return Blocks.BLACKSTONE.defaultBlockState();
+            }
+            return roll < 0.86 ? Blocks.SMOOTH_BASALT.defaultBlockState() : Blocks.MAGMA_BLOCK.defaultBlockState();
+        }
+        if (roll < 0.45) {
+            return Blocks.BASALT.defaultBlockState();
+        }
+        return roll < 0.82 ? Blocks.BLACKSTONE.defaultBlockState() : Blocks.GRAVEL.defaultBlockState();
+    }
+
+    private static void settleColumnLiquid(
+        WorldGenLevel level,
+        BoundingBox pieceBox,
+        BoundingBox chunkBox,
+        BlockPos top,
+        TerrainProfile profile,
+        double intensity,
+        long seed
+    ) {
+        if (!profile.hasWater()) {
+            return;
+        }
+
+        BlockState cooledCap = cooledWaterCap(profile, top, intensity, seed);
+        set(level, pieceBox, chunkBox, top, cooledCap);
+        set(level, pieceBox, chunkBox, top.below(), underSurfaceBlock(cooledCap));
+        int maxClearY = Math.min(top.getY() + 2, profile.waterSurfaceY() + 1);
+        for (int y = top.getY() + 1; y <= maxClearY; y++) {
+            BlockPos pos = new BlockPos(top.getX(), y, top.getZ());
+            if (level.getFluidState(pos).is(FluidTags.WATER)) {
+                set(level, pieceBox, chunkBox, pos, Blocks.AIR.defaultBlockState());
+            }
+        }
+    }
+
+    private static BlockState cooledWaterCap(TerrainProfile profile, BlockPos top, double intensity, long seed) {
+        double roll = coordinateNoise(seed ^ 0x3485704B952F68F7L, top.getX(), top.getZ());
+        if (profile.waterDepth() > SHALLOW_WATER_DEPTH && roll < 0.34 + intensity * 0.18) {
+            return Blocks.MAGMA_BLOCK.defaultBlockState();
+        }
+        if (roll < 0.56) {
+            return Blocks.SMOOTH_BASALT.defaultBlockState();
+        }
+        return roll < 0.86 ? Blocks.BLACKSTONE.defaultBlockState() : Blocks.GRAVEL.defaultBlockState();
+    }
+
+    private static void stabilizeScarColumn(
+        WorldGenLevel level,
+        BoundingBox pieceBox,
+        BoundingBox chunkBox,
+        BlockPos top,
+        TerrainProfile profile,
+        BlockState surface,
+        double intensity
+    ) {
+        if (profile.slope() < CLIFF_SLOPE_THRESHOLD && !profile.hasWater()) {
+            return;
+        }
+
+        BlockState support = isNetherScarSurface(surface) ? underSurfaceBlock(surface) : Blocks.BLACKSTONE.defaultBlockState();
+        int maxDrop = profile.hasWater() ? Math.min(8, profile.waterDepth() + 2) : Math.min(9, profile.slope() + 1);
+        for (Direction direction : Direction.Plane.HORIZONTAL) {
+            BlockPos neighborColumn = top.relative(direction);
+            if (!isColumnInside(pieceBox, chunkBox, neighborColumn)) {
+                continue;
+            }
+
+            BlockPos neighborTop = terrainTop(level, neighborColumn);
+            int drop = top.getY() - neighborTop.getY();
+            if (drop <= 2) {
+                continue;
+            }
+
+            int minY = Math.max(neighborTop.getY() + 1, top.getY() - maxDrop);
+            for (int y = minY; y < top.getY(); y++) {
+                BlockPos pos = new BlockPos(neighborColumn.getX(), y, neighborColumn.getZ());
+                BlockState existing = level.getBlockState(pos);
+                if (existing.isAir() || level.getFluidState(pos).is(FluidTags.WATER)) {
+                    set(level, pieceBox, chunkBox, pos, support);
+                }
+            }
+        }
+    }
+
     private static boolean isNetherScarSurface(BlockState surface) {
         return surface.is(Blocks.NETHERRACK)
             || surface.is(Blocks.BLACKSTONE)
@@ -2263,37 +2396,15 @@ public final class PortalStructureHelper {
         return Blocks.NETHERRACK.defaultBlockState();
     }
 
-    private static boolean convertLocalWaterToLava(
-        WorldGenLevel level,
-        BoundingBox pieceBox,
-        BoundingBox chunkBox,
-        BlockPos top
+    private record TerrainProfile(
+        BlockPos floorTop,
+        int waterSurfaceY,
+        int oceanFloorY,
+        int waterDepth,
+        boolean hasWater,
+        BlockState naturalSurface,
+        int slope
     ) {
-        if (!pieceBox.isInside(top) || !chunkBox.isInside(top)) {
-            return false;
-        }
-
-        boolean foundWater = level.getFluidState(top).is(FluidTags.WATER);
-        for (int i = 1; i <= 8; i++) {
-            BlockPos waterPos = top.above(i);
-            if (!pieceBox.isInside(waterPos) || !chunkBox.isInside(waterPos)) {
-                break;
-            }
-            if (level.getFluidState(waterPos).is(FluidTags.WATER)) {
-                foundWater = true;
-                set(level, pieceBox, chunkBox, waterPos, Blocks.AIR.defaultBlockState());
-            } else if (foundWater || !level.getBlockState(waterPos).isAir()) {
-                break;
-            }
-        }
-
-        if (!foundWater) {
-            return false;
-        }
-
-        set(level, pieceBox, chunkBox, top.below(), Blocks.NETHERRACK.defaultBlockState());
-        set(level, pieceBox, chunkBox, top, Blocks.LAVA.defaultBlockState());
-        return true;
     }
 
     private static void set(
